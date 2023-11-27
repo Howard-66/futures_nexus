@@ -14,3 +14,7 @@ def load_choice_file(file_path):
     df.reset_index(drop=True, inplace=True)
     df.dropna(axis=0, subset=['日期'], inplace=True)
     return df
+
+def get_data(symbol, context):
+    # 将所有数据的访问方式存储在一张表中，根据要获取的品种和数据项内容，查表并返回数据
+    return 1
