@@ -1,11 +1,13 @@
+import json
+
 # 定义一个商品类
-class Symbol:
+class SymbolData:
     # 定义构造方法，初始化商品的基本属性
-    def __init__(self, id, name, price, producer):
+    def __init__(self, id, name, json_file):
         self.id = id # 商品号
         self.name = name # 商品名
-        self.price = price # 商品价格
-        self.producer = producer # 生产商
+        with open(json_file, encoding='utf-8') as config_file:
+            self.data_index = json.load(config_file)[self.name]
         self.history = [] # 商品历史价格数据，用列表存储
 
     # 定义一个方法，用于向商品历史价格数据中添加新的价格
@@ -41,11 +43,11 @@ class Symbol:
             return (mean, std)
 
 # 定义一个子类，继承商品类
-class MetalSymbol(Symbol):
+class MetalSymbolData(SymbolData):
     # 定义构造方法，初始化子类的属性
-    def __init__(self, id, name, price, producer, discount):
+    def __init__(self, id, name, config_file, discount):
         # 调用父类的构造方法，初始化父类的属性
-        super().__init__(id, name, price, producer)
+        super().__init__(id, name, config_file)
         # 添加子类特有的属性，折扣率
         self.discount = discount
 
