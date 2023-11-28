@@ -9,8 +9,8 @@
         "现货价格": {
             "Name": "现货价格",
             "Source": "AKShare",
-            "Func": "",
-            "Field": ""
+            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢现货价格.xlsx",
+            "Field": "spot_price"
         },
         "产量": {
             "Name": "产量",
