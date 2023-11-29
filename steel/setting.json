@@ -1,16 +1,46 @@
 {
     "螺纹钢": {
-        "主力合约价格": {
-            "Name": "主力合约价格",
+        "主力合约": {
+            "Name": "主力合约",
+            "Source": "AKShare",
+            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+            "Field": "dominant_contract"
+        },
+        "近月合约": {
+            "Name": "近月合约",
+            "Source": "AKShare",
+            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+            "Field": "near_contract"
+        },
+        "主力合约收盘价": {
+            "Name": "主力合约收盘价",
             "Source": "Choice",
             "Path": "steel/data/mid-stream/螺纹钢/螺纹钢期货价格.xlsx",
             "Field": "期货收盘价（主力）：螺纹钢"
         },
+        "主力合约结算价": {
+            "Name": "主力合约结算价",
+            "Source": "AKShare",
+            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢期货价格.xlsx",
+            "Field": "期货结算价（主力）：螺纹钢"
+        },
         "现货价格": {
             "Name": "现货价格",
             "Source": "AKShare",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢现货价格.xlsx",
+            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
             "Field": "spot_price"
+        },
+        "基差": {
+            "Name": "基差",
+            "Source": "AKShare",
+            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+            "Field": "dom_basis"
+        },
+        "基差率": {
+            "Name": "基差率",
+            "Source": "AKShare",
+            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+            "Field": "dom_basis_rate"
         },
         "产量": {
             "Name": "产量",

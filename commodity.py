@@ -51,14 +51,14 @@ class SymbolData:
     def update_akshare_file(self, mode='append', start_date='', end_date=''):
         basis_file = self.data_index['现货价格']['Path']
         df_basis = pd.read_excel(basis_file)
-        # 删除多余的列
-        # df_basis.drop(['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0'], axis=1, inplace=True)
+        df_basis.reset_index(drop=True, inplace=True)
         if mode == 'append':
             today = datetime.now().strftime("%Y%m%d")
             last_date = str(df_basis.iloc[-1]['date'])
             df_append = ak.futures_spot_price_daily(start_day=last_date, end_day=today, vars_list=[self.id])
-            df_basis.iloc[-1] = df_append.iloc[0]
-            df_basis =pd.concat([df_basis, df_append[1:]])
+            # 移除最后一条重复数据，用最新数据替代
+            df_basis.drop(df_basis.shape[0]-1, inplace=True)
+            df_basis =pd.concat([df_basis, df_append])
             df_basis.to_excel(basis_file)
             return df_basis
         elif mode=='period':
