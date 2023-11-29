@@ -27,6 +27,8 @@ class SymbolData:
     """
     # TODO: 注意数据文件多次更新后，文件尾部的内容变化
     def load_choice_file(self, file_path):
+        if file_path=='':
+            return None
         df = pd.read_excel(file_path)
         df.columns = df.iloc[0]
         df.rename(columns={df.columns[0]: '日期'}, inplace=True)
@@ -37,7 +39,7 @@ class SymbolData:
     
     # 读取通过AK Share接口下载保存的数据文件
     def load_akshare_file(self, type):
-        if type == None:
+        if type == '':
             return None
         file_path = self.data_index[type]['Path']
         df = pd.read_excel(file_path)
@@ -46,11 +48,11 @@ class SymbolData:
         # TODO：其他数据格式化
         return df
 
-    def update_akshare_file(self, mode='append'):
+    def update_akshare_file(self, mode='append', start_date='', end_date=''):
         basis_file = self.data_index['现货价格']['Path']
         df_basis = pd.read_excel(basis_file)
         # 删除多余的列
-        df_basis.drop(['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0'], axis=1, inplace=True)
+        # df_basis.drop(['Unnamed: 0.2', 'Unnamed: 0.1', 'Unnamed: 0'], axis=1, inplace=True)
         if mode == 'append':
             today = datetime.now().strftime("%Y%m%d")
             last_date = str(df_basis.iloc[-1]['date'])
@@ -59,7 +61,16 @@ class SymbolData:
             df_basis =pd.concat([df_basis, df_append[1:]])
             df_basis.to_excel(basis_file)
             return df_basis
+        elif mode=='period':
+            if start_date=='' or end_date=='':
+                return None
+            df_period = ak.futures_spot_price_daily(start_day=start_date, end_day=end_date, vars_list=[self.id])
+            df_basis =pd.concat([df_period, df_basis])
+            # TODO: #目前仅支持向前补充数据，待增加与已有数据重叠更新（数据去重）
+            df_basis.to_excel(basis_file)
+            return df_basis
         else:
+            # TODO: 待增加全部更新并覆盖已有数据功能
             # 获取当前日期  
             now = datetime.now()  
             # 获取前一个工作日  
