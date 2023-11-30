@@ -4,11 +4,23 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta,MO
 import akshare as ak
 
-# 定义一个商品类
 class SymbolData:
-    # 定义构造方法，初始化商品的基本属性
+    """品种数据类:
+        用于品种对应的数据更新、加载、预处理和访问
+    """
     def __init__(self, id, name, json_file):
-        if json_file == '':
+        """SymbolData构造函数\n
+        根据品种配置信息构造SymbolData对象
+        
+        Args:
+            id (str): 品种ID，商品期货为英文简写，例如：螺纹钢为'RB'\n
+            name (str): 品种中文名称，例如：螺纹钢\n
+            json_file (str): 品种对应的json文件，主要存储品种的数据索引内容，使用工作目录的相对路径，同一个产业链使用统一的配置文件
+        
+        Returns:
+            SymbolData: 返回SymbolData对象，如果未提供id、name和配置文件，则返回空
+        """
+        if id =='' or name=='' or json_file == '':
             return None
         self.id = id # 商品号
         self.name = name # 商品名
@@ -16,17 +28,20 @@ class SymbolData:
             self.data_index = json.load(config_file)[self.name]
         self.history = [] # 商品历史价格数据，用列表存储
 
-    # 读取choice数据终端导出的数据文件
-    """
-        读取Choice导出的数据文件并按照约定规则格式化
-        处理规则：
-        1、数据的第一行作为指标标题
-        2、第一列作为日期
-        3、前四行和最后一行都不是数据内容
-        4、中间可能存在空行 
-    """
-    # TODO: 注意数据文件多次更新后，文件尾部的内容变化
     def load_choice_file(self, file_path):
+        """读取choice数据终端导出的数据文件.
+            Choiced导出文件格式对应的处理规则. 
+            - 数据的第一行作为指标标题
+            - 第一列作为日期
+            - 前四行和最后一行都不是数据内容
+            - 中间可能存在空行
+            - TODO: 注意数据文件多次更新后，文件尾部的内容变化
+        Args:
+            file_path (str): Choice导出文件(.xlsx)的绝对路径
+
+        Returns:
+            dataframe: 将Choice导出文件内容加载到dataframe，并返回
+        """
         if file_path=='':
             return None
         df = pd.read_excel(file_path)
@@ -37,18 +52,37 @@ class SymbolData:
         df.dropna(axis=0, subset=['日期'], inplace=True)
         return df
     
-    # 读取通过AK Share接口下载保存的数据文件
-    def load_akshare_file(self, type):
-        if type == '':
+    def load_akshare_file(self, file_path):
+        """读取通过AK Share接口下载保存的数据文件
+
+        Args:
+            file_path (str): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        if file_path == '':
             return None
-        file_path = self.data_index[type]['Path']
         df = pd.read_excel(file_path)
         # 格式化日期
-        df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+        # df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
         # TODO：其他数据格式化
         return df
 
     def update_akshare_file(self, mode='append', start_date='', end_date=''):
+        """通过AKShare接口更新历史数据
+
+        Args:
+            mode (str, optional): 更新模式. 默认值为 'append'.
+            - append: 根据文件最后记录，更新到当前日期，会覆盖更新历史数据中的最后一条记录
+            - period: 仅更新制定时间段的数据（目前仅支持向前追加，不做去重）
+            - all: 全部更新，并覆盖原数据\n
+            start_date (str, optional): 数据更新的起始日期\n
+            end_date (str, optional): 数据更新的默认日期.
+
+        Returns:
+            dataframe: 将新增数据与原数据合并并返回，同时保存至文件
+        """
         basis_file = self.data_index['现货价格']['Path']
         df_basis = pd.read_excel(basis_file)
         df_basis.reset_index(drop=True, inplace=True)
