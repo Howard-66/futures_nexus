@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta,MO
 import akshare as ak
+from functools import reduce
 
 class SymbolData:
     """品种数据类:
@@ -47,9 +48,11 @@ class SymbolData:
         df = pd.read_excel(file_path)
         df.columns = df.iloc[0]
         df.rename(columns={df.columns[0]: '日期'}, inplace=True)
-        df = df[4:-1]
+        df = df[4:]
         df.reset_index(drop=True, inplace=True)
         df.dropna(axis=0, subset=['日期'], inplace=True)
+        df = df[df['日期'] != '数据来源：东方财富Choice数据']
+        df['日期'] = pd.to_datetime(df['日期'])
         return df
     
     def load_akshare_file(self, file_path):
@@ -65,7 +68,8 @@ class SymbolData:
             return None
         df = pd.read_excel(file_path)
         # 格式化日期
-        # df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+        df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+        df.rename(columns={'date': '日期'}, inplace=True)
         # TODO：其他数据格式化
         return df
 
@@ -115,9 +119,40 @@ class SymbolData:
             print('other modes is not implemented in update_akshare_file.')
             return None
 
-    def merge_data(self, dfs):
-        self.symbol_data = pd.merge(dfs[0], dfs[1], on='日期', how='outer')
-        # TODO:
+    def merge_data(self):
+        """对数据索引中引用到的数据进行合并
+            根据数据源（Choice/AKShare）调用对应的文件加载方法，并按照约定格式化数据，日期数据格式化为datatime，并按照升序排列，对应日期确实数据的置位NaN。
+        Returns:
+            dataframe: 返回合并后的数据
+        """
+        column_dict= {}
+        data_frames = []
+        for key in self.data_index:
+            if key=='利润公式':
+                continue
+            value_items =self.data_index[key]
+            df_name = value_items['DataFrame']
+            if df_name in locals():
+                None
+            else:
+                data_source = value_items['Source']
+                if data_source=='Choice':
+                    locals()[df_name] = self.load_choice_file(value_items['Path'])
+                elif data_source=='AKShare':
+                    locals()[df_name] = self.load_akshare_file(value_items['Path'])
+                else:
+                    None
+                column_dict[df_name] = ['日期']
+            column_dict[df_name].append(value_items['Field'])
+        for df_key in column_dict:
+            locals()[df_key] = locals()[df_key][column_dict[df_key]]
+            data_frames.append(locals()[df_key])
+        self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='日期', how='outer'), data_frames)
+        for key in self.data_index:
+            if key=='利润公式':
+                continue
+            self.symbol_data.rename(columns={self.data_index[key]['Field']:key}, inplace=True)
+        self.symbol_data.sort_values(by='日期', ascending=True, inplace=True)
         return self.symbol_data
 
     # 定义一个方法，用于评估商品的价值，根据商品历史价格数据的平均值和标准差进行评估
