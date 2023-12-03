@@ -26,17 +26,22 @@ class SymbolData:
         self.id = id # 商品号
         self.name = name # 商品名
         with open(json_file, encoding='utf-8') as config_file:
-            self.data_index = json.load(config_file)[self.name]
-        self.history = [] # 商品历史价格数据，用列表存储
+            self.symbol_setting = json.load(config_file)[self.name]
 
     def load_choice_file(self, file_path):
         """读取choice数据终端导出的数据文件.
             Choiced导出文件格式对应的处理规则. 
+            - 原文件第一行为“宏观数据“或类似内容，但read_excel方法未加载该行内容
             - 数据的第一行作为指标标题
             - 第一列作为日期
             - 前四行和最后一行都不是数据内容
-            - 中间可能存在空行
-            - TODO: 注意数据文件多次更新后，文件尾部的内容变化
+            - 剔除“日期”字段为空的行和其他非数据内容（标识数据来源的文字内容）
+            
+            Choice文件导出注意事项：
+            - 导出字段选择：指标名称、频率、单位、来源
+            - 日期排序：降序
+            - 图形设置：不导出图形
+            - 勾选“使用函数方式导出”
         Args:
             file_path (str): Choice导出文件(.xlsx)的绝对路径
 
@@ -59,10 +64,10 @@ class SymbolData:
         """读取通过AK Share接口下载保存的数据文件
 
         Args:
-            file_path (str): _description_
+            file_path (str): 通过AKShare接口下载并保存的Excel文件绝对路径+文件名
 
         Returns:
-            _type_: _description_
+            dataframe: 将加载的Excel文件经过格式化处理后以dataframe返回
         """
         if file_path == '':
             return None
@@ -87,7 +92,7 @@ class SymbolData:
         Returns:
             dataframe: 将新增数据与原数据合并并返回，同时保存至文件
         """
-        basis_file = self.data_index['现货价格']['Path']
+        basis_file = self.symbol_setting['DataIndex']['现货价格']['Path']
         df_basis = pd.read_excel(basis_file)
         df_basis.reset_index(drop=True, inplace=True)
         if mode == 'append':
@@ -127,10 +132,9 @@ class SymbolData:
         """
         column_dict= {}
         data_frames = []
-        for key in self.data_index:
-            if key=='利润公式':
-                continue
-            value_items =self.data_index[key]
+        data_index = self.symbol_setting['DataIndex']
+        for key in data_index:
+            value_items =data_index[key]
             df_name = value_items['DataFrame']
             if df_name in locals():
                 None
@@ -148,29 +152,14 @@ class SymbolData:
             locals()[df_key] = locals()[df_key][column_dict[df_key]]
             data_frames.append(locals()[df_key])
         self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='日期', how='outer'), data_frames)
-        for key in self.data_index:
-            if key=='利润公式':
-                continue
-            self.symbol_data.rename(columns={self.data_index[key]['Field']:key}, inplace=True)
+        for key in data_index:
+            self.symbol_data.rename(columns={data_index[key]['Field']:key}, inplace=True)
         self.symbol_data.sort_values(by='日期', ascending=True, inplace=True)
+        # TODO: 通过AKShare获取的基差/基差率数据（螺纹钢）出现正负符号错误，其他品种待验证（如存在普遍现象，需要统一纠正）
+        if '基差' not in data_index:
+            self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data['主力合约结算价']
+            self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
         return self.symbol_data
-
-    # 定义一个方法，用于评估商品的价值，根据商品历史价格数据的平均值和标准差进行评估
-    def evaluate_value(self):
-        # 如果商品历史价格数据为空，返回None
-        if len(self.history) == 0:
-            return None
-        # 否则，计算商品历史价格数据的平均值和标准差
-        else:
-            # 导入math模块，用于计算平方根
-            import math
-            # 计算平均值
-            mean = sum(self.history) / len(self.history)
-            # 计算标准差
-            variance = sum([(x - mean) ** 2 for x in self.history]) / len(self.history)
-            std = math.sqrt(variance)
-            # 返回平均值和标准差的元组
-            return (mean, std)
 
 # 定义一个子类，继承商品类
 class MetalSymbolData(SymbolData):
@@ -181,15 +170,6 @@ class MetalSymbolData(SymbolData):
         # 添加子类特有的属性，折扣率
         self.discount = discount
 
-    # 重写父类的evaluate_value方法，根据折扣率计算商品的价值
-    def evaluate_value(self):
-        # 如果商品历史价格数据为空，返回None
-        if len(self.history) == 0:
-            return None
-        # 否则，计算商品历史价格数据的平均值
-        else:
-            mean = sum(self.history) / len(self.history)
-            # 根据折扣率计算商品的价值
-            value = mean * (1 - self.discount)
-            # 返回商品的价值
-            return value
+    # 重写父类的merge_data方法
+    def merge_data(self):
+        return None

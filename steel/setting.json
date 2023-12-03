@@ -1,81 +1,83 @@
 {
     "螺纹钢": {
-        "主力合约": {
-            "Name": "dominant_contract",
-            "Source": "AKShare",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
-            "Field": "dominant_contract",
-            "DataFrame": "df_basis"
-        },
-        "近月合约": {
-            "Name": "near_contract",
-            "Source": "AKShare",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
-            "Field": "near_contract",
-            "DataFrame": "df_basis"
-        },
-        "主力合约收盘价": {
-            "Name": "dominant_close_price",
-            "Source": "Choice",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢期货价格.xlsx",
-            "Field": "期货收盘价（主力）：螺纹钢",
-            "DataFrame": "df_dominant"
-        },
-        "主力合约结算价": {
-            "Name": "dominant_settle_price",
-            "Source": "AKShare",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢期货价格.xlsx",
-            "Field": "期货结算价（主力）：螺纹钢",
-            "DataFrame": "df_dominant"
-        },
-        "现货价格": {
-            "Name": "spot_price",
-            "Source": "AKShare",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
-            "Field": "spot_price",
-            "DataFrame": "df_basis"
-        },
-        "基差": {
-            "Name": "basis",
-            "Source": "AKShare",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
-            "Field": "dom_basis",
-            "DataFrame": "df_basis"
-        },
-        "基差率": {
-            "Name": "basis_rate",
-            "Source": "AKShare",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
-            "Field": "dom_basis_rate",
-            "DataFrame": "df_basis"
-        },
-        "产量": {
-            "Name": "production",
-            "Source": "Choice",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢产量.xlsx",
-            "Field": "产量：钢筋：全国：当月值",
-            "DataFrame": "df_prodoction"
-        },
-        "销量": {
-            "Name": "sales",
-            "Source": "Choice",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢销量.xlsx",
-            "Field": "销量：钢筋：累计值",
-            "DataFrame": "df_sales"
-        },
-        "库存": {
-            "Name": "instock",
-            "Source": "Choice",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
-            "Field": "库存：螺纹钢：合计",
-            "DataFrame": "df_instock"
-        },
-        "仓单": {
-            "Name": "receipt",
-            "Source": "Choice",
-            "Path": "steel/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
-            "Field": "仓单数量：螺纹钢",
-            "DataFrame": "df_instock"
+        "DataIndex": {
+            "主力合约": {
+                "Name": "dominant_contract",
+                "Source": "AKShare",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+                "Field": "dominant_contract",
+                "DataFrame": "df_basis"
+            },
+            "近月合约": {
+                "Name": "near_contract",
+                "Source": "AKShare",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+                "Field": "near_contract",
+                "DataFrame": "df_basis"
+            },
+            "主力合约收盘价": {
+                "Name": "dominant_close_price",
+                "Source": "Choice",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢期货价格.xlsx",
+                "Field": "期货收盘价（主力）：螺纹钢",
+                "DataFrame": "df_dominant"
+            },
+            "主力合约结算价": {
+                "Name": "dominant_settle_price",
+                "Source": "Choice",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢期货价格.xlsx",
+                "Field": "期货结算价（主力）：螺纹钢",
+                "DataFrame": "df_dominant"
+            },
+            "现货价格": {
+                "Name": "spot_price",
+                "Source": "AKShare",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+                "Field": "spot_price",
+                "DataFrame": "df_basis"
+            },
+            "基差": {
+                "Name": "basis",
+                "Source": "AKShare",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+                "Field": "dom_basis",
+                "DataFrame": "df_basis"
+            },
+            "基差率": {
+                "Name": "basis_rate",
+                "Source": "AKShare",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢基差.xlsx",
+                "Field": "dom_basis_rate",
+                "DataFrame": "df_basis"
+            },
+            "产量": {
+                "Name": "production",
+                "Source": "Choice",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢产量.xlsx",
+                "Field": "产量：钢筋：全国：当月值",
+                "DataFrame": "df_prodoction"
+            },
+            "销量": {
+                "Name": "sales",
+                "Source": "Choice",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢销量.xlsx",
+                "Field": "销量：钢筋：累计值",
+                "DataFrame": "df_sales"
+            },
+            "库存": {
+                "Name": "instock",
+                "Source": "Choice",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
+                "Field": "库存：螺纹钢：合计",
+                "DataFrame": "df_instock"
+            },
+            "仓单": {
+                "Name": "receipt",
+                "Source": "Choice",
+                "Path": "steel/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
+                "Field": "仓单数量：螺纹钢",
+                "DataFrame": "df_instock"
+            }
         },
         "利润公式": {
             "Name": "profit_formula",
