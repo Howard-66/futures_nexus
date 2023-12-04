@@ -1,5 +1,6 @@
 import json
 import pandas as pd
+import numpy as np
 from datetime import datetime
 from dateutil.relativedelta import relativedelta,MO
 import akshare as ak
@@ -160,6 +161,42 @@ class SymbolData:
             self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data['主力合约结算价']
             self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
         return self.symbol_data
+    
+    def history_time_ratio(self, field, df_rank = None, mode='time', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
+        """返回指定数据序列的历史分位
+            计算数据在序列中的历史数值百分位或时间百分位，并根据区间划定分位.
+        Args:
+            - field (str): symbol_data中的字段名称
+            - df_rank (DataFrame, optional): 指定用于存储返回结果的DataFrame. 默认为空：创建DataFrame并返回；不为空时直接追加“历史百分位”、“历史分位”两列结果.
+            - mode (str, optional): 计算模式. 'time'：默认值，计算数据在序列中的时间百分位；'value'：根据数据在序列中的最大值最小值范围，确定百分位.
+            - quantiles (list, optional): 分位分区. 默认分区为 [0, 20, 40, 60, 80, 100].
+            - ranks (list, optional): 分区标签. 默认为 [1, 2, 3, 4, 5].
+
+        Returns:
+            DataFrame: df_rank为空时，创建并返回一个新的DataFrame，包含“历史百分位”、“历史分位”两列结果；不为空时在指定DataFrame后追加
+        """
+        if df_rank.empty:
+            df_rank= pd.DataFrame()
+        # df_rank['日期'] = self.symbol_data['日期']
+        if mode=='time':
+            value_field = field + '历史时间百分位'
+            rank_field = field + '历史时间分位'
+            df_rank[value_field] = self.symbol_data[field].rank(method='min', ascending=True)
+            rank_count = len(df_rank[value_field].dropna())
+            df_rank[value_field] = df_rank[value_field] / rank_count
+            quantiles = np.percentile(df_rank[value_field].dropna(), quantiles)
+        elif mode=='value':
+            value_field = field + '历史数值百分位'
+            rank_field = field + '历史数值分位'
+            max_value = self.symbol_data[field].max()
+            min_value=self.symbol_data[field].min()
+            scope = max_value - min_value
+            df_rank[value_field] = (self.symbol_data[field] - min_value) / scope
+            quantiles = list(map(lambda x: x/100, quantiles))
+        else:
+            None
+        df_rank[rank_field] = pd.cut(df_rank[value_field].dropna(), bins=quantiles, labels=ranks, include_lowest=True, duplicates='drop', right=False)
+        return df_rank
 
 # 定义一个子类，继承商品类
 class MetalSymbolData(SymbolData):
