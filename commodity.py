@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import numpy as np
+import warnings
 from datetime import datetime
 from dateutil.relativedelta import relativedelta,MO
 import akshare as ak
@@ -84,8 +85,9 @@ class SymbolData:
 
         Args:
             mode (str, optional): 更新模式. 默认值为 'append'.
+            - initial: 根据指定的时间段初始创建数据文件，后续使用period模式向前补充、append模式向后补充
             - append: 根据文件最后记录，更新到当前日期，会覆盖更新历史数据中的最后一条记录
-            - period: 仅更新制定时间段的数据（目前仅支持向前追加，不做去重）
+            - period: 仅更新指定时间段的数据（目前仅支持向前追加，不做去重）
             - all: 全部更新，并覆盖原数据\n
             start_date (str, optional): 数据更新的起始日期\n
             end_date (str, optional): 数据更新的默认日期.
@@ -94,25 +96,41 @@ class SymbolData:
             dataframe: 将新增数据与原数据合并并返回，同时保存至文件
         """
         basis_file = self.symbol_setting['DataIndex']['现货价格']['Path']
-        df_basis = pd.read_excel(basis_file)
-        df_basis.reset_index(drop=True, inplace=True)
         if mode == 'append':
+            df_basis = pd.read_excel(basis_file)
+            df_basis.reset_index(drop=True, inplace=True)
             today = datetime.now().strftime("%Y%m%d")
             last_date = str(df_basis.iloc[-1]['date'])
             df_append = ak.futures_spot_price_daily(start_day=last_date, end_day=today, vars_list=[self.id])
             # 移除最后一条重复数据，用最新数据替代
             df_basis.drop(df_basis.shape[0]-1, inplace=True)
             df_basis =pd.concat([df_basis, df_append])
-            df_basis.to_excel(basis_file)
+            df_basis.to_excel(basis_file, index=False)
             return df_basis
         elif mode=='period':
             if start_date=='' or end_date=='':
                 return None
-            df_period = ak.futures_spot_price_daily(start_day=start_date, end_day=end_date, vars_list=[self.id])
-            df_basis =pd.concat([df_period, df_basis])
-            # TODO: #目前仅支持向前补充数据，待增加与已有数据重叠更新（数据去重）
-            df_basis.to_excel(basis_file)
-            return df_basis
+            df_basis = pd.read_excel(basis_file)
+            df_basis.reset_index(drop=True, inplace=True)          
+            try:
+                df_period = ak.futures_spot_price_daily(start_day=start_date, end_day=end_date, vars_list=[self.id])
+                df_basis =pd.concat([df_period, df_basis])
+                # TODO: #目前仅支持向前补充数据，待增加与已有数据重叠更新（数据去重）
+                df_basis.to_excel(basis_file, index=False)
+                return df_basis                                
+            except Exception as e:
+                print(f"Error in downloading data: {e}") 
+                return df_basis
+        elif mode=='initial':
+            if start_date=='' or end_date=='':
+                return None
+            try:
+                df_basis = ak.futures_spot_price_daily(start_day=start_date, end_day=end_date, vars_list=[self.id])
+                df_basis.to_excel(basis_file, index=False)
+                return df_basis
+            except Exception as e:
+                print(f"Error in downloading data: {e}") 
+                return df_basis
         else:
             # TODO: 待增加全部更新并覆盖已有数据功能
             # 获取当前日期  
