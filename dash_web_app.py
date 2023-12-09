@@ -66,7 +66,6 @@ def update_graph(col_chosen):
     fig_basis = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', marker_color='rgb(239,181,59)')
     #fig_main.add_trace(fig_future_price)
     #fig_main.add_trace(fig_basis_rate, secondary_y=True)
-
     fig.add_trace(fig_basis, secondary_y=True)
     fig.add_trace(fig_future_price, row = 1, col = 1)
     fig.add_trace(fig_spot_price, row = 1, col = 1)

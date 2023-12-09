@@ -114,6 +114,11 @@ class SymbolData:
         df = pd.read_excel(file_path)
         # 格式化日期
         df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
+        # 纠正AKShare基差/基差率计算错误（正负号）
+        df['near_basis'] = -df['near_basis']
+        df['dom_basis'] = -df['dom_basis']
+        df['near_basis_rate'] = -df['near_basis_rate']
+        df['dom_basis_rate'] = -df['dom_basis_rate']
         df.rename(columns={'date': '日期'}, inplace=True)
         # TODO：其他数据格式化
         return df
