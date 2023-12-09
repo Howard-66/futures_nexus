@@ -11,15 +11,16 @@ class SymbolData:
     """品种数据类:
         用于品种对应的数据更新、加载、预处理和访问
     """
-    def __init__(self, id, name, json_file):
-        """SymbolData构造函数\n
-        根据品种配置信息构造SymbolData对象
-        
+    def __init__(self, id, name, json_file, symbol_setting=''):
+        """
+        SymbolData类的构造函数。
+    
         Args:
-            id (str): 品种ID，商品期货为英文简写，例如：螺纹钢为'RB'\n
-            name (str): 品种中文名称，例如：螺纹钢\n
-            json_file (str): 品种对应的json文件，主要存储品种的数据索引内容，使用工作目录的相对路径，同一个产业链使用统一的配置文件
-        
+            id (str): 品种ID，商品期货为英文简写，例如：螺纹钢为'RB'。
+            name (str): 品种中文名称，例如：螺纹钢。
+            json_file (str): 品种对应的json文件，主要存储品种的数据索引内容，使用工作目录的相对路径，同一个产业链使用统一的配置文件。
+            symbol_setting (str, optional): 符号设置的字典。默认为空。
+    
         Returns:
             SymbolData: 返回SymbolData对象，如果未提供id、name和配置文件，则返回空
         """
@@ -27,8 +28,45 @@ class SymbolData:
             return None
         self.id = id # 商品号
         self.name = name # 商品名
-        with open(json_file, encoding='utf-8') as config_file:
-            self.symbol_setting = json.load(config_file)[self.name]
+        self.config_file = json_file
+        if symbol_setting == '':
+            with open(json_file, encoding='utf-8') as config_file:
+                self.symbol_setting = json.load(config_file)[self.name]            
+        else:
+            self.config_symbol_setting(symbol_setting)
+
+    def config_symbol_setting(self, symbol_setting):
+        """
+        更新配置文件的内容。    
+        Args:
+            symbol_setting (dict): 符号设置的字典。
+    
+        Raises:
+            IOError: 如果读取或写入配置文件时发生错误，则抛出IOError异常。
+        """
+        # 方法实现代码...
+        # 先读取已有配置文件内容
+        try:
+            with open(self.config_file, 'r', encoding='utf-8') as config_file:
+                existing_data = json.load(config_file)
+        except IOError as e:
+            print(f"Error reading configuration: {e}")
+            existing_data = {}
+
+        # 将新内容添加到原有内容中
+        if self.name not in existing_data:
+            existing_data[self.name] = symbol_setting
+        else:
+            existing_data[self.name].update(symbol_setting)
+        # existing_data.update({symbol_name: symbol_setting})
+        self.symbol_setting = existing_data[self.name]
+
+        # 将合并后的内容写入文件
+        try:
+            with open(self.config_file, 'w', encoding='utf-8') as config_file:
+                json.dump(existing_data, config_file, indent=4, ensure_ascii=False)
+        except IOError as e:
+            print(f"Error saving configuration: {e}")
 
     def load_choice_file(self, file_path):
         """读取choice数据终端导出的数据文件.
