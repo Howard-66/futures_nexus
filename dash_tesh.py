@@ -9,7 +9,7 @@ from plotly.subplots import make_subplots
 import commodity
 import akshare as ak
 
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
 
 tab1_content = html.Div(
     [
@@ -169,6 +169,7 @@ def update_graph(col_chosen):
     fig_future_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', marker_color='rgb(84,134,240)')
     fig_spot_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
     fig_basis = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', marker_color='rgb(239,181,59)')
+    fig_basis.showlegend = False
     #fig_main.add_trace(fig_future_price)
     #fig_main.add_trace(fig_basis_rate, secondary_y=True)
 
@@ -197,6 +198,7 @@ def update_graph(col_chosen):
     fig_receipt_rank = go.Scatter(x=df_rank['日期'], y=df_rank['仓单历史时间百分位'], name='仓单分位', marker_color='rgb(239,181,59)')
     fig_storage_rank = go.Bar(x=df_rank['日期'], y=df_rank['库存历史时间百分位'], name='库存分位', marker_color='rgb(234,69,70)')
     #fig_storage = px.bar(df_rb0, x='日期', y='库存')
+    fig_receipt_rank.showlegend = False
     fig.add_trace(fig_receipt_rank, row = 3, col = 1, secondary_y=True)
     fig.add_trace(fig_storage_rank, row = 3, col = 1)
 
@@ -207,6 +209,7 @@ def update_graph(col_chosen):
 
     fig_spot_profit = go.Scatter(x=df_rank['日期'], y=df_rank['现货利润历史时间百分位'], name='现货利润历史时间百分位', marker_color='rgb(239,181,59)')
     fig_future_profit = go.Bar(x=df_rank['日期'], y=df_rank['盘面利润历史时间百分位'], name='盘面利润历史时间百分位', marker_color='rgb(234,69,70)')
+    fig_future_profit.showlegend = False
     fig.add_trace(fig_spot_profit, row = 4, col = 1, secondary_y=True)
     fig.add_trace(fig_future_profit, row = 4, col = 1)
 
@@ -224,16 +227,17 @@ def update_graph(col_chosen):
         ticklabelmode="period",   # instant  period
         tickformat="%b\n%Y",
         rangebreaks=[dict(values=dt_breaks)],
-        rangeslider_visible = False, # 下方滑动条缩放
-        rangeselector = dict(
-            # 增加固定范围选择
-            buttons = list([
-                dict(count = 1, label = '1M', step = 'month', stepmode = 'backward'),
-                dict(count = 6, label = '6M', step = 'month', stepmode = 'backward'),
-                dict(count = 1, label = '1Y', step = 'year', stepmode = 'backward'),
-                dict(count = 1, label = 'YTD', step = 'year', stepmode = 'todate'),
-                dict(step = 'all')
-                ]))
+        rangeslider_visible = False # 下方滑动条缩放
+        # 数据日期选择按钮
+        # rangeselector = dict(
+        #     # 增加固定范围选择
+        #     buttons = list([
+        #         dict(count = 1, label = '1M', step = 'month', stepmode = 'backward'),
+        #         dict(count = 6, label = '6M', step = 'month', stepmode = 'backward'),
+        #         dict(count = 1, label = '1Y', step = 'year', stepmode = 'backward'),
+        #         dict(count = 1, label = 'YTD', step = 'year', stepmode = 'todate'),
+        #         dict(step = 'all')
+        #         ]))
     )
     #fig.update_traces(xbins_size="M1")
     fig.update_layout(
@@ -241,7 +245,14 @@ def update_graph(col_chosen):
         #autosize=False,
         #width=800,
         height=1000,
-        margin=dict(l=0, r=0, t=0, b=0)
+        margin=dict(l=0, r=0, t=0, b=0),
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=1.02,
+            xanchor='right',
+            x=1
+        )
     )
     return fig
 
