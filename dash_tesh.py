@@ -11,24 +11,88 @@ import akshare as ak
 
 app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
 
-tab1_content = html.Div(
+main_chart_config =dbc.Accordion(
     [
-        dbc.Col(
-            html.Div([
-                dbc.Card(
-                    dbc.CardBody(
-                        [
-                            html.P("This is tab 1.1!", className="card-text"),
-                            dbc.Button("Click here", color="success"),
-                        ]
-                    ),
-                    className="mt-3",
+        dbc.AccordionItem(
+            [
+                dbc.Label('选择指标分析组合：', color='darkblue'),
+                dbc.Select(
+                    options=['基差-库存/仓单', '基差-库存-现货利润', '基差-库存/仓单-现货利润/盘面利润', '基差-库存效费比-现货利润',
+                             '基差-库存/仓单-现货利润/盘面利润历史分位'],
+                    value='基差-库存/仓单-现货利润/盘面利润历史分位',
+                    id='select_index_group',
                 ),
-            ]), 
-            width=3),
-        dbc.Col(html.Div("One of right columns"), width=3),
-    ]
+                html.Hr(),
+                dbc.Label('选择分析指标：', color='darkblue'),
+                dbc.Checklist(
+                    options=['基差率', '库存/仓单', '库存消费比', '库存/仓单-历史百分位', '现货利润/盘面利润','现货利润/盘面利润-历史百分位' ],
+                    value=['基差率', '库存/仓单-历史百分位', '现货利润/盘面利润-历史百分位'],
+                    id='select_index',
+                    inline=True
+                ),
+                html.Hr(),
+                dbc.Label('标记区间：', color='darkblue'),
+                dbc.Checklist(
+                    options=['现货交易月', '指标共振周期'],
+                    value=['现货交易月', '指标共振周期'],
+                    id='switch_marker',
+                    switch=True,
+                    inline=True
+                ),
+                html.Hr(),
+                dbc.Label('共振指标设置：', color='darkblue'),
+                dbc.Checklist(
+                    options=['基差率', '库存', '库存-历史分位', '仓单', '仓单-历史分位', '库存消费比', '现货利润', '现货利润-历史分位', '盘面利润', '盘面利润-历史分位'],
+                    value=['基差率', '库存-历史分位', '现货利润-历史分位'],
+                    id='select_synchronize_index',
+                    inline=True                    
+                ),
+                html.Hr(),
+                dbc.Label('历史分位回溯时间：', color='darkblue'),
+                dcc.Slider(
+                    0, 130, value=60,
+                    step=None,
+                    marks={
+                        6: '6个月',
+                        12: '1年',
+                        24: '2年',
+                        36: '3年',
+                        60: '5年',
+                        120: '10年',
+                        130: {'label': 'All', 'style': {'color': 'darkblue'}}
+                    },
+                    id='look-forward-months'
+                )
+            ], 
+        title='图表设置'),
+    ],
+    start_collapsed=True,
+    # flush=True,
 )
+
+tab_main2 = html.Div([
+    # 主框架
+    dbc.Row([
+        # 左侧面板
+        dbc.Col([
+            # 配置面板
+            main_chart_config,
+            # 图表面板
+            dcc.Graph(figure={}, id='graph-placeholder'),    
+        ], width=8),
+        # 右侧面板
+        dbc.Col([
+            # 跨期分析图表
+            dbc.Row(
+
+            ),
+            # 期限结构分析图表
+            dbc.Row(
+
+            )
+        ], width=4)
+    ])
+])
 
 tab_main = html.Div(
     [
@@ -44,7 +108,7 @@ tab_main = html.Div(
                                     id='main_chart_dropdown',
                                     multi=True
                                 ),              
-                                dcc.Graph(figure={}, id='graph-placeholder'),                                           
+                                # dcc.Graph(figure={}, id='graph-placeholder'),                                           
                             ]
                         ),
                         className="mt-3",
@@ -101,7 +165,7 @@ app.layout = dbc.Container(
             dbc.CardBody(
                 dbc.Tabs(
                     [
-                        dbc.Tab(tab1_content, label="Tab 1", tab_id="tab-1"),
+                        dbc.Tab(tab_main2, label="Tab 1", tab_id="tab-1"),
                         dbc.Tab(tab_main, label="Tab 2", tab_id="tab-2"),
                     ],
                     id="card-tabs",

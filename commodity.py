@@ -11,6 +11,7 @@ class SymbolData:
     """品种数据类:
         用于品种对应的数据更新、加载、预处理和访问
     """
+    
     def __init__(self, id, name, json_file, symbol_setting=''):
         """
         SymbolData类的构造函数。
@@ -29,6 +30,8 @@ class SymbolData:
         self.id = id # 商品号
         self.name = name # 商品名
         self.config_file = json_file
+        self.basis_color = pd.DataFrame()
+        self.data_rank = pd.DataFrame()
         if symbol_setting == '':
             with open(json_file, encoding='utf-8') as config_file:
                 self.symbol_setting = json.load(config_file)[self.name]            
@@ -221,7 +224,7 @@ class SymbolData:
         if '基差' not in data_index:
             self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data['主力合约结算价']
             self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
-        return self.symbol_data
+        return
     
     def history_time_ratio(self, field, df_rank = None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
         """返回指定数据序列的历史分位
@@ -265,11 +268,18 @@ class SymbolData:
             None
         df_append[rank_field] = pd.cut(df_append[value_field].dropna(), bins=quantiles, labels=ranks, include_lowest=True, duplicates='drop', right=False)
         if df_rank.empty:
-            return df_append
+            df_rank = df_append
         else:
             df_rank = pd.merge(df_rank, df_append, on='日期', how='outer')
-            return df_rank
+        return df_rank
 
+    def calculate_data_rank(self, data_list=['库存', '仓单', '现货利润', '盘面利润'], trace_back_months='all'):
+        self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
+        self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
+        for field in data_list:
+            self.data_rank  = self.history_time_ratio(field, df_rank=self.data_rank, trace_back_months=trace_back_months)
+        return self.data_rank
+    
 # 定义一个子类，继承商品类
 class MetalSymbolData(SymbolData):
     # 定义构造方法，初始化子类的属性
