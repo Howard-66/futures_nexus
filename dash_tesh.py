@@ -83,9 +83,15 @@ tab_main2 = html.Div([
         # 左侧面板
         dbc.Col([
             # 配置面板
-            main_chart_config,
+            dbc.Row(main_chart_config),
             # 图表面板
-            dcc.Graph(figure={}, id='graph-placeholder'),    
+            dbc.Row(
+                dbc.Card(
+                    dbc.CardBody([
+                        dcc.Graph(figure={}, id='graph-placeholder'),    
+                    ])
+                )
+            )                        
         ], width=9),
         # 右侧面板
         dbc.Col([
@@ -188,7 +194,7 @@ def create_main_chart():
                                 marker_color='rgb(84,134,240)')
     fig_spot_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
     fig_basis = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
-                        marker_color='rgb(239,181,59)', showlegend=False)
+                        marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False)
     main_figure.add_trace(fig_basis, secondary_y=True)
     main_figure.add_trace(fig_future_price, row = 1, col = 1)
     main_figure.add_trace(fig_spot_price, row = 1, col = 1)
