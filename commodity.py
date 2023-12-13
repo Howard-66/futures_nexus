@@ -220,7 +220,7 @@ class SymbolData:
         for key in data_index:
             self.symbol_data.rename(columns={data_index[key]['Field']:key}, inplace=True)
         self.symbol_data.sort_values(by='日期', ascending=True, inplace=True)
-        # TODO: 通过AKShare获取的基差/基差率数据（螺纹钢）出现正负符号错误，其他品种待验证（如存在普遍现象，需要统一纠正）
+        self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
         if '基差' not in data_index:
             self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data['主力合约结算价']
             self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
