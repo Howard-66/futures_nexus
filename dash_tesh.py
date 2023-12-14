@@ -171,7 +171,7 @@ def initial_data():
     profit_i = symbol_i.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
     profit_i.rename(columns={'现货价格': symbol_i.name+'现货', '主力合约结算价': symbol_i.name+'期货'}, inplace=True)
     # 计算品种的现货利润和盘面利润
-    formula = symbol.symbol_setting['利润公式']
+    formula = symbol.symbol_setting['ProfitFormula']
     df_profit = pd.merge(profit_j, profit_i, on='日期', how='outer')
     df_profit = pd.merge(symbol.symbol_data[['日期', '现货价格', '主力合约结算价']], df_profit, on='日期', how='outer').dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'])
     df_profit['现货利润'] = df_profit['现货价格'] - formula[symbol_j.name] * df_profit[symbol_j.name+'现货'] - formula[symbol_j.name] * df_profit[symbol_i.name+'现货'] - formula['其他成本']
@@ -206,6 +206,7 @@ def create_main_chart():
 )
 def update_graph(col_chosen):
     initial_data()
+    symbol.get_spot_months()
     create_main_chart()
 
     # 创建副图-基差率，并根据基差率正负配色
@@ -271,6 +272,26 @@ def update_graph(col_chosen):
     dt_all = [d.strftime("%Y-%m-%d") for d in dt_all]
     dt_breaks = list(set(dt_all) - set(trade_date))
 
+    for _, row in symbol.spot_months.iterrows():
+        main_figure.add_shape(
+            # 矩形
+            type="rect",
+            # 矩形的坐标
+            x0=row['Start Date'],
+            x1=row['End Date'],
+            y0=0,
+            y1=1,
+            xref='x',
+            yref='paper',
+            # 矩形的颜色和透明度
+            fillcolor="LightBlue",
+            opacity=0.1,
+            # 矩形的边框
+            line_width=0,
+            # 矩形在数据之下
+            layer="below"
+        )
+
     # X轴坐标按照年-月显示
     main_figure.update_xaxes(
         showgrid=True,
@@ -299,6 +320,10 @@ def update_graph(col_chosen):
         #width=800,
         height=1200,
         margin=dict(l=0, r=0, t=0, b=0),
+        plot_bgcolor='WhiteSmoke',
+        xaxis_showgrid=False,
+        yaxis_showgrid=False,
+        yaxis2_showgrid=False,        
         hovermode='x unified',
         legend=dict(
             orientation='h',
@@ -306,7 +331,7 @@ def update_graph(col_chosen):
             y=1,
             xanchor='left',
             x=0,
-            # bgcolor='LightSteelBlue',
+            bgcolor='WhiteSmoke',
             bordercolor='LightSteelBlue',
             borderwidth=1
         )

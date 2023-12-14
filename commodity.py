@@ -32,6 +32,7 @@ class SymbolData:
         self.config_file = json_file
         self.basis_color = pd.DataFrame()
         self.data_rank = pd.DataFrame()
+        self.spot_months = pd.DataFrame()
         if symbol_setting == '':
             with open(json_file, encoding='utf-8') as config_file:
                 self.symbol_setting = json.load(config_file)[self.name]            
@@ -279,6 +280,31 @@ class SymbolData:
         for field in data_list:
             self.data_rank  = self.history_time_ratio(field, df_rank=self.data_rank, trace_back_months=trace_back_months)
         return self.data_rank
+
+    def dominant_months(self, year, month, previous_monts=2):
+        # 创建一个日期对象，代表主力合约月份的第一天
+        contract_date = datetime(year, month, 1)
+        # 使用dateutil的relativedelta函数，计算两个月前的日期
+        start_date = contract_date - relativedelta(months=previous_monts)
+        # 计算结束日期，即主力合约月份的前一天
+        end_date = contract_date - relativedelta(days=1)
+        return start_date, end_date
+    
+    def get_spot_months(self):
+        dominant_months = self.symbol_setting['DominantMonths']
+        # 获取symbol_data中所有的年份
+        years = self.symbol_data['日期'].dt.year.unique()
+
+        # 创建一个空的DataFrame来存储结果
+        self.spot_months = pd.DataFrame(columns=['Year', 'Contract Month', 'Start Date', 'End Date'])
+        # 遍历每个年份和主力合约月份
+        for year in years:
+            for month in dominant_months:
+                # 计算主力合约月份的前两个月的时间范围
+                start_date, end_date = self.dominant_months(year, month)
+                new_row = pd.DataFrame({'Year': [year], 'Contract Month': [month], 'Start Date': [start_date], 'End Date': [end_date]})
+                # 将结果添加到DataFrame中
+                self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
     
 # 定义一个子类，继承商品类
 class MetalSymbolData(SymbolData):

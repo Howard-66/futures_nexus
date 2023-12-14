@@ -79,12 +79,17 @@
                 "DataFrame": "df_instock"
             }
         },
-        "利润公式": {
+        "ProfitFormula": {
             "Name": "profit_formula",
             "铁矿石": 1.6,
             "焦炭": 0.6,
             "其他成本": 1200
-        }
+        },
+        "DominantMonths": [
+            1,
+            5,
+            10
+        ]
     },
     "铁矿石": {
         "DataIndex": {
