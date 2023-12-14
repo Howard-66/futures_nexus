@@ -1,4 +1,3 @@
-import dash
 from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -16,7 +15,7 @@ fBasePath = 'steel/data/mid-stream/螺纹钢/'
 json_file = './steel/setting.json'
 symbol = commodity.SymbolData(symbol_id, symbol_name, json_file)
 
-app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
+app = Dash(external_stylesheets=[dbc.themes.FLATLY])
 
 main_chart_config =dbc.Accordion(
     [
@@ -74,6 +73,7 @@ main_chart_config =dbc.Accordion(
         title='图表设置'),
     ],
     start_collapsed=True,
+    # always_open = True,
     # flush=True,
 )
 
@@ -127,11 +127,19 @@ tab_main2 = html.Div([
     ])
 ])
 
+tab_setting = dbc.Card(
+    dbc.CardBody(
+        [
+            
+        ]
+    ),
+    className="mt-3",
+)
+
 tab2_content = dbc.Card(
     dbc.CardBody(
         [
-            html.P("This is tab 2!", className="card-text"),
-            dbc.Button("Don't click here", color="danger"),
+            
         ]
     ),
     className="mt-3",
@@ -146,11 +154,14 @@ app.layout = dbc.Container(
             dbc.CardBody(
                 dbc.Tabs(
                     [
-                        dbc.Tab(tab_main2, label="Tab 1", tab_id="tab-1"),
-                        dbc.Tab(tab2_content, label="Tab 2", tab_id="tab-2"),
+                        dbc.Tab(tab_main2, label="综合分析", tab_id="tab-main"),
+                        dbc.Tab(tab2_content, label="周期性分析", tab_id="tab-cycle"),
+                        dbc.Tab(tab2_content, label="跨期分析", tab_id="tab-time-cross"),
+                        dbc.Tab(tab2_content, label="跨品种分析", tab_id="tab-symbol-cross"),
+                        dbc.Tab(tab_setting, label="分析设置", tab_id="tab-config"),
                     ],
                     id="card-tabs",
-                    active_tab="tab-1",
+                    active_tab="tab-main",
                 )
             ),
         ]
@@ -221,7 +232,7 @@ def update_graph(col_chosen):
     histroy_color_mapping ={1:'red', 2:'gray', 3:'gray', 4:'gray', 5:'green'}
 
     # 创建副图-库存
-    fig_storage = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['库存'], name='库存', marker_color='rgb(239,181,59)')
+    fig_storage = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['库存'], name='库存', marker_color='rgb(239,181,59)', showlegend=False,)
     # fig_storage = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['库存'], name='库存', mode='markers', marker=dict(size=2, color='rgb(239,181,59)'))
     symbol.data_rank['库存分位颜色'] = symbol.data_rank['库存历史时间分位'].map(histroy_color_mapping)
     # fig_storage_rank = go.Bar(x=df_rank['日期'], y=df_rank['库存历史时间百分位'], name='库存分位', marker_color='rgb(234,69,70)')
@@ -233,7 +244,7 @@ def update_graph(col_chosen):
     main_figure.add_trace(fig_storage, row = 3, col = 1)
 
     # 创建副图-仓单
-    fig_receipt = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['仓单'], name='仓单', marker_color='rgb(239,181,59)')
+    fig_receipt = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['仓单'], name='仓单', marker_color='rgb(239,181,59)', showlegend=False,)
     # symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
     # fig_receipt_rank = go.Scatter(x=symbol.data_rank['日期'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位', marker_color='rgb(239,181,59)')
     symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
@@ -246,7 +257,7 @@ def update_graph(col_chosen):
 
     # 创建副图-现货利润
     # fig_spot_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货利润'], name='现货利润', mode='markers', marker=dict(size=2, color='rgb(234,69,70)'))
-    fig_spot_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货利润'], name='现货利润', marker_color='rgb(239,181,59)')
+    fig_spot_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货利润'], name='现货利润', marker_color='rgb(239,181,59)', showlegend=False,)
     symbol.data_rank['现货利润分位颜色'] = symbol.data_rank['现货利润历史时间分位'].map(histroy_color_mapping)
     fig_spot_profit_rank = go.Bar(x=symbol.data_rank['日期'], y=symbol.data_rank['现货利润历史时间百分位'], name='现货利润', 
                                   marker=dict(color=symbol.data_rank['现货利润分位颜色'], opacity=0.6),
@@ -256,7 +267,7 @@ def update_graph(col_chosen):
     main_figure.add_trace(fig_spot_profit, row = 5, col = 1)
 
     # 创建副图-盘面利润
-    fig_future_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['盘面利润'], name='盘面利润', marker_color='rgb(239,181,59)')
+    fig_future_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['盘面利润'], name='盘面利润', marker_color='rgb(239,181,59)', showlegend=False,)
     symbol.data_rank['盘面利润分位颜色'] = symbol.data_rank['盘面利润历史时间分位'].map(histroy_color_mapping)
     fig_future_profit_rank = go.Bar(x=symbol.data_rank['日期'], y=symbol.data_rank['盘面利润历史时间百分位'], name='盘面利润 ', 
                                     marker=dict(color=symbol.data_rank['盘面利润分位颜色'], opacity=0.6),
@@ -294,7 +305,7 @@ def update_graph(col_chosen):
 
     # X轴坐标按照年-月显示
     main_figure.update_xaxes(
-        showgrid=True,
+        showgrid=False,
         zeroline=True,
         dtick="M1",  # 按月显示
         ticklabelmode="period",   # instant  period
@@ -311,6 +322,9 @@ def update_graph(col_chosen):
         #         dict(step = 'all')
         #         ]))
     )
+    main_figure.update_yaxes(
+        showgrid=False,
+    )
     #fig.update_traces(xbins_size="M1")
     max_y = symbol.symbol_data['主力合约收盘价'] .max() * 1.05
     min_y = symbol.symbol_data['主力合约收盘价'] .min() * 0.95
@@ -320,10 +334,7 @@ def update_graph(col_chosen):
         #width=800,
         height=1200,
         margin=dict(l=0, r=0, t=0, b=0),
-        plot_bgcolor='WhiteSmoke',
-        xaxis_showgrid=False,
-        yaxis_showgrid=False,
-        yaxis2_showgrid=False,        
+        plot_bgcolor='WhiteSmoke',  
         hovermode='x unified',
         legend=dict(
             orientation='h',
