@@ -7,6 +7,9 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import commodity
 import akshare as ak
+from datetime import datetime, timedelta
+
+app = Dash(external_stylesheets=[dbc.themes.FLATLY])
 
 # 创建主品种数据
 symbol_id = 'RB'
@@ -15,12 +18,58 @@ fBasePath = 'steel/data/mid-stream/螺纹钢/'
 json_file = './steel/setting.json'
 symbol = commodity.SymbolData(symbol_id, symbol_name, json_file)
 
-app = Dash(external_stylesheets=[dbc.themes.FLATLY])
+# 初始化数据
+def initial_data():
+    merged_data = symbol.merge_data()
+    # 生成上由原材料的现货和期货价格数据
+    symbol_j = commodity.SymbolData('J', '焦炭', json_file)
+    symbol_j.merge_data()
+    symbol_i = commodity.SymbolData('I', '铁矿石', json_file)
+    symbol_i.merge_data()
+    profit_j = symbol_j.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
+    profit_j.rename(columns={'现货价格': symbol_j.name+'现货', '主力合约结算价': symbol_j.name+'期货'}, inplace=True)
+    profit_i = symbol_i.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
+    profit_i.rename(columns={'现货价格': symbol_i.name+'现货', '主力合约结算价': symbol_i.name+'期货'}, inplace=True)
+    # 计算品种的现货利润和盘面利润
+    formula = symbol.symbol_setting['ProfitFormula']
+    df_profit = pd.merge(profit_j, profit_i, on='日期', how='outer')
+    df_profit = pd.merge(symbol.symbol_data[['日期', '现货价格', '主力合约结算价']], df_profit, on='日期', how='outer').dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'])
+    df_profit['现货利润'] = df_profit['现货价格'] - formula[symbol_j.name] * df_profit[symbol_j.name+'现货'] - formula[symbol_j.name] * df_profit[symbol_i.name+'现货'] - formula['其他成本']
+    df_profit['盘面利润'] = df_profit['主力合约结算价'] - formula[symbol_j.name] * df_profit[symbol_j.name+'期货'] - formula[symbol_i.name] * df_profit[symbol_i.name+'期货'] - formula['其他成本']
+    df_profit.dropna(axis=0, how='all', subset=['现货利润', '盘面利润'], inplace=True)
+    df_append = df_profit[['日期', '现货利润', '盘面利润']].copy()
+    symbol.symbol_data = pd.merge(symbol.symbol_data, df_append, on='日期', how='outer')
+    # 计算各指标的历史百分位和历史分位数据
+    symbol.calculate_data_rank(trace_back_months=60)
 
+# 主图全局变量
+main_figure = make_subplots(rows=6, cols=1, shared_xaxes=True, 
+                            specs=[[{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}]],
+                            vertical_spacing=0.01, 
+                            subplot_titles=('基差分析', '基差率', '库存', '仓单', '现货利润', '盘面利润'), 
+                            row_width=[0.1, 0.1, 0.1, 0.1, 0.1, 0.5])
+
+# 创建主图（不含指标）
+def create_main_chart():
+    initial_data()
+    symbol.get_spot_months()
+    # 创建主图：期货价格、现货价格、基差
+    fig_future_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', 
+                                marker_color='rgb(84,134,240)')
+    fig_spot_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
+    fig_basis = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
+                        marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False)
+    main_figure.add_trace(fig_basis, secondary_y=True)
+    main_figure.add_trace(fig_future_price, row = 1, col = 1)
+    main_figure.add_trace(fig_spot_price, row = 1, col = 1)
+    return main_figure
+
+# 基本面分析配置面板
 main_chart_config =dbc.Accordion(
     [
         dbc.AccordionItem(
             [
+                
                 dbc.Label('选择分析指标：', color='darkblue'),
                 dbc.Checklist(
                     options=['基差率', '库存', '仓单', '库存消费比', '库存+仓单', '现货利润', '盘面利润', '现货利润+盘面利润'],
@@ -68,7 +117,8 @@ main_chart_config =dbc.Accordion(
                         130: {'label': 'All', 'style': {'color': 'darkblue'}}
                     },
                     id='look-forward-months'
-                )
+                ),
+                html.P(id='config-output'),
             ], 
         title='图表设置'),
     ],
@@ -77,20 +127,21 @@ main_chart_config =dbc.Accordion(
     # flush=True,
 )
 
-tab_main2 = html.Div([
+# 基本面分析图表面板（左侧）
+tab_main = html.Div([
     # 主框架
     dbc.Row([
         # 左侧面板
         dbc.Col([
             # 配置面板
-            dbc.Row(main_chart_config),
+            dbc.Row(dbc.Form(main_chart_config)),
             # 图表面板
             dbc.Row(
-                dbc.Card(
-                    dbc.CardBody([
-                        dcc.Graph(figure={}, id='graph-placeholder'),    
-                    ])
-                )
+                # dbc.Card(
+                #     dbc.CardBody([
+                        dcc.Graph(figure=create_main_chart(), id='graph-placeholder'),    
+                #     ])
+                # )
             )                        
         ], width=9),
         # 右侧面板
@@ -102,7 +153,6 @@ tab_main2 = html.Div([
                         [
                         html.Div(
                             [
-                                dbc.Placeholder(size="lg", className="me-1 mt-1 w-100"),
                                 dbc.Placeholder(size="lg", className="me-1 mt-1 w-100"),
                                 dbc.Placeholder(size="lg", className="me-1 mt-1 w-100"),
                                 dbc.Placeholder(size="lg", className="me-1 mt-1 w-100"),
@@ -145,81 +195,67 @@ tab2_content = dbc.Card(
     className="mt-3",
 )
 
-app.layout = dbc.Container(
-    dbc.Card(
+# 品种分析tabview
+symbol_tabs = dbc.Tabs(
+    [
+        dbc.Tab(tab_main, label="基本面分析", tab_id="tab-main"),
+        dbc.Tab(tab2_content, label="周期性分析", tab_id="tab-cycle"),
+        dbc.Tab(tab2_content, label="跨期套利分析", tab_id="tab-time-cross"),
+        dbc.Tab(tab2_content, label="跨品种分析", tab_id="tab-symbol-cross"),
+        dbc.Tab(tab2_content, label="交易计划", tab_id="tab-trading-plan"),
+        dbc.Tab(tab_setting, label="分析设置", tab_id="tab-config"),
+    ],
+    id="card-tabs",
+    active_tab="tab-main",
+)
+
+# 产业链下具体品种分析页面
+tab_symbol_rb= dbc.Card(
+    dbc.CardBody(
         [
-            dbc.CardHeader(
-                html.P("FFA Demo", className="card-text")
-            ),
-            dbc.CardBody(
-                dbc.Tabs(
-                    [
-                        dbc.Tab(tab_main2, label="综合分析", tab_id="tab-main"),
-                        dbc.Tab(tab2_content, label="周期性分析", tab_id="tab-cycle"),
-                        dbc.Tab(tab2_content, label="跨期分析", tab_id="tab-time-cross"),
-                        dbc.Tab(tab2_content, label="跨品种分析", tab_id="tab-symbol-cross"),
-                        dbc.Tab(tab_setting, label="分析设置", tab_id="tab-config"),
-                    ],
-                    id="card-tabs",
-                    active_tab="tab-main",
-                )
-            ),
+            symbol_tabs
         ]
     ),
+    className="mt-3",
+)
+
+# 产业链分析tabview
+chain_tabs = dbc.Tabs(
+    [
+        # dbc.Tab(tab_main, label="基本面分析", tab_id="tab-main"),
+        dbc.Tab(tab2_content, label="产业链分析", tab_id="tab-overview"),
+        dbc.Tab(tab_symbol_rb, label="螺纹钢", tab_id="tab-symbol-rb"),
+        dbc.Tab(tab2_content, label="铁矿石", tab_id="tab-symbol-i"),
+        dbc.Tab(tab2_content, label="焦炭", tab_id="tab-symbol-l"),
+    ],
+    id="tabs-chain",
+    active_tab="tab-overview",
+)        
+
+app.layout = dbc.Container(
+    # dbc.Card(
+        [
+        #     dbc.CardHeader(
+                # html.P("FFA Demo", className="card-text")
+
+        #     ),
+            # dbc.CardBody(
+                chain_tabs,
+    #         ),
+        ],
+    # ),
     className="p-5",
     fluid=True,
 )
 
-def initial_data():
-    merged_data = symbol.merge_data()
-    # 生成上由原材料的现货和期货价格数据
-    symbol_j = commodity.SymbolData('J', '焦炭', json_file)
-    symbol_j.merge_data()
-    symbol_i = commodity.SymbolData('I', '铁矿石', json_file)
-    symbol_i.merge_data()
-    profit_j = symbol_j.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
-    profit_j.rename(columns={'现货价格': symbol_j.name+'现货', '主力合约结算价': symbol_j.name+'期货'}, inplace=True)
-    profit_i = symbol_i.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
-    profit_i.rename(columns={'现货价格': symbol_i.name+'现货', '主力合约结算价': symbol_i.name+'期货'}, inplace=True)
-    # 计算品种的现货利润和盘面利润
-    formula = symbol.symbol_setting['ProfitFormula']
-    df_profit = pd.merge(profit_j, profit_i, on='日期', how='outer')
-    df_profit = pd.merge(symbol.symbol_data[['日期', '现货价格', '主力合约结算价']], df_profit, on='日期', how='outer').dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'])
-    df_profit['现货利润'] = df_profit['现货价格'] - formula[symbol_j.name] * df_profit[symbol_j.name+'现货'] - formula[symbol_j.name] * df_profit[symbol_i.name+'现货'] - formula['其他成本']
-    df_profit['盘面利润'] = df_profit['主力合约结算价'] - formula[symbol_j.name] * df_profit[symbol_j.name+'期货'] - formula[symbol_i.name] * df_profit[symbol_i.name+'期货'] - formula['其他成本']
-    df_profit.dropna(axis=0, how='all', subset=['现货利润', '盘面利润'], inplace=True)
-    df_append = df_profit[['日期', '现货利润', '盘面利润']].copy()
-    symbol.symbol_data = pd.merge(symbol.symbol_data, df_append, on='日期', how='outer')
-    # 计算各指标的历史百分位和历史分位数据
-    symbol.calculate_data_rank(trace_back_months=60)
-
-main_figure = make_subplots(rows=6, cols=1, shared_xaxes=True, 
-                            specs=[[{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}]],
-                            vertical_spacing=0.01, 
-                            subplot_titles=('基差分析', '基差率', '库存', '仓单', '现货利润', '盘面利润'), 
-                            row_width=[0.1, 0.1, 0.1, 0.1, 0.1, 0.7])
-
-def create_main_chart():
-    # 创建主图：期货价格、现货价格、基差
-    fig_future_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', 
-                                marker_color='rgb(84,134,240)')
-    fig_spot_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
-    fig_basis = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
-                        marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False)
-    main_figure.add_trace(fig_basis, secondary_y=True)
-    main_figure.add_trace(fig_future_price, row = 1, col = 1)
-    main_figure.add_trace(fig_spot_price, row = 1, col = 1)
-
 # Add controls to build the interaction
 @callback(
     Output(component_id='graph-placeholder', component_property='figure'),
-    Input(component_id='select_index', component_property='value')
+    Input(component_id='select_index', component_property='value'),
+    Input('switch_marker', 'value')
 )
-def update_graph(col_chosen):
-    initial_data()
-    symbol.get_spot_months()
-    create_main_chart()
-
+def update_graph(select_index_value, switch_marker_value):
+    print(select_index_value, switch_marker_value)
     # 创建副图-基差率，并根据基差率正负配色
     sign_color_mapping = {0:'green', 1:'red'}
     fig_basis_rate = go.Bar(x=symbol.symbol_data['日期'], y = symbol.symbol_data['基差率'], name='基差率',
@@ -302,30 +338,39 @@ def update_graph(col_chosen):
             # 矩形在数据之下
             layer="below"
         )
+    # shapes = main_figure.layout.shapes
+    # shapes[0]['line']['width'] = 0
+    # main_figure.update_layout(shapes=shapes)
 
+    # Calculate the date one year ago from the latest date in the data
+    one_year_ago = datetime.now() - timedelta(days=365)
+    # Convert the dates to string format for Plotly
+    date_now = datetime.now().strftime('%Y-%m-%d')
+    date_one_year_ago = one_year_ago.strftime('%Y-%m-%d')
     # X轴坐标按照年-月显示
     main_figure.update_xaxes(
         showgrid=False,
         zeroline=True,
         dtick="M1",  # 按月显示
-        ticklabelmode="period",   # instant  period
-        tickformat="%b\n%Y",
+        ticklabelmode="instant",   # instant  period
+        tickformat="%m\n%Y",
         rangebreaks=[dict(values=dt_breaks)],
         rangeslider_visible = False, # 下方滑动条缩放
+        range=[date_one_year_ago, date_now],
         # 增加固定范围选择
-        # rangeselector = dict(
-        #     buttons = list([
-        #         dict(count = 1, label = '1M', step = 'month', stepmode = 'backward'),
-        #         dict(count = 6, label = '6M', step = 'month', stepmode = 'backward'),
-        #         dict(count = 1, label = '1Y', step = 'year', stepmode = 'backward'),
-        #         dict(count = 1, label = 'YTD', step = 'year', stepmode = 'todate'),
-        #         dict(step = 'all')
-        #         ]))
+        rangeselector = dict(
+            buttons = list([
+                dict(count = 6, label = '6M', step = 'month', stepmode = 'backward'),
+                dict(count = 1, label = '1Y', step = 'year', stepmode = 'backward'),
+                # dict(count = 1, label = 'YTD', step = 'year', stepmode = 'todate'),                
+                dict(count = 3, label = '3Y', step = 'year', stepmode = 'backward'),
+                dict(step = 'all')
+                ]))
     )
     main_figure.update_yaxes(
         showgrid=False,
     )
-    #fig.update_traces(xbins_size="M1")
+    #main_figure.update_traces(xbins_size="M1")
     max_y = symbol.symbol_data['主力合约收盘价'] .max() * 1.05
     min_y = symbol.symbol_data['主力合约收盘价'] .min() * 0.95
     main_figure.update_layout(
