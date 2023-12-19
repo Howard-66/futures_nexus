@@ -7,6 +7,25 @@ from dateutil.relativedelta import relativedelta,MO
 import akshare as ak
 from functools import reduce
 
+class SymbolChain:
+    def __init__(self, id, name, config_file):
+        self.id = id
+        self.name = name
+        self.config_file = config_file
+        self.symbol_dict = {}
+
+    def add_symbol(self, symbol):
+        self.symbol_dict[symbol.name] = symbol
+
+    def remove_symbol(self, symbol_name):
+        self.symbol_dict.pop(symbol_name, None)
+
+    def get_symbol(self, symbol_name):
+        if symbol_name in self.symbol_dict:
+            return self.symbol_dict[symbol_name]
+        else:
+            return None
+        
 class SymbolData:
     """品种数据类:
         用于品种对应的数据更新、加载、预处理和访问
@@ -27,12 +46,13 @@ class SymbolData:
         """
         if id =='' or name=='' or json_file == '':
             return None
-        self.id = id # 商品号
+        self.id = id # 商品ID（英文缩写）
         self.name = name # 商品名
-        self.config_file = json_file
-        self.basis_color = pd.DataFrame()
-        self.data_rank = pd.DataFrame()
-        self.spot_months = pd.DataFrame()
+        self.config_file = json_file # 品种配置文件（同一产业链使用相同的配置文件）
+        self.basis_color = pd.DataFrame() # 基差率绘图颜色
+        self.data_rank = pd.DataFrame() # 指标评级
+        self.spot_months = pd.DataFrame() # 现货交易月
+        self.signals = pd.DataFrame() # 指标信号
         if symbol_setting == '':
             with open(json_file, encoding='utf-8') as config_file:
                 self.symbol_setting = json.load(config_file)[self.name]            
@@ -203,7 +223,7 @@ class SymbolData:
             value_items =data_index[key]
             df_name = value_items['DataFrame']
             if df_name in locals():
-                None
+                pass
             else:
                 data_source = value_items['Source']
                 if data_source=='Choice':
@@ -211,7 +231,7 @@ class SymbolData:
                 elif data_source=='AKShare':
                     locals()[df_name] = self.load_akshare_file(value_items['Path'])
                 else:
-                    None
+                    pass
                 column_dict[df_name] = ['日期']
             column_dict[df_name].append(value_items['Field'])
         for df_key in column_dict:
@@ -225,7 +245,7 @@ class SymbolData:
         if '基差' not in data_index:
             self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data['主力合约结算价']
             self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
-        return
+        return self.symbol_data
     
     def history_time_ratio(self, field, df_rank = None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
         """返回指定数据序列的历史分位
@@ -306,6 +326,60 @@ class SymbolData:
                 # 将结果添加到DataFrame中
                 self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
     
+    def get_profits(self, symbol_chain):
+        if 'ProfitFormula' not in self.config_symbol_setting:
+            return None
+        profit_formula = self.config_symbol_setting['ProfitFormula']
+        cost_factors = profit_formula['factor']
+        # 初始化一个空的DataFrame来存储所有原材料的现货价格时间序列
+        df_raw_materials = pd.DataFrame()
+        df_spot_price = self.symbol_data[['日期', '现货价格']]
+        # 遍历成本因子中的每个原材料
+        for raw_material, multiplier in cost_factors.items():
+            # 获取原材料的现货价格时间序列
+            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['日期', '现货价格']].copy()
+            # 将原材料的现货价格时间序列添加到df_raw_materials中
+            df_raw_materials[raw_material] = df_raw_material['现货价格'] * multiplier
+        # 将df_raw_materials和df_spot_price进行合并
+        df_combined = pd.merge(df_raw_materials, df_spot_price, on='日期')
+        # 计算每一天的商品利润
+        df_combined['现货利润'] = df_combined['现货价格'] - df_combined.sum(axis=1) - profit_formula['其他成本']
+
+        df_future_price = self.symbol_data[['日期','主力合约结算价']]
+        # 遍历成本因子中的每个原材料
+        for raw_material, multiplier in cost_factors.items():
+            # 获取原材料的现货价格时间序列
+            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['日期', '主力合约结算价']].copy()
+            # 将原材料的现货价格时间序列添加到df_raw_materials中
+            df_raw_materials[raw_material] = df_raw_material['主力合约结算价'] * multiplier
+        # 将df_raw_materials和df_spot_price进行合并
+        df_combined = pd.merge(df_raw_materials, df_future_price, on='日期')
+        # 计算每一天的商品利润
+        df_combined['盘面利润'] = df_combined['主力合约结算价'] - df_combined.sum(axis=1) - profit_formula['其他成本']
+
+        df_append = df_combined[['日期', '现货利润', '盘面利润']].copy()
+        self.symbol_data = pd.merge(self.symbol_data, df_append, on='日期', how='outer')
+        # 计算各指标的历史百分位和历史分位数据
+        self.calculate_data_rank(trace_back_months=60)
+
+    def get_signals(self, selected_index=[]):
+        if self.signals.empty:
+            self.signals = pd.merge(self.symbol_data[['日期', '基差率']],
+                                    self.data_rank[['日期', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']],
+                                    on='日期', how='outer')
+            self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
+            # For other columns
+            for col in ['库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']:
+                self.signals[col] = self.signals[col].map(lambda x: -1 if x == 5 else (0 if x != 1 else 1))
+            self.signals['库存|仓单'] = self.signals['库存历史时间分位'] | self.signals['仓单历史时间分位']
+            self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']
+        if len(selected_index)!=0:
+            self.signals['信号数量'] = self.signals[selected_index].sum(axis=1)
+        return self.signals
+    
+    def prepare_data(self):
+        self.merge_data()
+    
 # 定义一个子类，继承商品类
 class MetalSymbolData(SymbolData):
     # 定义构造方法，初始化子类的属性
@@ -318,3 +392,4 @@ class MetalSymbolData(SymbolData):
     # 重写父类的merge_data方法
     def merge_data(self):
         return None
+

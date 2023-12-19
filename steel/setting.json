@@ -81,8 +81,10 @@
         },
         "ProfitFormula": {
             "Name": "profit_formula",
-            "铁矿石": 1.6,
-            "焦炭": 0.6,
+            "Factor": {
+                "铁矿石": 1.6,
+                "焦炭": 0.6
+            },
             "其他成本": 1200
         },
         "DominantMonths": [
