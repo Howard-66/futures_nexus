@@ -26,6 +26,10 @@ class SymbolChain:
         else:
             return None
         
+    def initialize_data(self):
+        for _, symbol in self.symbol_dict.items():
+            df = symbol.merge_data()
+        
 class SymbolData:
     """品种数据类:
         用于品种对应的数据更新、加载、预处理和访问
@@ -261,8 +265,7 @@ class SymbolData:
 
         Returns:
             DataFrame: df_rank为空时，创建并返回一个新的DataFrame，包含“历史百分位”、“历史分位”两列结果；不为空时在指定DataFrame后追加
-        """
-        
+        """        
         df_append= pd.DataFrame()
         if trace_back_months == 'all':
             df_selected_history = self.symbol_data
@@ -296,6 +299,14 @@ class SymbolData:
         return df_rank
 
     def calculate_data_rank(self, data_list=['库存', '仓单', '现货利润', '盘面利润'], trace_back_months='all'):
+        """计算一组数据的历史分位数。
+
+        Args:
+            data_list (list): 字符串列表，代表 `symbol_data` 中的字段名称，函数将对这些字段进行历史分位数的计算。
+            trace_back_months (str/int): 定义了计算历史百分位时使用的历史数据范围。默认为 'all'，即使用全部历史数据；如果是整数，表示向前追溯使用的月份数量。
+        Returns:
+            DataFrame: 返回包含历史分位数的 DataFrame。
+        """
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
         for field in data_list:
@@ -303,6 +314,16 @@ class SymbolData:
         return self.data_rank
 
     def dominant_months(self, year, month, previous_monts=2):
+        """计算主力合约月份的前几个月的日期范围。
+        一般情况下,主力合约在进入交割月之前的2个月遵循产业逻辑进行修复基差,因此这段时间非常适合进行以基差分析为基础的交易。
+
+        Args:
+            year (int): 主力合约的年份。
+            month (int): 主力合约的月份。
+            previous_monts (int): 需要向前追溯的月份数量,默认为2。
+        Returns:
+            tuple: 返回开始日期和结束日期。
+        """
         # 创建一个日期对象，代表主力合约月份的第一天
         contract_date = datetime(year, month, 1)
         # 使用dateutil的relativedelta函数，计算两个月前的日期
@@ -313,18 +334,12 @@ class SymbolData:
     
     def get_spot_months(self):
         dominant_months = self.symbol_setting['DominantMonths']
-        # 获取symbol_data中所有的年份
         years = self.symbol_data['日期'].dt.year.unique()
-
-        # 创建一个空的DataFrame来存储结果
         self.spot_months = pd.DataFrame(columns=['Year', 'Contract Month', 'Start Date', 'End Date'])
-        # 遍历每个年份和主力合约月份
         for year in years:
             for month in dominant_months:
-                # 计算主力合约月份的前两个月的时间范围
                 start_date, end_date = self.dominant_months(year, month)
                 new_row = pd.DataFrame({'Year': [year], 'Contract Month': [month], 'Start Date': [start_date], 'End Date': [end_date]})
-                # 将结果添加到DataFrame中
                 self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
     
     def get_profits(self, symbol_chain):
@@ -363,6 +378,7 @@ class SymbolData:
         df_profit = pd.merge(df_raw_materials, df_price, on='日期', how='outer')
         df_profit['现货利润'] = df_profit['现货价格'] - df_profit['原材料现货成本总和']- profit_formula['其他成本']
         df_profit['盘面利润'] = df_profit['主力合约结算价'] - df_profit['原材料盘面成本总和']- profit_formula['其他成本']
+        df_profit = df_profit[['日期', '现货利润', '盘面利润']].dropna(axis=0, how='all', subset=['现货利润', '盘面利润'])
         self.symbol_data = pd.merge(self.symbol_data, df_profit, on='日期', how='outer')
         return df_profit
 
@@ -371,10 +387,10 @@ class SymbolData:
             self.signals = pd.merge(self.symbol_data[['日期', '基差率']],
                                     self.data_rank[['日期', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']],
                                     on='日期', how='outer')
-            self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
+            self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))            
             # For other columns
             for col in ['库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']:
-                self.signals[col] = self.signals[col].map(lambda x: -1 if x == 5 else (0 if x != 1 else 1))
+                self.signals[col] = self.signals[col].map(lambda x: -1 if x == 5 else (0 if x != 1 else 1)).fillna(0).astype(int)
             self.signals['库存|仓单'] = self.signals['库存历史时间分位'] | self.signals['仓单历史时间分位']
             self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']
         if len(selected_index)!=0:
