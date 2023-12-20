@@ -241,7 +241,8 @@ class SymbolData:
         for key in data_index:
             self.symbol_data.rename(columns={data_index[key]['Field']:key}, inplace=True)
         self.symbol_data.sort_values(by='日期', ascending=True, inplace=True)
-        self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
+        # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
+        self.symbol_data['库存'] = self.symbol_data['库存'].ffill()
         if '基差' not in data_index:
             self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data['主力合约结算价']
             self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
@@ -327,40 +328,43 @@ class SymbolData:
                 self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
     
     def get_profits(self, symbol_chain):
-        if 'ProfitFormula' not in self.config_symbol_setting:
-            return None
-        profit_formula = self.config_symbol_setting['ProfitFormula']
-        cost_factors = profit_formula['factor']
-        # 初始化一个空的DataFrame来存储所有原材料的现货价格时间序列
-        df_raw_materials = pd.DataFrame()
-        df_spot_price = self.symbol_data[['日期', '现货价格']]
-        # 遍历成本因子中的每个原材料
-        for raw_material, multiplier in cost_factors.items():
-            # 获取原材料的现货价格时间序列
-            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['日期', '现货价格']].copy()
-            # 将原材料的现货价格时间序列添加到df_raw_materials中
-            df_raw_materials[raw_material] = df_raw_material['现货价格'] * multiplier
-        # 将df_raw_materials和df_spot_price进行合并
-        df_combined = pd.merge(df_raw_materials, df_spot_price, on='日期')
-        # 计算每一天的商品利润
-        df_combined['现货利润'] = df_combined['现货价格'] - df_combined.sum(axis=1) - profit_formula['其他成本']
+        if 'ProfitFormula' not in self.symbol_setting:
+            pass
 
-        df_future_price = self.symbol_data[['日期','主力合约结算价']]
-        # 遍历成本因子中的每个原材料
-        for raw_material, multiplier in cost_factors.items():
-            # 获取原材料的现货价格时间序列
-            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['日期', '主力合约结算价']].copy()
-            # 将原材料的现货价格时间序列添加到df_raw_materials中
-            df_raw_materials[raw_material] = df_raw_material['主力合约结算价'] * multiplier
-        # 将df_raw_materials和df_spot_price进行合并
-        df_combined = pd.merge(df_raw_materials, df_future_price, on='日期')
-        # 计算每一天的商品利润
-        df_combined['盘面利润'] = df_combined['主力合约结算价'] - df_combined.sum(axis=1) - profit_formula['其他成本']
+        profit_formula = self.symbol_setting['ProfitFormula']
+        cost_factors = profit_formula['Factor']
 
-        df_append = df_combined[['日期', '现货利润', '盘面利润']].copy()
-        self.symbol_data = pd.merge(self.symbol_data, df_append, on='日期', how='outer')
-        # 计算各指标的历史百分位和历史分位数据
-        self.calculate_data_rank(trace_back_months=60)
+        #df_spot_price = symbol.symbol_data[['日期', '现货价格']]
+        df_price = self.symbol_data[['日期', '现货价格', '主力合约结算价']]
+
+        # df_raw_materials = pd.DataFrame()
+        df_raw_materials = pd.DataFrame(columns=['日期', '原材料现货成本总和', '原材料盘面成本总和'])
+        first_combine = True
+        for raw_material, multiplier in cost_factors.items():
+            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
+            df_raw_material.dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'], inplace=True)
+            df_raw_material['现货成本'] = df_raw_material['现货价格'] * multiplier
+            df_raw_material['盘面成本'] = df_raw_material['主力合约结算价'] * multiplier
+            df_raw_materials = pd.merge(df_raw_materials, df_raw_material, 
+                                        on='日期', how='outer')
+            if first_combine:
+                df_raw_materials['原材料现货成本总和'] = df_raw_materials['现货成本']
+                df_raw_materials['原材料盘面成本总和'] = df_raw_materials['盘面成本']     
+                first_combine = False   
+            #     df_raw_materials['原材料现货成本总和'] = 0
+            #     df_raw_materials['原材料盘面成本总和'] = 0
+            else:
+            #     df_raw_materials['原材料现货成本总和'].fillna(0, inplace=True)
+            #     df_raw_materials['原材料盘面成本总和'].fillna(0, inplace=True)
+                df_raw_materials['原材料现货成本总和'] = df_raw_materials['原材料现货成本总和'] + df_raw_materials['现货成本']
+                df_raw_materials['原材料盘面成本总和'] = df_raw_materials['原材料盘面成本总和'] + df_raw_materials['盘面成本']
+            df_raw_materials= df_raw_materials[['日期', '原材料现货成本总和', '原材料盘面成本总和']]
+
+        df_profit = pd.merge(df_raw_materials, df_price, on='日期', how='outer')
+        df_profit['现货利润'] = df_profit['现货价格'] - df_profit['原材料现货成本总和']- profit_formula['其他成本']
+        df_profit['盘面利润'] = df_profit['主力合约结算价'] - df_profit['原材料盘面成本总和']- profit_formula['其他成本']
+        self.symbol_data = pd.merge(self.symbol_data, df_profit, on='日期', how='outer')
+        return df_profit
 
     def get_signals(self, selected_index=[]):
         if self.signals.empty:
@@ -377,8 +381,10 @@ class SymbolData:
             self.signals['信号数量'] = self.signals[selected_index].sum(axis=1)
         return self.signals
     
-    def prepare_data(self):
+    def prepare_data(self, trace_back_months=60):
         self.merge_data()
+        self.get_profits()
+        self.calculate_data_rank(trace_back_months)
     
 # 定义一个子类，继承商品类
 class MetalSymbolData(SymbolData):
