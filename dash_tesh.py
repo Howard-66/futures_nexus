@@ -16,39 +16,50 @@ symbol_id = 'RB'
 symbol_name = '螺纹钢'
 fBasePath = 'steel/data/mid-stream/螺纹钢/'
 json_file = './steel/setting.json'
+chain_id = 'steel'
+chain_name = '黑色金属'
 symbol = commodity.SymbolData(symbol_id, symbol_name, json_file)
+symbol_chain = commodity.SymbolChain(chain_id, chain_name, json_file)
+global_vars = {
+    'trade_date': []
+}
 
 # 初始化数据
 def initial_data():
-    merged_data = symbol.merge_data()
-    # 生成上由原材料的现货和期货价格数据
+    # 构造品种数据访问对象
+    # symbol = commodity.SymbolData(symbol_id, symbol_name, json_file)
     symbol_j = commodity.SymbolData('J', '焦炭', json_file)
-    symbol_j.merge_data()
     symbol_i = commodity.SymbolData('I', '铁矿石', json_file)
-    symbol_i.merge_data()
-    profit_j = symbol_j.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
-    profit_j.rename(columns={'现货价格': symbol_j.name+'现货', '主力合约结算价': symbol_j.name+'期货'}, inplace=True)
-    profit_i = symbol_i.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
-    profit_i.rename(columns={'现货价格': symbol_i.name+'现货', '主力合约结算价': symbol_i.name+'期货'}, inplace=True)
-    # 计算品种的现货利润和盘面利润
-    formula = symbol.symbol_setting['ProfitFormula']
-    df_profit = pd.merge(profit_j, profit_i, on='日期', how='outer')
-    df_profit = pd.merge(symbol.symbol_data[['日期', '现货价格', '主力合约结算价']], df_profit, on='日期', how='outer').dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'])
-    df_profit['现货利润'] = df_profit['现货价格'] - formula[symbol_j.name] * df_profit[symbol_j.name+'现货'] - formula[symbol_j.name] * df_profit[symbol_i.name+'现货'] - formula['其他成本']
-    df_profit['盘面利润'] = df_profit['主力合约结算价'] - formula[symbol_j.name] * df_profit[symbol_j.name+'期货'] - formula[symbol_i.name] * df_profit[symbol_i.name+'期货'] - formula['其他成本']
-    df_profit.dropna(axis=0, how='all', subset=['现货利润', '盘面利润'], inplace=True)
-    df_append = df_profit[['日期', '现货利润', '盘面利润']].copy()
-    symbol.symbol_data = pd.merge(symbol.symbol_data, df_append, on='日期', how='outer')
-    # 计算各指标的历史百分位和历史分位数据
-    symbol.calculate_data_rank(trace_back_months=60)
+    symbol_chain.add_symbol(symbol)
+    symbol_chain.add_symbol(symbol_j)
+    symbol_chain.add_symbol(symbol_i)
+    symbol_chain.initialize_data()
+    symbol.get_spot_months()
+    df_profit = symbol.get_profits(symbol_chain)    
+    # merged_data = symbol.merge_data()
+    # # 生成上由原材料的现货和期货价格数据
+    # symbol_j = commodity.SymbolData('J', '焦炭', json_file)
+    # symbol_j.merge_data()
+    # symbol_i = commodity.SymbolData('I', '铁矿石', json_file)
+    # symbol_i.merge_data()
+    # profit_j = symbol_j.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
+    # profit_j.rename(columns={'现货价格': symbol_j.name+'现货', '主力合约结算价': symbol_j.name+'期货'}, inplace=True)
+    # profit_i = symbol_i.symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
+    # profit_i.rename(columns={'现货价格': symbol_i.name+'现货', '主力合约结算价': symbol_i.name+'期货'}, inplace=True)
+    # # 计算品种的现货利润和盘面利润
+    # formula = symbol.symbol_setting['ProfitFormula']
+    # df_profit = pd.merge(profit_j, profit_i, on='日期', how='outer')
+    # # df_profit = pd.merge(symbol.symbol_data[['日期', '现货价格', '主力合约结算价']], df_profit, on='日期', how='outer').dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'])
+    # df_profit = pd.merge(symbol.symbol_data[['日期', '现货价格', '主力合约结算价']], df_profit, on='日期', how='outer')
+    # df_profit['现货利润'] = df_profit['现货价格'] - formula['Factor'][symbol_j.name] * df_profit[symbol_j.name+'现货'] - formula['Factor'][symbol_i.name] * df_profit[symbol_i.name+'现货'] - formula['其他成本']
+    # df_profit['盘面利润'] = df_profit['主力合约结算价'] - formula['Factor'][symbol_j.name] * df_profit[symbol_j.name+'期货'] - formula['Factor'][symbol_i.name] * df_profit[symbol_i.name+'期货'] - formula['其他成本']
+    # df_profit.dropna(axis=0, how='all', subset=['现货利润', '盘面利润'], inplace=True)
+    # df_append = df_profit[['日期', '现货利润', '盘面利润']].copy()
+    # symbol.symbol_data = pd.merge(symbol.symbol_data, df_append, on='日期', how='outer')
+    global_vars['trade_date'] = ak.tool_trade_date_hist_sina()['trade_date']
 
 # # 主图全局变量
 main_figure = {}
-# main_figure = make_subplots(rows=6, cols=1, shared_xaxes=True, 
-#                             specs=[[{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}], [{"secondary_y": True}]],
-#                             vertical_spacing=0.01, 
-#                             # subplot_titles=('基差分析', '基差率', '库存', '仓单', '现货利润', '盘面利润'), 
-#                             row_width=[0.1, 0.1, 0.1, 0.1, 0.1, 0.5])
 charts_setting_dict = {}
 
 # 基本面分析配置面板
@@ -75,19 +86,11 @@ main_chart_config =dbc.Accordion(
                 ),
                 html.Hr(),
                 dbc.Label('共振指标设置：', color='darkblue'),
-                dbc.Checklist(
-                    options=['基差率', '库存', '库存-历史分位', '仓单', '仓单-历史分位', '库存消费比', '现货利润', '现货利润-历史分位', '盘面利润', '盘面利润-历史分位'],
-                    value=['基差率', '库存-历史分位', '仓单-历史分位', '现货利润-历史分位', '盘面利润-历史分位'],
+                dbc.Checklist(                    
+                    options=['基差率', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位', '库存|仓单', '现货利润|盘面利润'],
+                    value=['基差率', '库存|仓单', '现货利润|盘面利润'],
                     id='select_synchronize_index',
                     inline=True                    
-                ),
-                dbc.Label('或关系指标设置：', color='darkblue'),
-                dbc.Checklist(
-                    options=['库存|仓单', '现货利润|盘面利润'],
-                    value=['库存|仓单', '现货利润|盘面利润'],
-                    id='switch_or_index',
-                    switch=True,
-                    inline=True
                 ),
                 html.Hr(),
                 dbc.Label('历史分位回溯时间：', color='darkblue'),
@@ -103,7 +106,7 @@ main_chart_config =dbc.Accordion(
                         120: '10年',
                         130: {'label': 'All', 'style': {'color': 'darkblue'}}
                     },
-                    id='look-forward-months'
+                    id='look_forward_months'
                 ),
                 html.P(id='config-output'),
             ], 
@@ -191,7 +194,7 @@ symbol_tabs = dbc.Tabs(
         dbc.Tab(tab2_content, label="跨期套利分析", tab_id="tab-time-cross"),
         dbc.Tab(tab2_content, label="跨品种分析", tab_id="tab-symbol-cross"),
         dbc.Tab(tab2_content, label="交易计划", tab_id="tab-trading-plan"),
-        dbc.Tab(tab_setting, label="分析设置", tab_id="tab-config"),
+        dbc.Tab(tab_setting, label="品种设置", tab_id="tab-config"),
     ],
     id="card-tabs",
     active_tab="tab-main",
@@ -236,17 +239,28 @@ app.layout = dbc.Container(
     fluid=True,
 )
 
+preivouse_input = {'selected_index': [], 
+                   'previous_maker': [], 
+                   'previouse_sync_index': [],
+                   'previouse_look_forward_months': 0
+}
+
 # Add controls to build the interaction
 @callback(
     Output(component_id='graph-placeholder', component_property='figure'),
     Input(component_id='select_index', component_property='value'),
-    Input('switch_marker', 'value')
+    Input('switch_marker', 'value'),
+    Input('select_synchronize_index', 'value'),
+    Input('look_forward_months', 'value')
 )
-def update_graph(select_index_value, switch_marker_value):
-    if symbol.name not in charts_setting_dict:
-        charts_setting_dict[symbol.name] = {}
+def update_graph(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):    
+    if symbol_name not in charts_setting_dict:
+        charts_setting_dict[symbol_name] = {}
         initial_data()
-        symbol.get_spot_months()
+    # symbol = symbol_chain.get_symbol(symbol_name)
+    if look_forward_months_value != preivouse_input['previouse_look_forward_months']:
+        symbol.calculate_data_rank(trace_back_months=look_forward_months_value)
+        
     fig_rows = len(select_index_value) + 1
     specs = [[{"secondary_y": True}] for _ in range(fig_rows)]
     row_widths = [0.1] * (fig_rows - 1) + [0.5]
@@ -336,32 +350,60 @@ def update_graph(select_index_value, switch_marker_value):
         sub_index_rows = sub_index_rows + 1
 
     # 根据交易时间过滤空数据
-    trade_date = ak.tool_trade_date_hist_sina()['trade_date']
-    trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
+    trade_date = [d.strftime("%Y-%m-%d") for d in global_vars['trade_date']]
     dt_all = pd.date_range(start=symbol.symbol_data['日期'].iloc[0],end=symbol.symbol_data['日期'].iloc[-1])
     dt_all = [d.strftime("%Y-%m-%d") for d in dt_all]
     dt_breaks = list(set(dt_all) - set(trade_date))
+    global_vars['breaks'] = dt_breaks
 
     # 用浅蓝色背景标记现货月时间范围
     key_mark_spot_months = '现货交易月'
+    key_mark_sync_index = '指标共振周期'
+    if key_mark_spot_months in switch_marker_value or key_mark_sync_index in switch_marker_value:
+        main_figure.update_layout(shapes=[])
     if key_mark_spot_months in switch_marker_value:        
-            main_figure.update_layout(shapes=[])
-            for _, row in symbol.spot_months.iterrows():
-                main_figure.add_shape(
-                    # 矩形
-                    type="rect",
-                    x0=row['Start Date'], x1=row['End Date'],
-                    y0=0, y1=1,
-                    xref='x', yref='paper',
-                    fillcolor="LightBlue", opacity=0.1,
-                    line_width=0,
-                    layer="below"
-                )
+        for _, row in symbol.spot_months.iterrows():
+            main_figure.add_shape(
+                # 矩形
+                type="rect",
+                x0=row['Start Date'], x1=row['End Date'],
+                y0=0, y1=1,
+                xref='x', yref='paper',
+                fillcolor="LightBlue", opacity=0.1,
+                line_width=0,
+                layer="below"
+            )
     else:
         # shapes = main_figure.layout.shapes
         # shapes[0]['line']['width'] = 0
         main_figure.update_layout(shapes=[])
 
+    if key_mark_sync_index in switch_marker_value:
+        print(select_synchronize_index_value)
+        df_signals =symbol.get_signals(select_synchronize_index_value)
+        signal_nums = len(select_synchronize_index_value)
+        df_short_signals = df_signals[df_signals['信号数量']==-signal_nums]        
+        for _, row in df_short_signals.iterrows():
+            next_day = row['日期'] + timedelta(days=1)
+            main_figure.add_shape(
+                type='circle',
+                x0=row['日期'], x1=next_day,
+                y0=1, y1=0.997,
+                xref='x', yref='paper',
+                fillcolor='green',
+                line_color='green'
+            )            
+        df_long_signals = df_signals[df_signals['信号数量']==signal_nums]        
+        for _, row in df_long_signals.iterrows():
+            next_day = row['日期'] + timedelta(days=1)
+            main_figure.add_shape(
+                type='circle',
+                x0=row['日期'], x1=next_day,
+                y0=1, y1=0.997,
+                xref='x', yref='paper',
+                fillcolor='red',
+                line_color='red'
+            )
     # 图表初始加载时，显示最近一年的数据
     one_year_ago = datetime.now() - timedelta(days=365)
     date_now = datetime.now().strftime('%Y-%m-%d')
@@ -411,6 +453,7 @@ def update_graph(select_index_value, switch_marker_value):
             borderwidth=1
         )
     )
+    preivouse_input['previouse_look_forward_months'] = look_forward_months_value
     return main_figure
 
 @app.callback(
