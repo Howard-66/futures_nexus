@@ -40,16 +40,16 @@ class SymbolData:
     
     def __init__(self, id, name, json_file, symbol_setting=''):
         """
-        SymbolData类的构造函数。
+        SymbolData类的构造函数,
     
         Args:
-            id (str): 品种ID，商品期货为英文简写，例如：螺纹钢为'RB'。
-            name (str): 品种中文名称，例如：螺纹钢。
-            json_file (str): 品种对应的json文件，主要存储品种的数据索引内容，使用工作目录的相对路径，同一个产业链使用统一的配置文件。
-            symbol_setting (str, optional): 符号设置的字典。默认为空。
+            id (str): 品种ID,商品期货为英文简写,例如:螺纹钢为'RB',
+            name (str): 品种中文名称,例如:螺纹钢,
+            json_file (str): 品种对应的json文件,主要存储品种的数据索引内容,使用工作目录的相对路径,同一个产业链使用统一的配置文件,
+            symbol_setting (str, optional): 符号设置的字典,默认为空,
     
         Returns:
-            SymbolData: 返回SymbolData对象，如果未提供id、name和配置文件，则返回空
+            SymbolData: 返回SymbolData对象,如果未提供id、name和配置文件,则返回空
         """
         if id =='' or name=='' or json_file == '':
             return None
@@ -68,12 +68,12 @@ class SymbolData:
 
     def config_symbol_setting(self, symbol_setting):
         """
-        更新配置文件的内容。    
+        更新配置文件的内容,    
         Args:
-            symbol_setting (dict): 符号设置的字典。
+            symbol_setting (dict): 符号设置的字典,
     
         Raises:
-            IOError: 如果读取或写入配置文件时发生错误，则抛出IOError异常。
+            IOError: 如果读取或写入配置文件时发生错误,则抛出IOError异常,
         """
         # 方法实现代码...
         # 先读取已有配置文件内容
@@ -102,22 +102,22 @@ class SymbolData:
     def load_choice_file(self, file_path):
         """读取choice数据终端导出的数据文件.
             Choiced导出文件格式对应的处理规则. 
-            - 原文件第一行为“宏观数据“或类似内容，但read_excel方法未加载该行内容
+            - 原文件第一行为“宏观数据“或类似内容,但read_excel方法未加载该行内容
             - 数据的第一行作为指标标题
             - 第一列作为日期
             - 前四行和最后一行都不是数据内容
             - 剔除“日期”字段为空的行和其他非数据内容（标识数据来源的文字内容）
             
-            Choice文件导出注意事项：
-            - 导出字段选择：指标名称、频率、单位、来源
-            - 日期排序：降序
-            - 图形设置：不导出图形
+            Choice文件导出注意事项:
+            - 导出字段选择:指标名称、频率、单位、来源
+            - 日期排序:降序
+            - 图形设置:不导出图形
             - 勾选“使用函数方式导出”
         Args:
             file_path (str): Choice导出文件(.xlsx)的绝对路径
 
         Returns:
-            dataframe: 将Choice导出文件内容加载到dataframe，并返回
+            dataframe: 将Choice导出文件内容加载到dataframe,并返回
         """
         if file_path=='':
             return None
@@ -151,7 +151,7 @@ class SymbolData:
         df['near_basis_rate'] = -df['near_basis_rate']
         df['dom_basis_rate'] = -df['dom_basis_rate']
         df.rename(columns={'date': '日期'}, inplace=True)
-        # TODO：其他数据格式化
+        # TODO:其他数据格式化
         return df
 
     def update_akshare_file(self, mode='append', start_date='', end_date=''):
@@ -159,15 +159,15 @@ class SymbolData:
 
         Args:
             mode (str, optional): 更新模式. 默认值为 'append'.
-            - initial: 根据指定的时间段初始创建数据文件，后续使用period模式向前补充、append模式向后补充
-            - append: 根据文件最后记录，更新到当前日期，会覆盖更新历史数据中的最后一条记录
-            - period: 仅更新指定时间段的数据（目前仅支持向前追加，不做去重）
-            - all: 全部更新，并覆盖原数据\n
+            - initial: 根据指定的时间段初始创建数据文件,后续使用period模式向前补充、append模式向后补充
+            - append: 根据文件最后记录,更新到当前日期,会覆盖更新历史数据中的最后一条记录
+            - period: 仅更新指定时间段的数据（目前仅支持向前追加,不做去重）
+            - all: 全部更新,并覆盖原数据\n
             start_date (str, optional): 数据更新的起始日期\n
             end_date (str, optional): 数据更新的默认日期.
 
         Returns:
-            dataframe: 将新增数据与原数据合并并返回，同时保存至文件
+            dataframe: 将新增数据与原数据合并并返回,同时保存至文件
         """
         basis_file = self.symbol_setting['DataIndex']['现货价格']['Path']
         if mode == 'append':
@@ -176,7 +176,7 @@ class SymbolData:
             today = datetime.now().strftime("%Y%m%d")
             last_date = str(df_basis.iloc[-1]['date'])
             df_append = ak.futures_spot_price_daily(start_day=last_date, end_day=today, vars_list=[self.id])
-            # 移除最后一条重复数据，用最新数据替代
+            # 移除最后一条重复数据,用最新数据替代
             df_basis.drop(df_basis.shape[0]-1, inplace=True)
             df_basis =pd.concat([df_basis, df_append])
             df_basis.to_excel(basis_file, index=False)
@@ -189,7 +189,7 @@ class SymbolData:
             try:
                 df_period = ak.futures_spot_price_daily(start_day=start_date, end_day=end_date, vars_list=[self.id])
                 df_basis =pd.concat([df_period, df_basis])
-                # TODO: #目前仅支持向前补充数据，待增加与已有数据重叠更新（数据去重）
+                # TODO: #目前仅支持向前补充数据,待增加与已有数据重叠更新（数据去重）
                 df_basis.to_excel(basis_file, index=False)
                 return df_basis                                
             except Exception as e:
@@ -219,7 +219,7 @@ class SymbolData:
 
     def merge_data(self):
         """对数据索引中引用到的数据进行合并
-            根据数据源（Choice/AKShare）调用对应的文件加载方法，并按照约定格式化数据，日期数据格式化为datatime，并按照升序排列，对应日期确实数据的置位NaN。
+            根据数据源（Choice/AKShare）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
         Returns:
             dataframe: 返回合并后的数据
         """
@@ -255,22 +255,22 @@ class SymbolData:
             self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
         return self.symbol_data
     
-    def history_time_ratio(self, field, df_rank = None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
+    def history_time_ratio(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
         """返回指定数据序列的历史分位
-            计算数据在序列中的历史数值百分位或时间百分位，并根据区间划定分位.
+            计算数据在序列中的历史数值百分位或时间百分位,并根据区间划定分位.
         Args:
             - field (str): symbol_data中的字段名称
-            - df_rank (DataFrame, optional): 指定用于存储返回结果的DataFrame. 默认为空：创建DataFrame并返回；不为空时直接追加“历史百分位”、“历史分位”两列结果.
-            - mode (str, optional): 计算模式. 'time'：默认值，计算数据在序列中的时间百分位；'value'：根据数据在序列中的最大值最小值范围，确定百分位.
-            - trace_back_months (str/int, optional): 计算历史百分位时使用的历史数据范围。默认为all，即使用全部历史数据；为整数时，指定向前追溯使用的月份数量. 
+            - df_rank (DataFrame, optional): 指定用于存储返回结果的DataFrame. 默认为空:创建DataFrame并返回；不为空时直接追加“历史百分位”、“历史分位”两列结果.
+            - mode (str, optional): 计算模式. 'time':默认值,计算数据在序列中的时间百分位；'value':根据数据在序列中的最大值最小值范围,确定百分位.
+            - trace_back_months (str/int, optional): 计算历史百分位时使用的历史数据范围,默认为all,即使用全部历史数据；为整数时,指定向前追溯使用的月份数量. 
             - quantiles (list, optional): 分位分区. 默认分区为 [0, 20, 40, 60, 80, 100].
             - ranks (list, optional): 分区标签. 默认为 [1, 2, 3, 4, 5].
 
         Returns:
-            DataFrame: df_rank为空时，创建并返回一个新的DataFrame，包含“历史百分位”、“历史分位”两列结果；不为空时在指定DataFrame后追加
+            DataFrame: df_rank为空时,创建并返回一个新的DataFrame,包含“历史百分位”、“历史分位”两列结果；不为空时在指定DataFrame后追加
 
-        TODO: 
-            当前历史分位是对给定时间范围内的数据进行历史排位，应该更正为：当前时间的历史分位由此向前追溯到给定日期范围内进行历史排位，每一个bar单独计算。
+        Remark: 
+            当前历史分位是对给定时间范围内的数据进行历史排位; history_time_ratio2采用当前时间的历史分位由此向前追溯到给定日期范围内进行历史排位,每一个bar单独计算,
         """        
         df_append= pd.DataFrame()
         if trace_back_months == 'all':
@@ -303,44 +303,79 @@ class SymbolData:
         else:
             df_rank = pd.merge(df_rank, df_append, on='日期', how='outer')
         return df_rank
+    
+    def history_time_ratio2(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
+        '''history_time_ratio2采用当前时间的历史分位由此向前追溯到给定日期范围内进行历史排位,每一个bar单独计算,其他与history_time_ratio相同
+        '''
+        df_append= pd.DataFrame()
+        df_append['日期'] = self.symbol_data['日期']
+        if trace_back_months == 'all':
+            window_size = len(self.symbol_data)
+        else:
+            window_size = trace_back_months * 20  # assuming 30 days per month
+        if mode=='time':
+            value_field = field + '历史时间百分位'
+            rank_field = field + '历史时间分位'
+            df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
+            quantiles = np.percentile(df_append[value_field].dropna(), quantiles)
+        elif mode=='value':
+            value_field = field + '历史数值百分位'
+            rank_field = field + '历史数值分位'
+            df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: (x[-1] - np.min(x)) / (np.max(x) - np.min(x)))
+            quantiles = list(map(lambda x: x/100, quantiles))
+        else:
+            None
+
+        df_append[rank_field] = pd.cut(df_append[value_field].dropna(), bins=quantiles, labels=ranks, include_lowest=True, duplicates='drop', right=False)
+        if df_rank.empty:
+            df_rank = df_append
+        else:
+            df_rank = pd.merge(df_rank, df_append, on='日期', how='outer')
+        df_rank = pd.merge(df_rank, self.symbol_data[['日期', field]], on='日期', how='outer')
+        return df_rank
 
     def calculate_data_rank(self, data_list=['库存', '仓单', '现货利润', '盘面利润'], trace_back_months='all'):
-        """计算一组数据的历史分位数。
+        """计算一组数据的历史分位数,
 
         Args:
-            data_list (list): 字符串列表，代表 `symbol_data` 中的字段名称，函数将对这些字段进行历史分位数的计算。
-            trace_back_months (str/int): 定义了计算历史百分位时使用的历史数据范围。默认为 'all'，即使用全部历史数据；如果是整数，表示向前追溯使用的月份数量。
+            data_list (list): 字符串列表,代表 `symbol_data` 中的字段名称,函数将对这些字段进行历史分位数的计算,
+            trace_back_months (str/int): 定义了计算历史百分位时使用的历史数据范围,默认为 'all',即使用全部历史数据；如果是整数,表示向前追溯使用的月份数量,
         Returns:
-            DataFrame: 返回包含历史分位数的 DataFrame。
+            DataFrame: 返回包含历史分位数的 DataFrame,
         """
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
         df_rank = pd.DataFrame()
         for field in data_list:
-            df_rank = self.history_time_ratio(field, df_rank=df_rank, trace_back_months=trace_back_months)
+            df_rank = self.history_time_ratio2(field, df_rank=df_rank, trace_back_months=trace_back_months)
         self.data_rank = df_rank
         return self.data_rank
 
     def dominant_months(self, year, month, previous_monts=2):
-        """计算主力合约月份的前几个月的日期范围。
-        一般情况下,主力合约在进入交割月之前的2个月遵循产业逻辑进行修复基差,因此这段时间非常适合进行以基差分析为基础的交易。
+        """计算主力合约月份的前几个月的日期范围,
+        一般情况下,主力合约在进入交割月之前的2个月遵循产业逻辑进行修复基差,因此这段时间非常适合进行以基差分析为基础的交易,
 
         Args:
-            year (int): 主力合约的年份。
-            month (int): 主力合约的月份。
-            previous_monts (int): 需要向前追溯的月份数量,默认为2。
+            year (int): 主力合约的年份,
+            month (int): 主力合约的月份,
+            previous_monts (int): 需要向前追溯的月份数量,默认为2,
         Returns:
-            tuple: 返回开始日期和结束日期。
+            tuple: 返回开始日期和结束日期,
         """
-        # 创建一个日期对象，代表主力合约月份的第一天
+        # 创建一个日期对象,代表主力合约月份的第一天
         contract_date = datetime(year, month, 1)
-        # 使用dateutil的relativedelta函数，计算两个月前的日期
+        # 使用dateutil的relativedelta函数,计算两个月前的日期
         start_date = contract_date - relativedelta(months=previous_monts)
-        # 计算结束日期，即主力合约月份的前一天
+        # 计算结束日期,即主力合约月份的前一天
         end_date = contract_date - relativedelta(days=1)
         return start_date, end_date
     
     def get_spot_months(self):
+        '''根据主力合约的月份,生成起对应的现货月序列
+
+        Returns:
+            无返回值,结果保存在类成员变量spot_months中
+        '''        
         dominant_months = self.symbol_setting['DominantMonths']
         years = self.symbol_data['日期'].dt.year.unique()
         self.spot_months = pd.DataFrame(columns=['Year', 'Contract Month', 'Start Date', 'End Date'])
@@ -351,6 +386,20 @@ class SymbolData:
                 self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
     
     def get_profits(self, symbol_chain):
+        """
+        此函数用于计算商品的现货利润和盘面利润。
+
+        Args:
+        symbol_chain:SymbolChain 对象,包含了产业链中该商品上游原材料的相关信息。
+
+        Returns
+        返回一个 DataFrame,包含以下列:
+        '日期':日期
+        '现货利润':现货价格减去原材料现货成本和其他成本
+        '盘面利润':主力合约结算价减去原材料盘面成本和其他成本
+
+        此外,此函数还会更新 self.symbol_data,将计算得到的现货利润和盘面利润添加到其中。
+        """        
         if 'ProfitFormula' not in self.symbol_setting:
             pass
 
@@ -391,6 +440,26 @@ class SymbolData:
         return df_profit
 
     def get_signals(self, selected_index=[]):
+        """
+        此函数用于计算指定指标的信号。
+
+        Args:
+        selected_index:一个字符串列表,代表 `symbol_data` 中的字段名称,函数将对这些字段进行信号的计算。
+
+        Returns:
+        返回一个 DataFrame,包含以下列:
+        '日期':日期
+        '基差率':基差率的信号,规则化处理:大于0为1,小于0为-1,等于0为0
+        '库存历史时间分位':库存历史时间分位的信号,规则化处理:等于5为-1,等于1为1,其他为0
+        '仓单历史时间分位':仓单历史时间分位的信号,规则化处理同上
+        '现货利润历史时间分位':现货利润历史时间分位的信号,规则化处理同上
+        '盘面利润历史时间分位':盘面利润历史时间分位的信号,规则化处理同上
+        '库存|仓单':库存历史时间分位和仓单历史时间分位的信号,两者中任一为1则为1,否则为0
+        '现货利润|盘面利润':现货利润历史时间分位和盘面利润历史时间分位的信号,两者中任一为1则为1,否则为0
+        '信号数量':所有选定指标的信号之和
+
+        此外,此函数还会更新 self.signals,将计算得到的信号添加到其中。
+        """        
         if self.signals.empty:
             self.signals = pd.merge(self.symbol_data[['日期', '基差率']],
                                     self.data_rank[['日期', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']],
@@ -410,13 +479,13 @@ class SymbolData:
         self.get_profits()
         self.calculate_data_rank(trace_back_months)
     
-# 定义一个子类，继承商品类
+# 定义一个子类,继承商品类
 class MetalSymbolData(SymbolData):
-    # 定义构造方法，初始化子类的属性
+    # 定义构造方法,初始化子类的属性
     def __init__(self, id, name, config_file, discount):
-        # 调用父类的构造方法，初始化父类的属性
+        # 调用父类的构造方法,初始化父类的属性
         super().__init__(id, name, config_file)
-        # 添加子类特有的属性，折扣率
+        # 添加子类特有的属性,折扣率
         self.discount = discount
 
     # 重写父类的merge_data方法
@@ -446,7 +515,7 @@ class SymbolFigure:
         row_widths = [0.1] * (fig_rows - 1) + [0.5]
         subtitles = ['现货/期货价格'] + show_index
         self.main_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.02)
-        # 创建主图：期货价格、现货价格、基差
+        # 创建主图:期货价格、现货价格、基差
         main_figure = self.main_figure
         fig_future_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', 
                                     marker_color='rgb(84,134,240)')
@@ -460,7 +529,7 @@ class SymbolFigure:
         
         main_figure.data = main_figure.data[:3]
         sub_index_rows = 2
-        # 创建副图-基差率，并根据基差率正负配色
+        # 创建副图-基差率,并根据基差率正负配色
         key_basis_rate = '基差率'
         if key_basis_rate in show_index:
             sign_color_mapping = {0:'green', 1:'red'}
@@ -580,7 +649,7 @@ class SymbolFigure:
                     fillcolor='red',
                     line_color='red'
                 )
-        # 图表初始加载时，显示最近一年的数据
+        # 图表初始加载时,显示最近一年的数据
         one_year_ago = datetime.now() - timedelta(days=365)
         date_now = datetime.now().strftime('%Y-%m-%d')
         date_one_year_ago = one_year_ago.strftime('%Y-%m-%d')

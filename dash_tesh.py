@@ -73,7 +73,7 @@ main_chart_config =dbc.Accordion(
                 dbc.Label('共振指标设置：', color='darkblue'),
                 dbc.Checklist(                    
                     options=['基差率', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位', '库存|仓单', '现货利润|盘面利润'],
-                    value=['基差率', '库存|仓单', '现货利润|盘面利润'],
+                    value=['基差率', '库存历史时间分位', '现货利润历史时间分位'],
                     id='select_synchronize_index', inline=True                    
                 ),
                 html.Hr(),

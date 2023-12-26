@@ -91,7 +91,8 @@
             1,
             5,
             10
-        ]
+        ],
+        "ExchangeID": "shfe"
     },
     "铁矿石": {
         "DataIndex": {
