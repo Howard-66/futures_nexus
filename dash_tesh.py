@@ -233,7 +233,7 @@ preivouse_input = {'selected_index': [],
 def update_graph(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
     if symbol_name not in charts_setting_dict:
         charts_setting_dict[symbol_name] = {}
-        initial_data()
+        # initial_data()
         page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
     figure = page_property['symbol_figure'].create_figure(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
     return figure
@@ -252,4 +252,5 @@ def display_click_data(clickData):
         return 'No clicks yet'
 
 if __name__ == "__main__":
+    initial_data()
     app.run_server(debug=True)

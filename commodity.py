@@ -478,19 +478,6 @@ class SymbolData:
         self.merge_data()
         self.get_profits()
         self.calculate_data_rank(trace_back_months)
-    
-# 定义一个子类,继承商品类
-class MetalSymbolData(SymbolData):
-    # 定义构造方法,初始化子类的属性
-    def __init__(self, id, name, config_file, discount):
-        # 调用父类的构造方法,初始化父类的属性
-        super().__init__(id, name, config_file)
-        # 添加子类特有的属性,折扣率
-        self.discount = discount
-
-    # 重写父类的merge_data方法
-    def merge_data(self):
-        return None
 
 class SymbolFigure:
     def __init__(self, symbol) -> None:
