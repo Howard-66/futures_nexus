@@ -383,6 +383,7 @@ class SymbolData:
             for month in dominant_months:
                 start_date, end_date = self.dominant_months(year, month)
                 new_row = pd.DataFrame({'Year': [year], 'Contract Month': [month], 'Start Date': [start_date], 'End Date': [end_date]})
+                # if not new_row.isnull().all().all():
                 self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
     
     def get_profits(self, symbol_chain):

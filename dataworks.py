@@ -3,8 +3,8 @@ import sqlite3
 
 class DataWorks:
     def __init__(self) -> None:
-        # self.conn = sqlite3.connect('data/futures.db')
-        self.conn = None
+        self.conn = sqlite3.connect('data/futures.db')
+        # self.conn = None
 
     def __enter__(self):
         return self
@@ -17,7 +17,7 @@ class DataWorks:
         return pd.read_sql_query(sql, self.conn)
     
     def get_data(self, table, condition, fields='*'):
-        self.conn = sqlite3.connect('data/futures.db')
+        # self.conn = sqlite3.connect('data/futures.db')
         # cursor = self.conn.cursor()
         if fields=='*':
             fields_str = fields
@@ -28,7 +28,7 @@ class DataWorks:
         # data = cursor.fetchall()
         df = pd.read_sql_query(sql, self.conn)
         # cursor.close()
-        self.conn.close()
+        # self.conn.close()
         return df
     
     def get_data_by_symbol(self, table, fields, symbol_id):
