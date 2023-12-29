@@ -494,7 +494,7 @@ class SymbolFigure:
     def create_figure(self, show_index=[], mark_cycle=[], sync_index=[], look_forward_months='all'):
         symbol = self.symbol
         if look_forward_months != self.look_forward_months:
-            print('Redraw look-forward history data:', look_forward_months)
+            # print('Redraw look-forward history data:', look_forward_months)
             symbol.calculate_data_rank(trace_back_months=look_forward_months)
             self.look_forward_months = look_forward_months
     
@@ -513,7 +513,7 @@ class SymbolFigure:
         main_figure.add_trace(fig_basis, secondary_y=True)
         main_figure.add_trace(fig_future_price, row = 1, col = 1)
         main_figure.add_trace(fig_spot_price, row = 1, col = 1)
-        print(show_index, mark_cycle, sync_index)
+        # print(show_index, mark_cycle, sync_index)
         
         main_figure.data = main_figure.data[:3]
         sub_index_rows = 2
@@ -610,7 +610,7 @@ class SymbolFigure:
             main_figure.update_layout(shapes=[])
 
         if key_mark_sync_index in mark_cycle:
-            print(sync_index)
+            # print(sync_index)
             df_signals =symbol.get_signals(sync_index)
             signal_nums = len(sync_index)
             df_short_signals = df_signals[df_signals['信号数量']==-signal_nums]        

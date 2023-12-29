@@ -5,6 +5,7 @@ import dash_mantine_components as dmc
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+import dataworks
 import commodity
 import akshare as ak
 from datetime import datetime, timedelta
@@ -12,18 +13,18 @@ from datetime import datetime, timedelta
 app = Dash(external_stylesheets=[dbc.themes.FLATLY])
 
 # 创建主品种数据
-symbol_id = 'RB'
-symbol_name = '螺纹钢'
-fBasePath = 'steel/data/mid-stream/螺纹钢/'
-json_file = './steel/setting.json'
-chain_id = 'steel'
-chain_name = '黑色金属'
-symbol = commodity.SymbolData(symbol_id, symbol_name, json_file)
-symbol_chain = commodity.SymbolChain(chain_id, chain_name, json_file)
+# symbol_id = 'RB'
+# symbol_name = '螺纹钢'
+# fBasePath = 'steel/data/mid-stream/螺纹钢/'
+# json_file = './steel/setting.json'
+# chain_id = 'steel'
+# chain_name = '黑色金属'
+# symbol = commodity.SymbolData(symbol_id, symbol_name, json_file)
+# symbol_chain = commodity.SymbolChain(chain_id, chain_name, json_file)
 page_property = {
+    'dataworks': {},
     'symbol_id': 'RB',
     'symbol_name': '螺纹钢',
-    'json_file': './steel/setting.json',
     'json_file': './steel/setting.json',
     'chain_id': 'steel',
     'chain_name': '黑色金属',
@@ -31,12 +32,18 @@ page_property = {
     'symbol_chain': {},
     'symbol_figure': {},
     'chart_setting': {},
+    'term_data': {},
 }
 
 # 初始化数据
 def initial_data():
-    # 构造品种数据访问对象
-    # symbol = commodity.SymbolData(symbol_id, symbol_name, json_file)
+    dw = dataworks.DataWorks()
+    page_property['dataworks'] = dw
+    json_file = page_property['json_file']
+    symbol = commodity.SymbolData(page_property['symbol_id'], page_property['symbol_name'], json_file)
+    page_property['symbol'] = symbol
+    symbol_chain = commodity.SymbolChain(page_property['chain_id'], page_property['chain_name'], json_file)
+    page_property['symbol_chain'] = symbol_chain
     symbol_j = commodity.SymbolData('J', '焦炭', json_file)
     symbol_i = commodity.SymbolData('I', '铁矿石', json_file)
     symbol_chain.add_symbol(symbol)
@@ -45,10 +52,8 @@ def initial_data():
     symbol_chain.initialize_data()
     symbol.get_spot_months()
     df_profit = symbol.get_profits(symbol_chain)    
-
-# # 主图全局变量
-# main_figure = {}
-charts_setting_dict = {}
+    df_term = dw.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], ['symbol', 'date', 'close', 'volume', 'settle', 'variety'], symbol.id)
+    page_property['term_data']= df_term
 
 # 基本面分析配置面板
 main_chart_config =dbc.Accordion(
@@ -113,7 +118,7 @@ tab_main = html.Div([
         ], width=9),
         # 右侧面板
         dbc.Col([
-            # 跨期分析图表
+            # 期限结构分析图表
             dbc.Row(
                 dbc.Card(
                     dbc.CardBody(
@@ -121,21 +126,19 @@ tab_main = html.Div([
                         html.Div(
                             [
                                 html.P(id='figure-click-output'),
-                                dbc.Placeholder(size="lg", className="me-1 mt-1 w-100"),
-                                dbc.Placeholder(size="lg", className="me-1 mt-1 w-100"),
-                                dbc.Placeholder(size="lg", className="me-1 mt-1 w-100"),
+                                dcc.Graph(figure={}, id='term-figure-placeholder'),    
                             ])
                         ]
                     ),
                     className="mt-3",
                 )
             ),
-            # 期限结构分析图表
+            # 跨期分析图表
             dbc.Row(
                 dbc.Card(
                     dbc.CardBody(
                         [
-
+                            dcc.Graph(figure={}, id='intertemporal-figure-placeholder'),
                         ]
                     ),
                     className="mt-3",
@@ -228,11 +231,13 @@ preivouse_input = {'selected_index': [],
     Input('select_index', 'value'),
     Input('switch_marker', 'value'),
     Input('select_synchronize_index', 'value'),
-    Input('look_forward_months', 'value')
+    Input('look_forward_months', 'value'),
+    allow_duplicate=True
 )
 def update_graph(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
-    if symbol_name not in charts_setting_dict:
-        charts_setting_dict[symbol_name] = {}
+    symbol = page_property['symbol']
+    if symbol.name not in page_property['chart_setting']:
+        page_property['chart_setting'][symbol.name] = {}
         # initial_data()
         page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
     figure = page_property['symbol_figure'].create_figure(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
@@ -240,16 +245,48 @@ def update_graph(select_index_value, switch_marker_value, select_synchronize_ind
 
 @app.callback(
     Output('figure-click-output', 'children'),
+    Output('term-figure-placeholder', 'figure'),
     Input('main-figure-placeholder', 'clickData'))
 def display_click_data(clickData):
     if clickData is not None:
         # 获取第一个被点击的点的信息
         point_data = clickData['points'][0]
+        print(clickData['points'][1], clickData['points'][2])
         # 获取x轴坐标
-        x_value = point_data['x']
-        return 'You clicked on x = {}'.format(x_value)
+        click_date = point_data['x']
+        click_date = datetime.strptime(click_date, '%Y-%m-%d')
+        spot_price = point_data['y']
+        df_term = page_property['term_data']
+        df_term = df_term[df_term['date']==click_date]
+        spot_row = pd.DataFrame({
+            'symbol': ['现货'],
+            'close': [spot_price],
+            'settle': [spot_price]
+        })
+        df_term = pd.concat([spot_row, df_term])
+        # print(click_date, type(click_date),  df_term)
+        # spot_figure =go.Scatter(x=spot_row['symbol'], y=spot_row['settle'], stackgroup='one',mode='markers',
+                                # fill='tozeroy', fillcolor='rgba(0, 123, 255, 0.2)',
+                                # marker=dict(color='rgb(0, 123, 255)', opacity=1))
+        future_figure = go.Scatter(x=df_term['symbol'], y=df_term['settle'], stackgroup='one', mode='markers',
+                                             fill='tozeroy', fillcolor='rgba(239,181,81,0.5)',
+                                             marker=dict(color='rgb(239,181,59)'))
+        term_fig = go.Figure()
+        # term_fig.add_trace(spot_figure)
+        term_fig.add_trace(future_figure)
+        max_y = df_term['settle'].max() * 1.05
+        min_y = df_term['settle'].min() * 0.9        
+        # term_fig.add_hline(y=spot_price)
+        term_fig.update_layout(yaxis_range=[min_y,max_y],
+                               height=150,
+                               margin=dict(l=0, r=0, t=0, b=0),
+                               plot_bgcolor='WhiteSmoke',                   
+                               showlegend=False)
+        term_fig.update_xaxes(showgrid=False)
+        term_fig.update_yaxes(showgrid=False)
+        return '日期：{}'.format(click_date), term_fig
     else:
-        return 'No clicks yet'
+        return 'No clicks yet', {}
 
 if __name__ == "__main__":
     initial_data()
