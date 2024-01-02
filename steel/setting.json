@@ -238,6 +238,20 @@
             "X": 1.0,
             "Y": 1.0,
             "其他成本": 1200
-        }
+        },
+        "ProfitFormula": {
+            "Name": "profit_formula",
+            "Factor": {
+                "X": 1.0,
+                "Y": 1.0
+            },
+            "其他成本": 0
+        },
+        "DominantMonths": [
+            1,
+            5,
+            10
+        ],
+        "ExchangeID": "dce"
     }
 }
