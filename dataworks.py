@@ -37,8 +37,8 @@ class DataWorks:
         df['date'] = pd.to_datetime(df['date'].astype(str), format='%Y%m%d')
         return df
     
-    def load_from_dataframe(self, df, to_table):
-        df.to_sql(to_table, self.conn, if_exists='replace', index=False)
+    def load_from_dataframe(self, df, to_table, mode='replace'):
+        df.to_sql(to_table, self.conn, if_exists=mode, index=False)
 
     def close(self):
         self.conn.close()
