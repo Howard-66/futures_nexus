@@ -9,6 +9,7 @@ from functools import reduce
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+import dataworks as dw
 
 class SymbolChain:
     def __init__(self, id, name, config_file):
@@ -123,12 +124,12 @@ class SymbolData:
             return None
         df = pd.read_excel(file_path)
         df.columns = df.iloc[0]
-        df.rename(columns={df.columns[0]: '日期'}, inplace=True)
+        df.rename(columns={df.columns[0]: 'date'}, inplace=True)
         df = df[4:]
         df.reset_index(drop=True, inplace=True)
-        df.dropna(axis=0, subset=['日期'], inplace=True)
-        df = df[df['日期'] != '数据来源：东方财富Choice数据']
-        df['日期'] = pd.to_datetime(df['日期'])
+        df.dropna(axis=0, subset=['date'], inplace=True)
+        df = df[df['date'] != '数据来源：东方财富Choice数据']
+        df['date'] = pd.to_datetime(df['date'])
         return df
     
     def load_akshare_file(self, file_path):
@@ -150,7 +151,7 @@ class SymbolData:
         df['dom_basis'] = -df['dom_basis']
         df['near_basis_rate'] = -df['near_basis_rate']
         df['dom_basis_rate'] = -df['dom_basis_rate']
-        df.rename(columns={'date': '日期'}, inplace=True)
+        # df.rename(columns={'date': '日期'}, inplace=True)
         # TODO:其他数据格式化
         return df
 
@@ -217,7 +218,7 @@ class SymbolData:
             print('other modes is not implemented in update_akshare_file.')
             return None
 
-    def merge_data(self):
+    def merge_data(self, dws):
         """对数据索引中引用到的数据进行合并
             根据数据源（Choice/AKShare）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
         Returns:
@@ -235,19 +236,22 @@ class SymbolData:
                 data_source = value_items['Source']
                 if data_source=='Choice':
                     locals()[df_name] = self.load_choice_file(value_items['Path'])
+                elif data_source=='SQLite':
+                    locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], '*', self.id)
+                    locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
                 elif data_source=='AKShare':
                     locals()[df_name] = self.load_akshare_file(value_items['Path'])
                 else:
                     pass
-                column_dict[df_name] = ['日期']
+                column_dict[df_name] = ['date']
             column_dict[df_name].append(value_items['Field'])
         for df_key in column_dict:
             locals()[df_key] = locals()[df_key][column_dict[df_key]]
             data_frames.append(locals()[df_key])
-        self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='日期', how='outer'), data_frames)
+        self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
         for key in data_index:
             self.symbol_data.rename(columns={data_index[key]['Field']:key}, inplace=True)
-        self.symbol_data.sort_values(by='日期', ascending=True, inplace=True)
+        self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
         # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
         self.symbol_data['库存'] = self.symbol_data['库存'].ffill()
         if '基差' not in data_index:
@@ -277,9 +281,9 @@ class SymbolData:
             df_selected_history = self.symbol_data
         else:
             years, months = divmod(trace_back_months, 12)
-            cutoff_date = self.symbol_data['日期'].max() - relativedelta(years=years, months=months)
-            df_selected_history = self.symbol_data.loc[self.symbol_data['日期'] >= cutoff_date]
-        df_append['日期'] = df_selected_history['日期']
+            cutoff_date = self.symbol_data['date'].max() - relativedelta(years=years, months=months)
+            df_selected_history = self.symbol_data.loc[self.symbol_data['date'] >= cutoff_date]
+        df_append['date'] = df_selected_history['date']
         if mode=='time':
             value_field = field + '历史时间百分位'
             rank_field = field + '历史时间分位'
@@ -301,7 +305,7 @@ class SymbolData:
         if df_rank.empty:
             df_rank = df_append
         else:
-            df_rank = pd.merge(df_rank, df_append, on='日期', how='outer')
+            df_rank = pd.merge(df_rank, df_append, on='date', how='outer')
         return df_rank
     
     def history_time_ratio2(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
@@ -330,8 +334,8 @@ class SymbolData:
         if df_rank.empty:
             df_rank = df_append
         else:
-            df_rank = pd.merge(df_rank, df_append, on='日期', how='outer')
-        df_rank = pd.merge(df_rank, self.symbol_data[['日期', field]], on='日期', how='outer')
+            df_rank = pd.merge(df_rank, df_append, on='date', how='outer')
+        df_rank = pd.merge(df_rank, self.symbol_data[['date', field]], on='date', how='outer')
         return df_rank
 
     def calculate_data_rank(self, data_list=['库存', '仓单', '现货利润', '盘面利润'], trace_back_months='all'):
@@ -377,7 +381,7 @@ class SymbolData:
             无返回值,结果保存在类成员变量spot_months中
         '''        
         dominant_months = self.symbol_setting['DominantMonths']
-        years = self.symbol_data['日期'].dt.year.unique()
+        years = self.symbol_data['date'].dt.year.unique()
         self.spot_months = pd.DataFrame(columns=['Year', 'Contract Month', 'Start Date', 'End Date'])
         for year in years:
             for month in dominant_months:
@@ -395,7 +399,7 @@ class SymbolData:
 
         Returns
         返回一个 DataFrame,包含以下列:
-        '日期':日期
+        'date':日期
         '现货利润':现货价格减去原材料现货成本和其他成本
         '盘面利润':主力合约结算价减去原材料盘面成本和其他成本
 
@@ -407,19 +411,19 @@ class SymbolData:
         profit_formula = self.symbol_setting['ProfitFormula']
         cost_factors = profit_formula['Factor']
 
-        #df_spot_price = symbol.symbol_data[['日期', '现货价格']]
-        df_price = self.symbol_data[['日期', '现货价格', '主力合约结算价']]
+        #df_spot_price = symbol.symbol_data[['date', '现货价格']]
+        df_price = self.symbol_data[['date', '现货价格', '主力合约结算价']]
 
         # df_raw_materials = pd.DataFrame()
-        df_raw_materials = pd.DataFrame(columns=['日期', '原材料现货成本总和', '原材料盘面成本总和'])
+        df_raw_materials = pd.DataFrame(columns=['date', '原材料现货成本总和', '原材料盘面成本总和'])
         first_combine = True
         for raw_material, multiplier in cost_factors.items():
-            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['日期', '现货价格', '主力合约结算价']].copy()
+            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['date', '现货价格', '主力合约结算价']].copy()
             df_raw_material.dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'], inplace=True)
             df_raw_material['现货成本'] = df_raw_material['现货价格'] * multiplier
             df_raw_material['盘面成本'] = df_raw_material['主力合约结算价'] * multiplier
             df_raw_materials = pd.merge(df_raw_materials, df_raw_material, 
-                                        on='日期', how='outer')
+                                        on='date', how='outer')
             if first_combine:
                 df_raw_materials['原材料现货成本总和'] = df_raw_materials['现货成本']
                 df_raw_materials['原材料盘面成本总和'] = df_raw_materials['盘面成本']     
@@ -431,13 +435,13 @@ class SymbolData:
             #     df_raw_materials['原材料盘面成本总和'].fillna(0, inplace=True)
                 df_raw_materials['原材料现货成本总和'] = df_raw_materials['原材料现货成本总和'] + df_raw_materials['现货成本']
                 df_raw_materials['原材料盘面成本总和'] = df_raw_materials['原材料盘面成本总和'] + df_raw_materials['盘面成本']
-            df_raw_materials= df_raw_materials[['日期', '原材料现货成本总和', '原材料盘面成本总和']]
+            df_raw_materials= df_raw_materials[['date', '原材料现货成本总和', '原材料盘面成本总和']]
 
-        df_profit = pd.merge(df_raw_materials, df_price, on='日期', how='outer')
+        df_profit = pd.merge(df_raw_materials, df_price, on='date', how='outer')
         df_profit['现货利润'] = df_profit['现货价格'] - df_profit['原材料现货成本总和']- profit_formula['其他成本']
         df_profit['盘面利润'] = df_profit['主力合约结算价'] - df_profit['原材料盘面成本总和']- profit_formula['其他成本']
-        df_profit = df_profit[['日期', '现货利润', '盘面利润']].dropna(axis=0, how='all', subset=['现货利润', '盘面利润'])
-        self.symbol_data = pd.merge(self.symbol_data, df_profit, on='日期', how='outer')
+        df_profit = df_profit[['date', '现货利润', '盘面利润']].dropna(axis=0, how='all', subset=['现货利润', '盘面利润'])
+        self.symbol_data = pd.merge(self.symbol_data, df_profit, on='date', how='outer')
         return df_profit
 
     def get_signals(self, selected_index=[]):
@@ -462,9 +466,9 @@ class SymbolData:
         此外,此函数还会更新 self.signals,将计算得到的信号添加到其中。
         """        
         if self.signals.empty:
-            self.signals = pd.merge(self.symbol_data[['日期', '基差率']],
-                                    self.data_rank[['日期', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']],
-                                    on='日期', how='outer')
+            self.signals = pd.merge(self.symbol_data[['date', '基差率']],
+                                    self.data_rank[['date', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']],
+                                    on='date', how='outer')
             self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))            
             # For other columns
             for col in ['库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']:
@@ -487,7 +491,7 @@ class SymbolFigure:
         self.main_figure = {}
         trade_date = ak.tool_trade_date_hist_sina()['trade_date']
         trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
-        dt_all = pd.date_range(start=symbol.symbol_data['日期'].iloc[0],end=symbol.symbol_data['日期'].iloc[-1])
+        dt_all = pd.date_range(start=symbol.symbol_data['date'].iloc[0],end=symbol.symbol_data['日期'].iloc[-1])
         dt_all = [d.strftime("%Y-%m-%d") for d in dt_all]
         self.trade_breaks = list(set(dt_all) - set(trade_date))
         
@@ -505,10 +509,10 @@ class SymbolFigure:
         self.main_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.02)
         # 创建主图:期货价格、现货价格、基差
         main_figure = self.main_figure
-        fig_future_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', 
+        fig_future_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', 
                                     marker_color='rgb(84,134,240)')
-        fig_spot_price = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
-        fig_basis = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
+        fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
+        fig_basis = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
                             marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False)
         main_figure.add_trace(fig_basis, secondary_y=True)
         main_figure.add_trace(fig_future_price, row = 1, col = 1)
@@ -521,7 +525,7 @@ class SymbolFigure:
         key_basis_rate = '基差率'
         if key_basis_rate in show_index:
             sign_color_mapping = {0:'green', 1:'red'}
-            fig_basis_rate = go.Bar(x=symbol.symbol_data['日期'], y = symbol.symbol_data['基差率'], name=key_basis_rate,
+            fig_basis_rate = go.Bar(x=symbol.symbol_data['date'], y = symbol.symbol_data['基差率'], name=key_basis_rate,
                                     marker=dict(color=symbol.basis_color['基差率颜色'], colorscale=list(sign_color_mapping.values()),
                                                 showscale=False),
                                     showlegend=False,
@@ -533,11 +537,11 @@ class SymbolFigure:
         # 创建副图-库存
         key_storage = '库存'
         if key_storage in show_index:
-            fig_storage = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['库存'], name=key_storage, marker_color='rgb(239,181,59)', showlegend=False,)
-            # fig_storage = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['库存'], name='库存', mode='markers', marker=dict(size=2, color='rgb(239,181,59)'))
+            fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name=key_storage, marker_color='rgb(239,181,59)', showlegend=False,)
+            # fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name='库存', mode='markers', marker=dict(size=2, color='rgb(239,181,59)'))
             symbol.data_rank['库存分位颜色'] = symbol.data_rank['库存历史时间分位'].map(histroy_color_mapping)
-            # fig_storage_rank = go.Bar(x=df_rank['日期'], y=df_rank['库存历史时间百分位'], name='库存分位', marker_color='rgb(234,69,70)')
-            fig_storage_rank = go.Bar(x=symbol.data_rank['日期'], y=symbol.data_rank['库存历史时间百分位'], name='库存分位', 
+            # fig_storage_rank = go.Bar(x=df_rank['date'], y=df_rank['库存历史时间百分位'], name='库存分位', marker_color='rgb(234,69,70)')
+            fig_storage_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['库存历史时间百分位'], name='库存分位', 
                                     marker=dict(color=symbol.data_rank['库存分位颜色'], opacity=0.6),
                                     showlegend=False,
                                     hovertemplate='%{y:.2%}')
@@ -548,11 +552,11 @@ class SymbolFigure:
         # 创建副图-仓单
         key_receipt = '仓单'
         if key_receipt in show_index:
-            fig_receipt = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['仓单'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
+            fig_receipt = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['仓单'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
             # symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
-            # fig_receipt_rank = go.Scatter(x=symbol.data_rank['日期'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位', marker_color='rgb(239,181,59)')
+            # fig_receipt_rank = go.Scatter(x=symbol.data_rank['date'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位', marker_color='rgb(239,181,59)')
             symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
-            fig_receipt_rank = go.Bar(x=symbol.data_rank['日期'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位',
+            fig_receipt_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位',
                                         marker=dict(color=symbol.data_rank['仓单分位颜色'], opacity=0.6),
                                         showlegend=False,
                                         hovertemplate='%{y:.2%}')
@@ -563,10 +567,10 @@ class SymbolFigure:
         # 创建副图-现货利润
         key_spot_profit = '现货利润'
         if key_spot_profit in show_index:
-            # fig_spot_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货利润'], name='现货利润', mode='markers', marker=dict(size=2, color='rgb(234,69,70)'))
-            fig_spot_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['现货利润'], name=key_spot_profit, marker_color='rgb(239,181,59)', showlegend=False,)
+            # fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name='现货利润', mode='markers', marker=dict(size=2, color='rgb(234,69,70)'))
+            fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name=key_spot_profit, marker_color='rgb(239,181,59)', showlegend=False,)
             symbol.data_rank['现货利润分位颜色'] = symbol.data_rank['现货利润历史时间分位'].map(histroy_color_mapping)
-            fig_spot_profit_rank = go.Bar(x=symbol.data_rank['日期'], y=symbol.data_rank['现货利润历史时间百分位'], name='现货利润', 
+            fig_spot_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['现货利润历史时间百分位'], name='现货利润', 
                                         marker=dict(color=symbol.data_rank['现货利润分位颜色'], opacity=0.6),
                                         showlegend=False,
                                         hovertemplate='%{y:.2%}')
@@ -577,9 +581,9 @@ class SymbolFigure:
         # 创建副图-盘面利润
         key_future_profit = '盘面利润'
         if key_future_profit in show_index:
-            fig_future_profit = go.Scatter(x=symbol.symbol_data['日期'], y=symbol.symbol_data['盘面利润'], name=key_future_profit, marker_color='rgb(239,181,59)', showlegend=False,)
+            fig_future_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['盘面利润'], name=key_future_profit, marker_color='rgb(239,181,59)', showlegend=False,)
             symbol.data_rank['盘面利润分位颜色'] = symbol.data_rank['盘面利润历史时间分位'].map(histroy_color_mapping)
-            fig_future_profit_rank = go.Bar(x=symbol.data_rank['日期'], y=symbol.data_rank['盘面利润历史时间百分位'], name='盘面利润 ', 
+            fig_future_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['盘面利润历史时间百分位'], name='盘面利润 ', 
                                             marker=dict(color=symbol.data_rank['盘面利润分位颜色'], opacity=0.6),
                                             showlegend=False,
                                             hovertemplate='%{y:.2%}')
@@ -616,10 +620,10 @@ class SymbolFigure:
             df_short_signals = df_signals[df_signals['信号数量']==-signal_nums]        
             print('Short Signal:', len(df_short_signals))
             for _, row in df_short_signals.iterrows():
-                next_day = row['日期'] + timedelta(days=1)
+                next_day = row['date'] + timedelta(days=1)
                 main_figure.add_shape(
                     type='circle',
-                    x0=row['日期'], x1=next_day,
+                    x0=row['date'], x1=next_day,
                     y0=1, y1=0.997,
                     xref='x', yref='paper',
                     fillcolor='green',
@@ -628,10 +632,10 @@ class SymbolFigure:
             df_long_signals = df_signals[df_signals['信号数量']==signal_nums]     
             print('Long Signal:', len(df_long_signals))   
             for _, row in df_long_signals.iterrows():
-                next_day = row['日期'] + timedelta(days=1)
+                next_day = row['date'] + timedelta(days=1)
                 main_figure.add_shape(
                     type='circle',
-                    x0=row['日期'], x1=next_day,
+                    x0=row['date'], x1=next_day,
                     y0=1, y1=0.997,
                     xref='x', yref='paper',
                     fillcolor='red',

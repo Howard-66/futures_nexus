@@ -21,6 +21,8 @@ class DataWorks:
         # cursor = self.conn.cursor()
         if fields=='*':
             fields_str = fields
+        elif isinstance(fields, str):
+            fields_str = fields
         else:
             fields_str = ', '.join(fields)  # Convert the list of fields into a comma-separated string
         sql = f"SELECT {fields_str} FROM {table} WHERE {condition}"
@@ -34,7 +36,7 @@ class DataWorks:
     def get_data_by_symbol(self, table, fields, symbol_id):
         condition = f"variety='{symbol_id}'"
         df = self.get_data(table, condition, fields)
-        df['date'] = pd.to_datetime(df['date'].astype(str), format='%Y%m%d')
+        # df['date'] = pd.to_datetime(df['date'])
         return df
     
     def load_from_dataframe(self, df, to_table, mode='replace'):
