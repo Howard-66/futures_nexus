@@ -42,5 +42,23 @@ class DataWorks:
     def load_from_dataframe(self, df, to_table, mode='replace'):
         df.to_sql(to_table, self.conn, if_exists=mode, index=False)
 
+    def get_last_date(self, table, symbol_id='', date_field='date'):
+        if symbol_id:
+            condition = f"{date_field} IN (SELECT MAX({date_field}) FROM {table} WHERE variety='{symbol_id}')"
+        else:
+            condition = f"{date_field} IN (SELECT MAX({date_field}) FROM {table})"
+        sql = f"SELECT {date_field} FROM {table} WHERE {condition}"
+        last_date = pd.read_sql_query(sql, self.conn).iloc[0][date_field]
+        return last_date
+    
+    def get_date_scope(self, table, symbol_id='', date_field='date'):
+        if symbol_id:
+            condition = f"WHERE variety='{symbol_id}'"
+        else:
+            condition = ""
+        sql = f"SELECT MIN({date_field}), MAX({date_field}) FROM {table} {condition}"
+        start_date, end_date = pd.read_sql_query(sql, self.conn).iloc[0]
+        return start_date, end_date
+
     def close(self):
         self.conn.close()
