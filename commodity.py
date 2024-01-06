@@ -30,9 +30,9 @@ class SymbolChain:
         else:
             return None
         
-    def initialize_data(self):
+    def initialize_data(self, dws):
         for _, symbol in self.symbol_dict.items():
-            df = symbol.merge_data()
+            df = symbol.merge_data(dws)
         
 class SymbolData:
     """品种数据类:
@@ -151,7 +151,7 @@ class SymbolData:
         df['dom_basis'] = -df['dom_basis']
         df['near_basis_rate'] = -df['near_basis_rate']
         df['dom_basis_rate'] = -df['dom_basis_rate']
-        # df.rename(columns={'date': '日期'}, inplace=True)
+        # df.rename(columns={'日期': 'date'}, inplace=True)
         # TODO:其他数据格式化
         return df
 
@@ -312,7 +312,7 @@ class SymbolData:
         '''history_time_ratio2采用当前时间的历史分位由此向前追溯到给定日期范围内进行历史排位,每一个bar单独计算,其他与history_time_ratio相同
         '''
         df_append= pd.DataFrame()
-        df_append['日期'] = self.symbol_data['日期']
+        df_append['date'] = self.symbol_data['date']
         if trace_back_months == 'all':
             window_size = len(self.symbol_data)
         else:
@@ -329,8 +329,8 @@ class SymbolData:
             quantiles = list(map(lambda x: x/100, quantiles))
         else:
             None
-
         df_append[rank_field] = pd.cut(df_append[value_field].dropna(), bins=quantiles, labels=ranks, include_lowest=True, duplicates='drop', right=False)
+        df_append.loc[:window_size-1, rank_field] = 0.5
         if df_rank.empty:
             df_rank = df_append
         else:
@@ -417,9 +417,10 @@ class SymbolData:
         # df_raw_materials = pd.DataFrame()
         df_raw_materials = pd.DataFrame(columns=['date', '原材料现货成本总和', '原材料盘面成本总和'])
         first_combine = True
+        
         for raw_material, multiplier in cost_factors.items():
             df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['date', '现货价格', '主力合约结算价']].copy()
-            df_raw_material.dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'], inplace=True)
+            # df_raw_material.dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'], inplace=True)
             df_raw_material['现货成本'] = df_raw_material['现货价格'] * multiplier
             df_raw_material['盘面成本'] = df_raw_material['主力合约结算价'] * multiplier
             df_raw_materials = pd.merge(df_raw_materials, df_raw_material, 
@@ -436,7 +437,7 @@ class SymbolData:
                 df_raw_materials['原材料现货成本总和'] = df_raw_materials['原材料现货成本总和'] + df_raw_materials['现货成本']
                 df_raw_materials['原材料盘面成本总和'] = df_raw_materials['原材料盘面成本总和'] + df_raw_materials['盘面成本']
             df_raw_materials= df_raw_materials[['date', '原材料现货成本总和', '原材料盘面成本总和']]
-
+            
         df_profit = pd.merge(df_raw_materials, df_price, on='date', how='outer')
         df_profit['现货利润'] = df_profit['现货价格'] - df_profit['原材料现货成本总和']- profit_formula['其他成本']
         df_profit['盘面利润'] = df_profit['主力合约结算价'] - df_profit['原材料盘面成本总和']- profit_formula['其他成本']
@@ -453,7 +454,7 @@ class SymbolData:
 
         Returns:
         返回一个 DataFrame,包含以下列:
-        '日期':日期
+        'date':日期
         '基差率':基差率的信号,规则化处理:大于0为1,小于0为-1,等于0为0
         '库存历史时间分位':库存历史时间分位的信号,规则化处理:等于5为-1,等于1为1,其他为0
         '仓单历史时间分位':仓单历史时间分位的信号,规则化处理同上
@@ -491,7 +492,7 @@ class SymbolFigure:
         self.main_figure = {}
         trade_date = ak.tool_trade_date_hist_sina()['trade_date']
         trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
-        dt_all = pd.date_range(start=symbol.symbol_data['date'].iloc[0],end=symbol.symbol_data['日期'].iloc[-1])
+        dt_all = pd.date_range(start=symbol.symbol_data['date'].iloc[0],end=symbol.symbol_data['date'].iloc[-1])
         dt_all = [d.strftime("%Y-%m-%d") for d in dt_all]
         self.trade_breaks = list(set(dt_all) - set(trade_date))
         

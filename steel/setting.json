@@ -98,50 +98,50 @@
         "DataIndex": {
             "主力合约": {
                 "Name": "dominant_contract",
-                "Source": "AKShare",
-                "Path": "steel/data/up-stream/铁矿石/铁矿石基差.xlsx",
+                "Source": "SQLite",
+                "Path": "basis",
                 "Field": "dominant_contract",
                 "DataFrame": "df_basis"
             },
             "近月合约": {
                 "Name": "near_contract",
-                "Source": "AKShare",
-                "Path": "steel/data/up-stream/铁矿石/铁矿石基差.xlsx",
+                "Source": "SQLite",
+                "Path": "basis",
                 "Field": "near_contract",
                 "DataFrame": "df_basis"
             },
             "主力合约收盘价": {
                 "Name": "dominant_close_price",
-                "Source": "Choice",
-                "Path": "steel/data/up-stream/铁矿石/铁矿石期货价格.xlsx",
-                "Field": "期货收盘价(主力):铁矿石",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "收盘价",
                 "DataFrame": "df_dominant"
             },
             "主力合约结算价": {
                 "Name": "dominant_settle_price",
-                "Source": "Choice",
-                "Path": "steel/data/up-stream/铁矿石/铁矿石期货价格.xlsx",
-                "Field": "期货结算价(主力):铁矿石",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "动态结算价",
                 "DataFrame": "df_dominant"
             },
             "现货价格": {
                 "Name": "spot_price",
-                "Source": "AKShare",
-                "Path": "steel/data/up-stream/铁矿石/铁矿石基差.xlsx",
+                "Source": "SQLite",
+                "Path": "basis",
                 "Field": "spot_price",
                 "DataFrame": "df_basis"
             },
             "基差": {
                 "Name": "basis",
-                "Source": "AKShare",
-                "Path": "steel/data/up-stream/铁矿石/铁矿石基差.xlsx",
+                "Source": "SQLite",
+                "Path": "‘basis",
                 "Field": "dom_basis",
                 "DataFrame": "df_basis"
             },
             "基差率": {
                 "Name": "basis_rate",
-                "Source": "AKShare",
-                "Path": "steel/data/up-stream/铁矿石/铁矿石基差.xlsx",
+                "Source": "SQLite",
+                "Path": "basis",
                 "Field": "dom_basis_rate",
                 "DataFrame": "df_basis"
             },
@@ -174,27 +174,35 @@
                 "DataFrame": "df_instock"
             }
         },
-        "利润公式": {
+        "ProfitFormula": {
             "Name": "profit_formula",
-            "X": 1.0,
-            "Y": 1.0,
+            "Factor": {
+                "X": 1.0,
+                "Y": 1.0
+            },
             "其他成本": 0
-        }
+        },
+        "DominantMonths": [
+            1,
+            5,
+            10
+        ],
+        "ExchangeID": "dce"
     },
     "焦炭": {
         "DataIndex": {
             "主力合约收盘价": {
                 "Name": "dominant_close_price",
-                "Source": "Choice",
-                "Path": "steel/data/up-stream/焦炭/焦炭基差.xlsx",
-                "Field": "期货收盘价(主力):焦炭",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "收盘价",
                 "DataFrame": "df_dominant"
             },
             "主力合约结算价": {
                 "Name": "dominant_settle_price",
-                "Source": "Choice",
-                "Path": "steel/data/up-stream/焦炭/焦炭基差.xlsx",
-                "Field": "期货结算价(主力):焦炭",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "动态结算价",
                 "DataFrame": "df_dominant"
             },
             "现货价格": {
@@ -232,12 +240,6 @@
                 "Field": "仓单数量:焦炭",
                 "DataFrame": "df_instock"
             }
-        },
-        "利润公式": {
-            "Name": "profit_formula",
-            "X": 1.0,
-            "Y": 1.0,
-            "其他成本": 1200
         },
         "ProfitFormula": {
             "Name": "profit_formula",
