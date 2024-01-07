@@ -77,6 +77,13 @@
                 "Path": "steel/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
                 "Field": "仓单数量：螺纹钢",
                 "DataFrame": "df_instock"
+            },
+            "持仓量": {
+                "Name": "open_interest",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "持仓量",
+                "DataFrame": "df_open_interest"
             }
         },
         "ProfitFormula": {

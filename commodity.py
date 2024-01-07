@@ -338,7 +338,7 @@ class SymbolData:
         df_rank = pd.merge(df_rank, self.symbol_data[['date', field]], on='date', how='outer')
         return df_rank
 
-    def calculate_data_rank(self, data_list=['库存', '仓单', '现货利润', '盘面利润'], trace_back_months='all'):
+    def calculate_data_rank(self, data_list=['库存', '仓单', '持仓量', '现货利润', '盘面利润'], trace_back_months='all'):
         """计算一组数据的历史分位数,
 
         Args:
@@ -576,6 +576,19 @@ class SymbolFigure:
             main_figure.add_trace(fig_receipt_rank, row = sub_index_rows, col = 1, secondary_y=True)
             main_figure.add_trace(fig_receipt, row = sub_index_rows, col = 1)
             sub_index_rows = sub_index_rows + 1
+
+        # 创建副图-持仓量
+        key_open_interest = '持仓量'
+        if key_open_interest in show_index:
+            fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['持仓量'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
+            symbol.data_rank['持仓量分位颜色'] = symbol.data_rank['持仓量历史时间分位'].map(histroy_color_mapping)
+            fig_open_interest_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['持仓量历史时间百分位'], name='持仓量分位',
+                                            marker=dict(color=symbol.data_rank['持仓量分位颜色'], opacity=0.6),
+                                            showlegend=False,
+                                            hovertemplate='%{y:.2%}')
+            main_figure.add_trace(fig_open_interest_rank, row = sub_index_rows, col = 1, secondary_y=True)
+            main_figure.add_trace(fig_open_interest, row = sub_index_rows, col = 1)
+            sub_index_rows = sub_index_rows + 1            
 
         # 创建副图-现货利润
         key_spot_profit = '现货利润'
