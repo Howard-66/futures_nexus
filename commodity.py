@@ -512,9 +512,9 @@ class SymbolFigure:
         main_figure = self.main_figure
         fig_future_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', 
                                     marker_color='rgb(84,134,240)')
-        fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
+        fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgba(105,206,159,0.4)')
         fig_basis = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
-                            marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False)
+                            marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False) 
         key_mark_sync_index = '指标共振周期'
         if key_mark_sync_index in mark_cycle:
             df_signals =symbol.get_signals(sync_index)
@@ -527,12 +527,10 @@ class SymbolFigure:
             fig_signal = go.Scatter(x=df_signals['date'], y=df_signals['绝对位置'], name='信号', mode='markers', showlegend=False,
                                     marker=dict(size=4, color=df_signals['信号颜色'], colorscale=list(signal_color_mapping.values())))
             main_figure.add_trace(fig_signal, row=1, col=1)        
-        main_figure.add_trace(fig_basis, secondary_y=True)
+        main_figure.add_trace(fig_basis, row = 1, col = 1, secondary_y=True) 
         main_figure.add_trace(fig_future_price, row = 1, col = 1)
         main_figure.add_trace(fig_spot_price, row = 1, col = 1)
-        # print(show_index, mark_cycle, sync_index)
         
-        main_figure.data = main_figure.data[:3]
         sub_index_rows = 2
         # 创建副图-基差率,并根据基差率正负配色
         key_basis_rate = '基差率'
@@ -619,9 +617,8 @@ class SymbolFigure:
 
         # 用浅蓝色背景标记现货月时间范围
         key_mark_spot_months = '现货交易月'
-        if key_mark_spot_months in mark_cycle or key_mark_sync_index in mark_cycle:
-            main_figure.update_layout(shapes=[])
-        if key_mark_spot_months in mark_cycle:        
+        if key_mark_spot_months in mark_cycle:
+            main_figure.update_layout(shapes=[])   
             for _, row in symbol.spot_months.iterrows():
                 main_figure.add_shape(
                     # 矩形
