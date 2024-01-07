@@ -330,7 +330,7 @@ class SymbolData:
         else:
             None
         df_append[rank_field] = pd.cut(df_append[value_field].dropna(), bins=quantiles, labels=ranks, include_lowest=True, duplicates='drop', right=False)
-        df_append.loc[:window_size-1, rank_field] = 0.5
+        # df_append.loc[:window_size-1, rank_field] = 0.5
         if df_rank.empty:
             df_rank = df_append
         else:
@@ -515,6 +515,18 @@ class SymbolFigure:
         fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgb(105,206,159)')
         fig_basis = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
                             marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False)
+        key_mark_sync_index = '指标共振周期'
+        if key_mark_sync_index in mark_cycle:
+            df_signals =symbol.get_signals(sync_index)
+            signal_nums = len(sync_index)
+            df_signals.loc[~((df_signals['信号数量'] == signal_nums) | (df_signals['信号数量'] == -signal_nums)), '信号数量'] = np.nan
+            df_signals['位置偏移'] = df_signals['信号数量'].replace([signal_nums, -signal_nums], [0.99, 1.01])
+            df_signals['绝对位置'] = df_signals['位置偏移'] * symbol.symbol_data['主力合约收盘价']
+            signal_color_mapping ={1.01:'green', 0.99:'red'}
+            df_signals['信号颜色'] = df_signals['位置偏移'].map(signal_color_mapping)
+            fig_signal = go.Scatter(x=df_signals['date'], y=df_signals['绝对位置'], name='信号', mode='markers', showlegend=False,
+                                    marker=dict(size=4, color=df_signals['信号颜色'], colorscale=list(signal_color_mapping.values())))
+            main_figure.add_trace(fig_signal, row=1, col=1)        
         main_figure.add_trace(fig_basis, secondary_y=True)
         main_figure.add_trace(fig_future_price, row = 1, col = 1)
         main_figure.add_trace(fig_spot_price, row = 1, col = 1)
@@ -594,7 +606,6 @@ class SymbolFigure:
 
         # 用浅蓝色背景标记现货月时间范围
         key_mark_spot_months = '现货交易月'
-        key_mark_sync_index = '指标共振周期'
         if key_mark_spot_months in mark_cycle or key_mark_sync_index in mark_cycle:
             main_figure.update_layout(shapes=[])
         if key_mark_spot_months in mark_cycle:        
@@ -613,35 +624,6 @@ class SymbolFigure:
             # shapes = main_figure.layout.shapes
             # shapes[0]['line']['width'] = 0
             main_figure.update_layout(shapes=[])
-
-        if key_mark_sync_index in mark_cycle:
-            # print(sync_index)
-            df_signals =symbol.get_signals(sync_index)
-            signal_nums = len(sync_index)
-            df_short_signals = df_signals[df_signals['信号数量']==-signal_nums]        
-            print('Short Signal:', len(df_short_signals))
-            for _, row in df_short_signals.iterrows():
-                next_day = row['date'] + timedelta(days=1)
-                main_figure.add_shape(
-                    type='circle',
-                    x0=row['date'], x1=next_day,
-                    y0=1, y1=0.997,
-                    xref='x', yref='paper',
-                    fillcolor='green',
-                    line_color='green'
-                )            
-            df_long_signals = df_signals[df_signals['信号数量']==signal_nums]     
-            print('Long Signal:', len(df_long_signals))   
-            for _, row in df_long_signals.iterrows():
-                next_day = row['date'] + timedelta(days=1)
-                main_figure.add_shape(
-                    type='circle',
-                    x0=row['date'], x1=next_day,
-                    y0=1, y1=0.997,
-                    xref='x', yref='paper',
-                    fillcolor='red',
-                    line_color='red'
-                )
         # 图表初始加载时,显示最近一年的数据
         one_year_ago = datetime.now() - timedelta(days=365)
         date_now = datetime.now().strftime('%Y-%m-%d')
