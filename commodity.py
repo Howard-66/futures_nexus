@@ -668,7 +668,7 @@ class SymbolFigure:
             yaxis_range=[min_y,max_y],
             #autosize=False,
             #width=800,
-            height=1200,
+            height=800,
             margin=dict(l=0, r=0, t=0, b=0),
             plot_bgcolor='WhiteSmoke',  
             hovermode='x unified',

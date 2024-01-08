@@ -276,7 +276,7 @@ def display_term_structure_figure(click_date, spot_price):
         # spot_figure =go.Scatter(x=spot_row['symbol'], y=spot_row['settle'], stackgroup='one',mode='markers',
                                 # fill='tozeroy', fillcolor='rgba(0, 123, 255, 0.2)',
                                 # marker=dict(color='rgb(0, 123, 255)', opacity=1))
-        future_figure = go.Scatter(x=df_term['symbol'], y=df_term['settle'], stackgroup='one', mode='markers',
+        future_figure = go.Scatter(x=df_dominant_contract['symbol'], y=df_dominant_contract['settle'], stackgroup='one', mode='markers',
                                              fill='tozeroy', fillcolor=color_flag,
                                              marker=dict(color=color_flag))
         term_fig = go.Figure()
@@ -288,7 +288,7 @@ def display_term_structure_figure(click_date, spot_price):
         # term_fig.add_hline(y=spot_price)
         term_fig.update_layout(yaxis_range=[min_y,max_y],
                                title='期限结构:'+current_date,
-                               height=180,
+                               height=150,
                                margin=dict(l=0, r=0, t=30, b=0),
                                plot_bgcolor='WhiteSmoke',                   
                                showlegend=False)
@@ -330,7 +330,7 @@ def display_cross_term_figure(click_date, domain_contract):
     end_date = end_date.strftime('%Y-%m-%d')
     main_figure = page_property['symbol_figure']
     cross_term_figure.update_layout(
-                                    height=600,
+                                    height=500,
                                     margin=dict(l=0, r=0, t=20, b=0),
                                     plot_bgcolor='WhiteSmoke',     
                                     hovermode='x unified',              
