@@ -497,6 +497,7 @@ class SymbolFigure:
         self.trade_breaks = list(set(dt_all) - set(trade_date))
         
     def create_figure(self, show_index=[], mark_cycle=[], sync_index=[], look_forward_months='all'):
+        print("Call create_figure")
         symbol = self.symbol
         if look_forward_months != self.look_forward_months:
             # print('Redraw look-forward history data:', look_forward_months)
@@ -661,11 +662,19 @@ class SymbolFigure:
         main_figure.update_yaxes(
             showgrid=False,
         )
-        #main_figure.update_traces(xbins_size="M1")
-        max_y = symbol.symbol_data['主力合约收盘价'] .max() * 1.05
-        min_y = symbol.symbol_data['主力合约收盘价'] .min() * 0.95
+        #main_figure.update_traces(xbins_size="M1")       
+        # 根据 x 轴的范围筛选数据
+        filtered_data = symbol.symbol_data[(symbol.symbol_data['date'] >= date_one_year_ago) & (symbol.symbol_data['date'] <= date_now)]
+        # 计算 y 轴的最大值和最小值
+        max_y = filtered_data['主力合约收盘价'].max()*1.01
+        min_y = filtered_data['主力合约收盘价'].min()*0.99
+        # max_y2 = filtered_data['基差'].max()*1.01
+        # min_y2 = filtered_data['基差'].min()*0.99
+        # 设置 y 轴的范围
+        main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
+        # main_figure.update_yaxes(range=[min_y2, max_y2], row=1, col=1, secondary_y=True)
         main_figure.update_layout(
-            yaxis_range=[min_y,max_y],
+            # yaxis_range=[min_y,max_y],
             #autosize=False,
             #width=800,
             height=800,
@@ -683,4 +692,19 @@ class SymbolFigure:
                 borderwidth=1
             )
         )
+        return main_figure
+
+    def update_yaxes(self, xaxis_range):
+        symbol = self.symbol
+        main_figure = self.main_figure
+        # xaxis_range = pd.to_datetime(xaxis_range)
+        filtered_data = symbol.symbol_data[(symbol.symbol_data['date'] >= xaxis_range[0]) & (symbol.symbol_data['date'] <= xaxis_range[1])]
+        # 计算 y 轴的最大值和最小值
+        max_y = filtered_data['主力合约收盘价'].max()*1.01
+        min_y = filtered_data['主力合约收盘价'].min()*0.99
+        # max_y2 = filtered_data['基差'].max()*1.01
+        # min_y2 = filtered_data['基差'].min()*0.99        
+        main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
+        main_figure.update_xaxes(range=xaxis_range)
+        # main_figure.update_yaxes(range=[min_y2, max_y2], row=1, col=1, secondary_y=True)
         return main_figure

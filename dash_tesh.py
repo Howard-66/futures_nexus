@@ -1,3 +1,4 @@
+import dash
 from dash import Dash, dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -57,6 +58,7 @@ def initial_data():
     df_term = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], ['symbol', 'date', 'close', 'volume', 'open_interest', 'settle', 'variety'], symbol.id)
     df_term['date'] = pd.to_datetime(df_term['date'])
     page_property['term_data']= df_term
+    page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
 
 # 基本面分析配置面板
 main_chart_config =dbc.Accordion(
@@ -235,14 +237,15 @@ preivouse_input = {'selected_index': [],
     Input('switch_marker', 'value'),
     Input('select_synchronize_index', 'value'),
     Input('look_forward_months', 'value'),
-    allow_duplicate=True
+    # allow_duplicate=True
 )
 def update_graph(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
+    print('on_update_graph')
     symbol = page_property['symbol']
     if symbol.name not in page_property['chart_setting']:
         page_property['chart_setting'][symbol.name] = {}
         # initial_data()
-        page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
+        # page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
     figure = page_property['symbol_figure'].create_figure(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
     return figure
 
@@ -329,6 +332,11 @@ def display_cross_term_figure(click_date, domain_contract):
     start_date = click_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
     main_figure = page_property['symbol_figure']
+
+    filtered_data = df_term[(df_term['date'] >= start_date) & (df_term['date'] <= end_date)]
+    # 计算 y 轴的最大值和最小值
+    max_y = filtered_data['close'].max()*1.01
+    min_y = filtered_data['close'].min()*0.99
     cross_term_figure.update_layout(
                                     height=500,
                                     margin=dict(l=0, r=0, t=20, b=0),
@@ -342,6 +350,7 @@ def display_cross_term_figure(click_date, domain_contract):
                                    rangebreaks=[dict(values=main_figure.trade_breaks)],
                                    range=[start_date, end_date],)
     cross_term_figure.update_yaxes(showgrid=False)
+    cross_term_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
     return cross_term_figure
 
 @app.callback(
@@ -365,6 +374,20 @@ def display_click_data(clickData):
     else:
         return {}, {}
 
+@app.callback(
+    Output(component_id='main-figure-placeholder', component_property='figure', allow_duplicate=True),
+    Input('main-figure-placeholder', 'relayoutData')
+)
+def display_relayout_data(relayoutData):
+    # if 'symbol_figure' not in page_property:
+    #     return dash.no_update
+    if relayoutData and 'xaxis.range[0]' in relayoutData and 'xaxis.range[1]' in relayoutData:
+        xaxis_range = [relayoutData['xaxis.range[0]'], relayoutData['xaxis.range[1]']]
+        main_figure = page_property['symbol_figure'].update_yaxes(xaxis_range)
+        return main_figure
+    else:
+        return dash.no_update
+    
 if __name__ == "__main__":
     initial_data()
     app.run_server(debug=True)
