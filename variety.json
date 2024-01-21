@@ -1,0 +1,796 @@
+{
+    "A": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "dce"
+    },
+    "B": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "dce"
+    },
+    "BB": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "dce"
+    },
+    "C": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "dce"
+    },
+    "CS": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "dce"
+    },
+    "EB": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "dce"
+    },
+    "EG": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "FB": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            9,
+            10
+        ],
+        "exchange": "dce"
+    },
+    "I": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "J": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "JD": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            5,
+            9,
+            10,
+            11
+        ],
+        "exchange": "dce"
+    },
+    "JM": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "L": {
+        "dominant_months": [
+            1,
+            2,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "M": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "P": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "PG": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "dce"
+    },
+    "PP": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "RR": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "dce"
+    },
+    "V": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "Y": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "dce"
+    },
+    "LH": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "dce"
+    },
+    "AP": {
+        "dominant_months": [
+            1,
+            5,
+            10
+        ],
+        "exchange": "czce"
+    },
+    "CF": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "CJ": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "CY": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "FG": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "JR": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "LR": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "MA": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "OI": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "PF": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "czce"
+    },
+    "PM": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "RI": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "RM": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "RS": {
+        "dominant_months": [
+            7,
+            8,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "SA": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "SF": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "czce"
+    },
+    "SM": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "czce"
+    },
+    "SR": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "TA": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "UR": {
+        "dominant_months": [
+            1,
+            5,
+            7,
+            9
+        ],
+        "exchange": "czce"
+    },
+    "WH": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "ZC": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "czce"
+    },
+    "PK": {
+        "dominant_months": [
+            1,
+            3,
+            4,
+            10,
+            11
+        ],
+        "exchange": "czce"
+    },
+    "PX": {
+        "dominant_months": [
+            5
+        ],
+        "exchange": "czce"
+    },
+    "SH": {
+        "dominant_months": [
+            5
+        ],
+        "exchange": "czce"
+    },
+    "CU": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "BC": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "AL": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "ZN": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "PB": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "NI": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "SN": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "AU": {
+        "dominant_months": [
+            2,
+            4,
+            6,
+            8,
+            10,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "AG": {
+        "dominant_months": [
+            2,
+            6,
+            8,
+            10,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "RB": {
+        "dominant_months": [
+            1,
+            5,
+            10
+        ],
+        "exchange": "shfe"
+    },
+    "WR": {
+        "dominant_months": [
+            1,
+            2,
+            5,
+            10,
+            11
+        ],
+        "exchange": "shfe"
+    },
+    "HC": {
+        "dominant_months": [
+            1,
+            5,
+            10
+        ],
+        "exchange": "shfe"
+    },
+    "SS": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "SC": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "LU": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "FU": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            9,
+            11
+        ],
+        "exchange": "shfe"
+    },
+    "BU": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "RU": {
+        "dominant_months": [
+            1,
+            5,
+            9
+        ],
+        "exchange": "shfe"
+    },
+    "NR": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "SP": {
+        "dominant_months": [
+            1,
+            3,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "AO": {
+        "dominant_months": [
+            1,
+            2,
+            3,
+            11,
+            12
+        ],
+        "exchange": "shfe"
+    },
+    "BR": {
+        "dominant_months": [
+            1,
+            2,
+            3
+        ],
+        "exchange": "shfe"
+    },
+    "EC": {
+        "dominant_months": [
+            4
+        ],
+        "exchange": "shfe"
+    }
+}

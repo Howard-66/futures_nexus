@@ -1,9 +1,11 @@
 import pandas as pd
 import sqlite3
+import json
 
 class DataWorks:
     def __init__(self) -> None:
         self.conn = sqlite3.connect('data/futures.db')
+        self.json_file = 'variety.json'
         # self.conn = None
 
     def __enter__(self):
@@ -33,7 +35,7 @@ class DataWorks:
         # self.conn.close()
         return df
     
-    def get_data_by_symbol(self, table, fields, symbol_id):
+    def get_data_by_symbol(self, table, symbol_id, fields='*'):
         condition = f"variety='{symbol_id}'"
         df = self.get_data(table, condition, fields)
         # df['date'] = pd.to_datetime(df['date'])
@@ -59,6 +61,23 @@ class DataWorks:
         sql = f"SELECT MIN({date_field}), MAX({date_field}) FROM {table} {condition}"
         start_date, end_date = pd.read_sql_query(sql, self.conn).iloc[0]
         return start_date, end_date
+    
+    def save_variety_setting(self, setting):
+        # 将合并后的内容写入文件
+        try:
+            with open(self.json_file, 'w', encoding='utf-8') as setting_file:
+                json.dump(setting, setting_file, indent=4, ensure_ascii=False)
+        except IOError as e:
+            print(f"Error saving configuration: {e}")
 
+    def load_variety_setting(self):
+        try:
+            with open(self.json_file, 'r', encoding='utf-8') as setting_file:
+                setting = json.load(setting_file)
+        except IOError as e:
+            setting = None
+            print(f"Error reading configuration: {e}")        
+        return setting
+    
     def close(self):
         self.conn.close()
