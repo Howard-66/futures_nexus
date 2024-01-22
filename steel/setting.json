@@ -29,25 +29,39 @@
                 "Field": "动态结算价",
                 "DataFrame": "df_dominant"
             },
+            "主力合约持仓量": {
+                "Name": "dominant_open_interest",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "持仓量",
+                "DataFrame": "df_dominant"
+            },
+            "近月合约收盘价": {
+                "Name": "near_close_price",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "close",
+                "DataFrame": "df_near"
+            },
+            "近月合约结算价": {
+                "Name": "near_settle_price",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "settle",
+                "DataFrame": "df_near"
+            },
+            "近月合约持仓量": {
+                "Name": "near_open_interest",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "open_interest",
+                "DataFrame": "df_near"
+            },
             "现货价格": {
                 "Name": "spot_price",
                 "Source": "SQLite",
                 "Path": "basis",
                 "Field": "spot_price",
-                "DataFrame": "df_basis"
-            },
-            "基差": {
-                "Name": "basis",
-                "Source": "SQLite",
-                "Path": "‘basis",
-                "Field": "dom_basis",
-                "DataFrame": "df_basis"
-            },
-            "基差率": {
-                "Name": "basis_rate",
-                "Source": "SQLite",
-                "Path": "basis",
-                "Field": "dom_basis_rate",
                 "DataFrame": "df_basis"
             },
             "产量": {
@@ -77,13 +91,6 @@
                 "Path": "steel/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
                 "Field": "仓单数量：螺纹钢",
                 "DataFrame": "df_instock"
-            },
-            "持仓量": {
-                "Name": "open_interest",
-                "Source": "SQLite",
-                "Path": "dominant",
-                "Field": "持仓量",
-                "DataFrame": "df_open_interest"
             }
         },
         "ProfitFormula": {
@@ -131,25 +138,39 @@
                 "Field": "动态结算价",
                 "DataFrame": "df_dominant"
             },
+            "主力合约持仓量": {
+                "Name": "dominant_open_interest",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "持仓量",
+                "DataFrame": "df_dominant"
+            },
+            "近月合约收盘价": {
+                "Name": "near_close_price",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "close",
+                "DataFrame": "df_near"
+            },
+            "近月合约结算价": {
+                "Name": "near_settle_price",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "settle",
+                "DataFrame": "df_near"
+            },
+            "近月合约持仓量": {
+                "Name": "near_open_interest",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "open_interest",
+                "DataFrame": "df_near"
+            },
             "现货价格": {
                 "Name": "spot_price",
                 "Source": "SQLite",
                 "Path": "basis",
                 "Field": "spot_price",
-                "DataFrame": "df_basis"
-            },
-            "基差": {
-                "Name": "basis",
-                "Source": "SQLite",
-                "Path": "‘basis",
-                "Field": "dom_basis",
-                "DataFrame": "df_basis"
-            },
-            "基差率": {
-                "Name": "basis_rate",
-                "Source": "SQLite",
-                "Path": "basis",
-                "Field": "dom_basis_rate",
                 "DataFrame": "df_basis"
             },
             "产量": {
@@ -211,6 +232,34 @@
                 "Path": "dominant",
                 "Field": "动态结算价",
                 "DataFrame": "df_dominant"
+            },
+            "主力合约持仓量": {
+                "Name": "dominant_open_interest",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "持仓量",
+                "DataFrame": "df_dominant"
+            },
+            "近月合约收盘价": {
+                "Name": "near_close_price",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "close",
+                "DataFrame": "df_near"
+            },
+            "近月合约结算价": {
+                "Name": "near_settle_price",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "settle",
+                "DataFrame": "df_near"
+            },
+            "近月合约持仓量": {
+                "Name": "near_open_interest",
+                "Source": "SQLite",
+                "Path": "near",
+                "Field": "open_interest",
+                "DataFrame": "df_near"
             },
             "现货价格": {
                 "Name": "spot_price",

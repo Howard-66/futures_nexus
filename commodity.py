@@ -237,7 +237,7 @@ class SymbolData:
                 if data_source=='Choice':
                     locals()[df_name] = self.load_choice_file(value_items['Path'])
                 elif data_source=='SQLite':
-                    locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], '*', self.id)
+                    locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
                     locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
                 elif data_source=='AKShare':
                     locals()[df_name] = self.load_akshare_file(value_items['Path'])
@@ -253,11 +253,13 @@ class SymbolData:
             self.symbol_data.rename(columns={data_index[key]['Field']:key}, inplace=True)
         self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
         # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
-        self.symbol_data['库存'] = self.symbol_data['库存'].ffill()
-        if '基差' not in data_index:
-            self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data['主力合约结算价']
-            self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
+        self.symbol_data['库存'] = self.symbol_data['库存'].ffill()                   
         return self.symbol_data
+    
+    def calculate_basis(self, future_type):
+        self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data[future_type]
+        self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
+        return self.symbol_data 
     
     def history_time_ratio(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
         """返回指定数据序列的历史分位
@@ -338,7 +340,7 @@ class SymbolData:
         df_rank = pd.merge(df_rank, self.symbol_data[['date', field]], on='date', how='outer')
         return df_rank
 
-    def calculate_data_rank(self, data_list=['库存', '仓单', '持仓量', '现货利润', '盘面利润'], trace_back_months='all'):
+    def calculate_data_rank(self, future_type, data_list=['库存', '仓单', '持仓量', '现货利润', '盘面利润'], trace_back_months='all'):
         """计算一组数据的历史分位数,
 
         Args:
@@ -347,6 +349,8 @@ class SymbolData:
         Returns:
             DataFrame: 返回包含历史分位数的 DataFrame,
         """
+        data_list[2] = future_type+'持仓量'
+        df_basis = self.calculate_basis(future_type)
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
         df_rank = pd.DataFrame()
@@ -390,7 +394,7 @@ class SymbolData:
                 # if not new_row.isnull().all().all():
                 self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
     
-    def get_profits(self, symbol_chain):
+    def get_profits(self, future_type, symbol_chain):
         """
         此函数用于计算商品的现货利润和盘面利润。
 
@@ -412,17 +416,17 @@ class SymbolData:
         cost_factors = profit_formula['Factor']
 
         #df_spot_price = symbol.symbol_data[['date', '现货价格']]
-        df_price = self.symbol_data[['date', '现货价格', '主力合约结算价']]
+        df_price = self.symbol_data[['date', '现货价格', future_type]]
 
         # df_raw_materials = pd.DataFrame()
         df_raw_materials = pd.DataFrame(columns=['date', '原材料现货成本总和', '原材料盘面成本总和'])
         first_combine = True
         
         for raw_material, multiplier in cost_factors.items():
-            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['date', '现货价格', '主力合约结算价']].copy()
+            df_raw_material = symbol_chain.get_symbol(raw_material).symbol_data[['date', '现货价格', future_type]].copy()
             # df_raw_material.dropna(axis=0, how='all', subset=['现货价格', '主力合约结算价'], inplace=True)
             df_raw_material['现货成本'] = df_raw_material['现货价格'] * multiplier
-            df_raw_material['盘面成本'] = df_raw_material['主力合约结算价'] * multiplier
+            df_raw_material['盘面成本'] = df_raw_material[future_type] * multiplier
             df_raw_materials = pd.merge(df_raw_materials, df_raw_material, 
                                         on='date', how='outer')
             if first_combine:
@@ -440,12 +444,12 @@ class SymbolData:
             
         df_profit = pd.merge(df_raw_materials, df_price, on='date', how='outer')
         df_profit['现货利润'] = df_profit['现货价格'] - df_profit['原材料现货成本总和']- profit_formula['其他成本']
-        df_profit['盘面利润'] = df_profit['主力合约结算价'] - df_profit['原材料盘面成本总和']- profit_formula['其他成本']
+        df_profit['盘面利润'] = df_profit[future_type] - df_profit['原材料盘面成本总和']- profit_formula['其他成本']
         df_profit = df_profit[['date', '现货利润', '盘面利润']].dropna(axis=0, how='all', subset=['现货利润', '盘面利润'])
         self.symbol_data = pd.merge(self.symbol_data, df_profit, on='date', how='outer')
         return df_profit
 
-    def get_signals(self, selected_index=[]):
+    def get_signals(self, future_type, selected_index=[]):
         """
         此函数用于计算指定指标的信号。
 
@@ -490,18 +494,20 @@ class SymbolFigure:
         self.symbol = symbol
         self.look_forward_months = 0
         self.main_figure = {}
+        self.future_type = ''
         trade_date = ak.tool_trade_date_hist_sina()['trade_date']
         trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
         dt_all = pd.date_range(start=symbol.symbol_data['date'].iloc[0],end=symbol.symbol_data['date'].iloc[-1])
         dt_all = [d.strftime("%Y-%m-%d") for d in dt_all]
         self.trade_breaks = list(set(dt_all) - set(trade_date))
         
-    def create_figure(self, show_index=[], mark_cycle=[], sync_index=[], look_forward_months='all'):
+    def create_figure(self, show_index=[], future_type=[], mark_cycle=[], sync_index=[], look_forward_months='all'):
         print("Call create_figure")
         symbol = self.symbol
+
         if look_forward_months != self.look_forward_months:
             # print('Redraw look-forward history data:', look_forward_months)
-            symbol.calculate_data_rank(trace_back_months=look_forward_months)
+            symbol.calculate_data_rank(future_type, trace_back_months=look_forward_months)
             self.look_forward_months = look_forward_months
     
         fig_rows = len(show_index) + 1
@@ -511,14 +517,14 @@ class SymbolFigure:
         self.main_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.02)
         # 创建主图:期货价格、现货价格、基差
         main_figure = self.main_figure
-        fig_future_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['主力合约收盘价'], name='期货价格', 
+        fig_future_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[future_type], name='期货价格', 
                                     marker_color='rgb(84,134,240)')
         fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgba(105,206,159,0.4)')
         fig_basis = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
                             marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False) 
         key_mark_sync_index = '指标共振周期'
         if key_mark_sync_index in mark_cycle:
-            df_signals =symbol.get_signals(sync_index)
+            df_signals =symbol.get_signals(future_type, sync_index)
             signal_nums = len(sync_index)
             df_signals.loc[~((df_signals['信号数量'] == signal_nums) | (df_signals['信号数量'] == -signal_nums)), '信号数量'] = np.nan
             df_signals['位置偏移'] = df_signals['信号数量'].replace([signal_nums, -signal_nums], [0.99, 1.01])
@@ -579,7 +585,8 @@ class SymbolFigure:
         # 创建副图-持仓量
         key_open_interest = '持仓量'
         if key_open_interest in show_index:
-            fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['持仓量'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
+            open_interest_type = future_type[:5]
+            fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[open_interest_type+'持仓量'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
             symbol.data_rank['持仓量分位颜色'] = symbol.data_rank['持仓量历史时间分位'].map(histroy_color_mapping)
             fig_open_interest_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['持仓量历史时间百分位'], name='持仓量分位',
                                             marker=dict(color=symbol.data_rank['持仓量分位颜色'], opacity=0.6),
@@ -666,8 +673,8 @@ class SymbolFigure:
         # 根据 x 轴的范围筛选数据
         filtered_data = symbol.symbol_data[(symbol.symbol_data['date'] >= date_one_year_ago) & (symbol.symbol_data['date'] <= date_now)]
         # 计算 y 轴的最大值和最小值
-        max_y = filtered_data['主力合约收盘价'].max()*1.01
-        min_y = filtered_data['主力合约收盘价'].min()*0.99
+        max_y = filtered_data[future_type].max()*1.01
+        min_y = filtered_data[future_type].min()*0.99
         # max_y2 = filtered_data['基差'].max()*1.01
         # min_y2 = filtered_data['基差'].min()*0.99
         # 设置 y 轴的范围
@@ -700,8 +707,9 @@ class SymbolFigure:
         # xaxis_range = pd.to_datetime(xaxis_range)
         filtered_data = symbol.symbol_data[(symbol.symbol_data['date'] >= xaxis_range[0]) & (symbol.symbol_data['date'] <= xaxis_range[1])]
         # 计算 y 轴的最大值和最小值
-        max_y = filtered_data['主力合约收盘价'].max()*1.01
-        min_y = filtered_data['主力合约收盘价'].min()*0.99
+        if self.future_type != '':
+            max_y = filtered_data[self.future_type].max()*1.01
+            min_y = filtered_data[self.future_type].min()*0.99
         # max_y2 = filtered_data['基差'].max()*1.01
         # min_y2 = filtered_data['基差'].min()*0.99        
         main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
