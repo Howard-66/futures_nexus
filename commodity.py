@@ -349,7 +349,10 @@ class SymbolData:
         Returns:
             DataFrame: 返回包含历史分位数的 DataFrame,
         """
-        data_list[2] = future_type+'持仓量'
+        index_with_openinterest = next((index for index, element in enumerate(data_list) if '持仓量' in element), None)
+
+        if index_with_openinterest is not None:
+            data_list[index_with_openinterest] = future_type[:4]+'持仓量'
         df_basis = self.calculate_basis(future_type)
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
@@ -446,6 +449,10 @@ class SymbolData:
         df_profit['现货利润'] = df_profit['现货价格'] - df_profit['原材料现货成本总和']- profit_formula['其他成本']
         df_profit['盘面利润'] = df_profit[future_type] - df_profit['原材料盘面成本总和']- profit_formula['其他成本']
         df_profit = df_profit[['date', '现货利润', '盘面利润']].dropna(axis=0, how='all', subset=['现货利润', '盘面利润'])
+        if '现货利润' in self.symbol_data.columns:
+            self.symbol_data.drop(columns=['现货利润'], inplace=True)
+        if '盘面利润' in self.symbol_data.columns:
+            self.symbol_data.drop(columns=['盘面利润'], inplace=True)            
         self.symbol_data = pd.merge(self.symbol_data, df_profit, on='date', how='outer')
         return df_profit
 
@@ -505,11 +512,10 @@ class SymbolFigure:
         print("Call create_figure")
         symbol = self.symbol
 
-        if look_forward_months != self.look_forward_months:
-            # print('Redraw look-forward history data:', look_forward_months)
+        if (look_forward_months != self.look_forward_months) | (future_type !=self.future_type):
             symbol.calculate_data_rank(future_type, trace_back_months=look_forward_months)
-            self.look_forward_months = look_forward_months
-    
+        self.look_forward_months = look_forward_months
+        self.future_type = future_type
         fig_rows = len(show_index) + 1
         specs = [[{"secondary_y": True}] for _ in range(fig_rows)]
         row_widths = [0.1] * (fig_rows - 1) + [0.5]
@@ -585,10 +591,10 @@ class SymbolFigure:
         # 创建副图-持仓量
         key_open_interest = '持仓量'
         if key_open_interest in show_index:
-            open_interest_type = future_type[:5]
-            fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[open_interest_type+'持仓量'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
-            symbol.data_rank['持仓量分位颜色'] = symbol.data_rank['持仓量历史时间分位'].map(histroy_color_mapping)
-            fig_open_interest_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['持仓量历史时间百分位'], name='持仓量分位',
+            open_interest_type = future_type[:4]+'持仓量'
+            fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[open_interest_type], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
+            symbol.data_rank['持仓量分位颜色'] = symbol.data_rank[open_interest_type+'历史时间分位'].map(histroy_color_mapping)
+            fig_open_interest_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank[open_interest_type+'历史时间百分位'], name='持仓量分位',
                                             marker=dict(color=symbol.data_rank['持仓量分位颜色'], opacity=0.6),
                                             showlegend=False,
                                             hovertemplate='%{y:.2%}')
