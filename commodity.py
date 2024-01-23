@@ -564,10 +564,10 @@ class SymbolFigure:
         histroy_color_mapping ={1:'red', 2:'gray', 3:'gray', 4:'gray', 5:'green'}
         # 创建副图-库存
         key_storage = '库存'
+        symbol.data_rank['库存分位颜色'] = symbol.data_rank['库存历史时间分位'].map(histroy_color_mapping)
         if key_storage in show_index:
             fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name=key_storage, marker_color='rgb(239,181,59)', showlegend=False,)
-            # fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name='库存', mode='markers', marker=dict(size=2, color='rgb(239,181,59)'))
-            symbol.data_rank['库存分位颜色'] = symbol.data_rank['库存历史时间分位'].map(histroy_color_mapping)
+            # fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name='库存', mode='markers', marker=dict(size=2, color='rgb(239,181,59)'))            
             # fig_storage_rank = go.Bar(x=df_rank['date'], y=df_rank['库存历史时间百分位'], name='库存分位', marker_color='rgb(234,69,70)')
             fig_storage_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['库存历史时间百分位'], name='库存分位', 
                                     marker=dict(color=symbol.data_rank['库存分位颜色'], opacity=0.6),
@@ -579,11 +579,11 @@ class SymbolFigure:
 
         # 创建副图-仓单
         key_receipt = '仓单'
+        symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
         if key_receipt in show_index:
             fig_receipt = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['仓单'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
             # symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
-            # fig_receipt_rank = go.Scatter(x=symbol.data_rank['date'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位', marker_color='rgb(239,181,59)')
-            symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
+            # fig_receipt_rank = go.Scatter(x=symbol.data_rank['date'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位', marker_color='rgb(239,181,59)')            
             fig_receipt_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位',
                                         marker=dict(color=symbol.data_rank['仓单分位颜色'], opacity=0.6),
                                         showlegend=False,
@@ -594,10 +594,10 @@ class SymbolFigure:
 
         # 创建副图-持仓量
         key_open_interest = '持仓量'
-        if key_open_interest in show_index:
-            open_interest_type = future_type[:4]+'持仓量'
-            fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[open_interest_type], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
-            symbol.data_rank['持仓量分位颜色'] = symbol.data_rank[open_interest_type+'历史时间分位'].map(histroy_color_mapping)
+        open_interest_type = future_type[:4]+'持仓量'
+        symbol.data_rank['持仓量分位颜色'] = symbol.data_rank[open_interest_type+'历史时间分位'].map(histroy_color_mapping)
+        if key_open_interest in show_index:            
+            fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[open_interest_type], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)            
             fig_open_interest_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank[open_interest_type+'历史时间百分位'], name='持仓量分位',
                                             marker=dict(color=symbol.data_rank['持仓量分位颜色'], opacity=0.6),
                                             showlegend=False,
@@ -608,10 +608,10 @@ class SymbolFigure:
 
         # 创建副图-现货利润
         key_spot_profit = '现货利润'
+        symbol.data_rank['现货利润分位颜色'] = symbol.data_rank['现货利润历史时间分位'].map(histroy_color_mapping)
         if key_spot_profit in show_index:
             # fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name='现货利润', mode='markers', marker=dict(size=2, color='rgb(234,69,70)'))
-            fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name=key_spot_profit, marker_color='rgb(239,181,59)', showlegend=False,)
-            symbol.data_rank['现货利润分位颜色'] = symbol.data_rank['现货利润历史时间分位'].map(histroy_color_mapping)
+            fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name=key_spot_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
             fig_spot_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['现货利润历史时间百分位'], name='现货利润', 
                                         marker=dict(color=symbol.data_rank['现货利润分位颜色'], opacity=0.6),
                                         showlegend=False,
@@ -622,9 +622,9 @@ class SymbolFigure:
 
         # 创建副图-盘面利润
         key_future_profit = '盘面利润'
+        symbol.data_rank['盘面利润分位颜色'] = symbol.data_rank['盘面利润历史时间分位'].map(histroy_color_mapping)
         if key_future_profit in show_index:
-            fig_future_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['盘面利润'], name=key_future_profit, marker_color='rgb(239,181,59)', showlegend=False,)
-            symbol.data_rank['盘面利润分位颜色'] = symbol.data_rank['盘面利润历史时间分位'].map(histroy_color_mapping)
+            fig_future_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['盘面利润'], name=key_future_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
             fig_future_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['盘面利润历史时间百分位'], name='盘面利润 ', 
                                             marker=dict(color=symbol.data_rank['盘面利润分位颜色'], opacity=0.6),
                                             showlegend=False,
