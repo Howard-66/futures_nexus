@@ -28,7 +28,6 @@ page_property = {
     'dataworks': {},
     'symbol_id': 'RB',
     'symbol_name': '螺纹钢',
-    'json_file': './steel/setting.json',
     'chain_id': 'steel',
     'chain_name': '黑色金属',
     'symbol': {},
@@ -42,20 +41,18 @@ page_property = {
 def initial_data():
     dws = dataworks.DataWorks()
     page_property['dataworks'] = dws
-    json_file = page_property['json_file']
-    symbol = commodity.SymbolData(page_property['symbol_id'], page_property['symbol_name'], json_file)
+    symbol = commodity.SymbolData(page_property['symbol_id'], page_property['symbol_name'])
     page_property['symbol'] = symbol
-    symbol_chain = commodity.SymbolChain(page_property['chain_id'], page_property['chain_name'], json_file)
+    symbol_chain = commodity.SymbolChain(page_property['chain_id'], page_property['chain_name'])
     page_property['symbol_chain'] = symbol_chain
-    symbol_j = commodity.SymbolData('J', '焦炭', json_file)
-    symbol_i = commodity.SymbolData('I', '铁矿石', json_file)
+    symbol_j = commodity.SymbolData('J', '焦炭')
+    symbol_i = commodity.SymbolData('I', '铁矿石')
     symbol_chain.add_symbol(symbol)
     symbol_chain.add_symbol(symbol_j)
     symbol_chain.add_symbol(symbol_i)
     symbol_chain.initialize_data(dws)
     symbol.get_spot_months()
-    df_profit = symbol.get_profits(symbol_chain)    
-    df_term = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], ['symbol', 'date', 'close', 'volume', 'open_interest', 'settle', 'variety'], symbol.id)
+    df_term = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], symbol.id, ['symbol', 'date', 'close', 'volume', 'open_interest', 'settle', 'variety'])
     df_term['date'] = pd.to_datetime(df_term['date'])
     page_property['term_data']= df_term
     page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
@@ -64,13 +61,26 @@ def initial_data():
 main_chart_config =dbc.Accordion(
     [
         dbc.AccordionItem(
-            [                
+            [
                 dbc.Label('选择分析指标：', color='darkblue'),
                 dbc.Checklist(
                     options=['基差率', '库存', '仓单', '持仓量', '库存消费比', '库存+仓单', '现货利润', '盘面利润', '现货利润+盘面利润'],
                     value=['基差率', '库存', '仓单', '持仓量', '现货利润'],
                     id='select_index', inline=True
                 ),
+                html.Hr(),
+                dbc.Label('选择期货价格类型：', color='darkblue'),
+                dbc.RadioItems(
+                    options=[
+                        {"label": "主力合约收盘价", "value": '主力合约收盘价'},
+                        {"label": "主力合约结算价", "value": '主力合约结算价'},
+                        {"label": "近月合约收盘价", "value": '近月合约收盘价'},
+                        {"label": "近月合约结算价", "value": '近月合约结算价'},
+                    ],
+                    value='近月合约收盘价',
+                    id="radio_future_price", inline=True
+                ),
+
                 html.Hr(),
                 dbc.Label('标记区间：', color='darkblue'),
                 dbc.Checklist(
@@ -234,19 +244,22 @@ preivouse_input = {'selected_index': [],
 @callback(
     Output(component_id='main-figure-placeholder', component_property='figure'),
     Input('select_index', 'value'),
+    Input('radio_future_price', 'value'),
     Input('switch_marker', 'value'),
     Input('select_synchronize_index', 'value'),
     Input('look_forward_months', 'value'),
     # allow_duplicate=True
 )
-def update_graph(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
+def update_graph(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
     print('on_update_graph')
     symbol = page_property['symbol']
     if symbol.name not in page_property['chart_setting']:
         page_property['chart_setting'][symbol.name] = {}
         # initial_data()
         # page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
-    figure = page_property['symbol_figure'].create_figure(select_index_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
+    symbol_chain = page_property['symbol_chain']
+    df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
+    figure = page_property['symbol_figure'].create_figure(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
     return figure
 
 def display_term_structure_figure(click_date, spot_price):
@@ -264,10 +277,13 @@ def display_term_structure_figure(click_date, spot_price):
         diff = df_dominant_contract['settle'].head(len(dominant_months)).diff().dropna()
         if all(diff>0):
             color_flag = 'rgba(0,255,0,0.5)'
+            trade_flag = 'Contango'
         elif all(diff<0):
              color_flag = 'rgba(255,0,0,0.5)'
+             trade_flag = 'Back'
         else:
             color_flag = 'rgba(128,128,128,0.5)'
+            trade_flag = ''
         
         spot_row = pd.DataFrame({
             'symbol': ['现货'],
@@ -285,13 +301,13 @@ def display_term_structure_figure(click_date, spot_price):
         term_fig = go.Figure()
         # term_fig.add_trace(spot_figure)
         term_fig.add_trace(future_figure)
-        max_y = df_term['settle'].max() * 1.03
-        min_y = df_term['settle'].min() * 0.97        
+        max_y = df_term['settle'].max() * 1.01
+        min_y = df_term['settle'].min() * 0.99        
         current_date = click_date.strftime('%Y-%m-%d')
         # term_fig.add_hline(y=spot_price)
         term_fig.update_layout(yaxis_range=[min_y,max_y],
-                               title='期限结构:'+current_date,
-                               height=150,
+                               title='期限结构:'+current_date+' '+trade_flag,
+                               height=120,
                                margin=dict(l=0, r=0, t=30, b=0),
                                plot_bgcolor='WhiteSmoke',                   
                                showlegend=False)
@@ -338,7 +354,7 @@ def display_cross_term_figure(click_date, domain_contract):
     max_y = filtered_data['close'].max()*1.01
     min_y = filtered_data['close'].min()*0.99
     cross_term_figure.update_layout(
-                                    height=500,
+                                    height=400,
                                     margin=dict(l=0, r=0, t=20, b=0),
                                     plot_bgcolor='WhiteSmoke',     
                                     hovermode='x unified',              

@@ -12,10 +12,10 @@ from plotly.subplots import make_subplots
 import dataworks as dw
 
 class SymbolChain:
-    def __init__(self, id, name, config_file):
+    def __init__(self, id, name):
         self.id = id
         self.name = name
-        self.config_file = config_file
+        # self.config_file = config_file
         self.symbol_dict = {}
 
     def add_symbol(self, symbol):
@@ -39,7 +39,7 @@ class SymbolData:
         用于品种对应的数据更新、加载、预处理和访问
     """
     
-    def __init__(self, id, name, json_file, symbol_setting=''):
+    def __init__(self, id, name):
         """
         SymbolData类的构造函数,
     
@@ -52,24 +52,26 @@ class SymbolData:
         Returns:
             SymbolData: 返回SymbolData对象,如果未提供id、name和配置文件,则返回空
         """
-        if id =='' or name=='' or json_file == '':
+        if id =='' or name=='':
             return None
         self.id = id # 商品ID（英文缩写）
         self.name = name # 商品名
-        self.config_file = json_file # 品种配置文件（同一产业链使用相同的配置文件）
         self.basis_color = pd.DataFrame() # 基差率绘图颜色
         self.data_rank = pd.DataFrame() # 指标评级
         self.spot_months = pd.DataFrame() # 现货交易月
         self.signals = pd.DataFrame() # 指标信号
-        if symbol_setting == '':
-            with open(json_file, encoding='utf-8') as config_file:
-                self.symbol_setting = json.load(config_file)[self.name]            
-        else:
-            self.config_symbol_setting(symbol_setting)
+        self.common_json = 'common.json'
+        self.variety_json = 'variety.json'
+        with open(self.common_json, encoding='utf-8') as common_file: 
+            symbol_dataindex_setting = json.load(common_file)['DataIndex']
+        with open(self.variety_json, encoding='utf-8') as variety_file:
+            variety_setting = json.load(variety_file)[self.id]      
+        variety_setting['DataIndex'] = {**symbol_dataindex_setting, **variety_setting['DataIndex']}
+        self.symbol_setting = variety_setting
 
     def config_symbol_setting(self, symbol_setting):
         """
-        更新配置文件的内容,    
+        更新配置文件的内容（暂时废弃不用）
         Args:
             symbol_setting (dict): 符号设置的字典,
     
@@ -91,14 +93,14 @@ class SymbolData:
         else:
             existing_data[self.name].update(symbol_setting)
         # existing_data.update({symbol_name: symbol_setting})
-        self.symbol_setting = existing_data[self.name]
-
         # 将合并后的内容写入文件
         try:
             with open(self.config_file, 'w', encoding='utf-8') as config_file:
                 json.dump(existing_data, config_file, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"Error saving configuration: {e}")
+        return existing_data[self.name]
+
 
     def load_choice_file(self, file_path):
         """读取choice数据终端导出的数据文件.
@@ -156,7 +158,7 @@ class SymbolData:
         return df
 
     def update_akshare_file(self, mode='append', start_date='', end_date=''):
-        """通过AKShare接口更新历史数据
+        """通过AKShare接口更新历史数据(废弃不用)
 
         Args:
             mode (str, optional): 更新模式. 默认值为 'append'.
@@ -257,12 +259,14 @@ class SymbolData:
         return self.symbol_data
     
     def calculate_basis(self, future_type):
+        # 强制使用期货结算价计算基差
+        future_type = future_type[:4]+'结算价'
         self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data[future_type]
         self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
         return self.symbol_data 
     
     def history_time_ratio(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
-        """返回指定数据序列的历史分位
+        """返回指定数据序列的历史分位(废弃不用)
             计算数据在序列中的历史数值百分位或时间百分位,并根据区间划定分位.
         Args:
             - field (str): symbol_data中的字段名称

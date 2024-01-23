@@ -62,17 +62,21 @@ class DataWorks:
         start_date, end_date = pd.read_sql_query(sql, self.conn).iloc[0]
         return start_date, end_date
     
-    def save_variety_setting(self, setting):
+    def save_variety_setting(self, setting, json_file=''):
         # 将合并后的内容写入文件
+        if json_file=='':
+            json_file = self.json_file
         try:
-            with open(self.json_file, 'w', encoding='utf-8') as setting_file:
+            with open(json_file, 'w', encoding='utf-8') as setting_file:
                 json.dump(setting, setting_file, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"Error saving configuration: {e}")
 
-    def load_variety_setting(self):
+    def load_variety_setting(self, json_file=''):
+        if json_file=='':
+            json_file = self.json_file        
         try:
-            with open(self.json_file, 'r', encoding='utf-8') as setting_file:
+            with open(json_file, 'r', encoding='utf-8') as setting_file:
                 setting = json.load(setting_file)
         except IOError as e:
             setting = None
