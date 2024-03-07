@@ -5,32 +5,32 @@ page_property = {
     'dataworks': {},
     'chain_id': 'steel',
     'chain_name': '黑色金属',
+    'chain_url': '',
+    'variety_url': ''
 }
 
 # the style arguments for the sidebar. We use position:fixed and a fixed width
-SIDEBAR_STYLE2 = {
+SIDEBAR_STYLE = {
     # "position": "fixed",
-    "top": 150,
-    "left": -10,
-    "bottom": 0,
-    "width": "9rem",
+    # "top": 0,
+    # "left": 0,
+    # "bottom": 0,
+    "width": "12rem",
+    "height": "100%",
     "padding": "0rem 0rem",
     "background-color": "#f8f9fa",
-}
-
-SIDEBAR_STYLE = {
 }
 
 sidebar = html.Div(
     [
         dbc.Nav(
             [
-                dbc.NavLink("基本面分析", href="/basis", active="exact"),
-                dbc.NavLink("周期性分析", href="/cycle", active="exact"),
-                dbc.NavLink("套利分析", href="/arbitrage", active="exact"),
-                dbc.NavLink("跨品种分析", href="/chain", active="exact"),
-                dbc.NavLink("交易计划", href="/plan", active="exact"),
-                dbc.NavLink("品种设置", href="/setting", active="exact"),
+                dbc.NavLink("基本面分析", href="/tab_basis", active="exact"),
+                dbc.NavLink("周期性分析", href="/tab_cycle", active="exact"),
+                dbc.NavLink("套利分析", href="/tab_arbitrage", active="exact"),
+                dbc.NavLink("跨品种分析", href="/tab_cross", active="exact"),
+                dbc.NavLink("交易计划", href="/tab_plan", active="exact"),
+                dbc.NavLink("品种设置", href="/tab_setting", active="exact"),
                 html.Hr(),
                 dbc.NavLink("产业链视图", href="/black_metal/chain", active="exact"),
                 dbc.NavLink("螺纹钢", href="/black_metal/RB", active="exact"),
@@ -38,19 +38,21 @@ sidebar = html.Div(
                 dbc.NavLink("焦炭", href="/J", active="exact"),
             ],
             vertical=True,
-            # pills=True,
-            fill=True,
-            card=True,
+            pills=True,
+            # fill=True,
+            # card=True,
         ),
     ],
-    style=SIDEBAR_STYLE2,
+    style=SIDEBAR_STYLE,
 )
 
 tab_overview = html.Div([
     dbc.Card(    
         dbc.CardBody(
             [
-                
+                dbc.Col([
+                    html.P("basis")
+                ])
             ]
         ),
     ) 
@@ -110,22 +112,25 @@ global_vars = {
 
 page_layout = html.Div(
     [
-        dcc.Location(id='url-chain', refresh=False),
         dbc.Row([
             dbc.Col([
                 sidebar,
             ], width=2),
             dbc.Col([
-                dbc.Row([
-                    # chain_tabs,
-                ]),
-            ],width='12'),
+                tab_overview,
+            ], 
+            width='auto',
+            id="main-content"),
         ]),
     ],
 )
 
 def layout(pathname):
-    print(chain_tabs.active_tab, global_vars["active_tab"])
+    page_property["chain_url"] = pathname
+    if '/chain' in pathname:
+        None
+    elif pathname == "/tab_basis":
+        None
     # chain_tabs.active_tab = global_vars["active_tab"]
     # for child in chain_tabs.children:
     #     if child.tab_id==global_vars["active_tab"]:
@@ -182,12 +187,16 @@ def initialize():
         # else:
         #     return {}, {}, {}
         
-# def page_router(app):
-#     @app.callback(
-#         Output("tab-symbol-rb", "children", allow_duplicate=True), 
-#         Input("url-chain", "pathname")
-#     )
-#     def nav_page_router(pathname):
-#         print('nav_page_router', pathname)
-#         if pathname == "/basis":
-#             return tab_variety
+def page_router(app):
+    @app.callback(
+        Output("main-content", "children"), 
+        # Output("page-content", "children", allow_duplicate=True),
+        Input("url", "pathname")
+    )
+    def nav_page_router(pathname):
+        print('Chain Router:', pathname)
+        # if '/chain' in pathname:
+        #     None
+        # elif pathname == "/tab_basis":
+        #     None
+        return tab_basis
