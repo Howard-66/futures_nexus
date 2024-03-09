@@ -1,15 +1,6 @@
-from dash import Dash, dcc, html, Input, Output, callback
+from dash import Dash, dcc, html, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 
-page_property = {
-    'dataworks': {},
-    'chain_id': 'steel',
-    'chain_name': '黑色金属',
-    'chain_url': '',
-    'variety_url': ''
-}
-
-# the style arguments for the sidebar. We use position:fixed and a fixed width
 SIDEBAR_STYLE = {
     # "position": "fixed",
     # "top": 0,
@@ -21,32 +12,20 @@ SIDEBAR_STYLE = {
     "background-color": "#f8f9fa",
 }
 
-sidebar = html.Div(
-    [
-        dbc.Nav(
-            [
-                dbc.NavLink("基本面分析", href="/tab_basis", active="exact"),
-                dbc.NavLink("周期性分析", href="/tab_cycle", active="exact"),
-                dbc.NavLink("套利分析", href="/tab_arbitrage", active="exact"),
-                dbc.NavLink("跨品种分析", href="/tab_cross", active="exact"),
-                dbc.NavLink("交易计划", href="/tab_plan", active="exact"),
-                dbc.NavLink("品种设置", href="/tab_setting", active="exact"),
-                html.Hr(),
-                dbc.NavLink("产业链视图", href="/black_metal/chain", active="exact"),
-                dbc.NavLink("螺纹钢", href="/black_metal/RB", active="exact"),
-                dbc.NavLink("铁矿石", href="/black_metal/I", active="exact"),
-                dbc.NavLink("焦炭", href="/J", active="exact"),
-            ],
-            vertical=True,
-            pills=True,
-            # fill=True,
-            # card=True,
-        ),
-    ],
-    style=SIDEBAR_STYLE,
-)
 
 tab_overview = html.Div([
+    dbc.Card(    
+        dbc.CardBody(
+            [
+                dbc.Col([
+                    html.P("Overview")
+                ])
+            ]
+        ),
+    ) 
+])
+
+tab_basis = html.Div([
     dbc.Card(    
         dbc.CardBody(
             [
@@ -58,16 +37,161 @@ tab_overview = html.Div([
     ) 
 ])
 
-# 产业链下具体品种分析页面
-tab_basis = html.Div([
-    dbc.Row([
-        # dbc.Col([
-        #     sidebar,
-        # ]),    
-        dbc.Col([
-            html.P("basis")
+page_layout = html.Div(
+    [
+        dbc.Row([
+            dbc.Col([
+                # sidebar,
+            ], width=2),
+            dbc.Col([
+                tab_overview,
+            ], 
+            width='auto',
+            id="main-content"),
+        ]),
+    ],
+)
+
+class ChainPage:
+    def __init__(self, name) -> None:
+        self.chain_name = name
+        self.variety_list = self.get_variety_list()
+        self.page_maps = {}
+        self.active_variety = None
+    
+    def get_variety_list(self):
+        return ['RB', 'I', 'J']
+    
+    def get_sidebar_layout(self, variety):
+        sidebar = html.Div(
+            [
+                dbc.Nav(
+                    [
+                        dbc.NavLink("产业链视图", href=f"/chain/{self.chain_name}/overview", active="exact"),
+                        dbc.NavLink("螺纹钢", href=f"/chain/{self.chain_name}/RB", active="exact"),
+                        dbc.NavLink("铁矿石", href=f"/chain/{self.chain_name}/I", active="exact"),
+                        dbc.NavLink("焦炭", href=f"/chain/{self.chain_name}/J", active="exact"),                        
+                        html.Hr(),
+                        dbc.NavLink("基本面分析", href=f"/chain/{self.chain_name}/{variety}/tab_basis", active="exact"),
+                        dbc.NavLink("周期性分析", href=f"/chain/{self.chain_name}/{variety}/tab_cycle", active="exact"),
+                        dbc.NavLink("套利分析", href=f"/chain/{self.chain_name}/{variety}/tab_arbitrage", active="exact"),
+                        dbc.NavLink("跨品种分析", href=f"/chain/{self.chain_name}/{variety}/tab_cross", active="exact"),
+                        dbc.NavLink("交易计划", href=f"/chain/{self.chain_name}/{variety}/tab_plan", active="exact"),
+                        dbc.NavLink("品种设置", href=f"/chain/{self.chain_name}/{variety}/tab_setting", active="exact"),
+                        html.Div(id='sidebar-content')
+                    ],
+                    vertical=True,
+                    pills=True,
+                    # fill=True,
+                    # card=True,
+                ),
+            ],
+            style=SIDEBAR_STYLE,
+        )
+        return sidebar
+
+    def get_page_layout(self, unique_id, sidebar, tab_content):
+        left_layout = {}
+        if sidebar is None:
+            left_layout = {}
+        else:
+            left_layout = dbc.Col([sidebar,], width=2)
+        page_layout = html.Div(
+            [
+                dbc.Row([
+                    left_layout,
+                    dbc.Col([
+                        tab_content,
+                    ], 
+                    width='auto',
+                    id='main-content'),
+                ]),
+            ],
+        )
+        return page_layout
+    
+    def get_layout(self, variety, analysis_type):
+        unique_id = f"{self.chain_name}-{variety}-{analysis_type}"
+        tab_content = {}
+        if variety == '':
+            variety = 'overview' if self.active_variety == None else self.active_variety
+
+        tab_content = html.Div([
+            dbc.Card(    
+                dbc.CardBody(
+                    [
+                        dbc.Col([
+                            html.P(variety),
+                            dbc.Checklist(
+                                options=['现货交易月', '指标共振周期'],
+                                value=['现货交易月'],
+                                id='switch_marker',
+                                switch=True, inline=True
+                            ),                       
+                        ])
+                    ]
+                ),
+            )
         ])
-    ]),
+
+        if variety not in self.page_maps:
+            sidebar = self.get_sidebar_layout(variety)
+            layout = self.get_page_layout(unique_id, sidebar, tab_content)
+            self.page_maps[variety] = layout
+        else:
+            layout = self.page_maps[variety]
+
+        return layout
+
+    def get_data(self, variety, analysis_type):
+        pass
+
+chain_maps = {}
+
+def page_router(chain_name, variety, analysis_type):
+    if chain_name not in chain_maps:
+        chain_maps[chain_name] = ChainPage(chain_name)
+    return chain_maps[chain_name].get_layout(variety, analysis_type)
+
+# def callback(app):
+#     @app.callback(
+#         Output("tab-overview", "children"), 
+#         Output("url", "pathname"), 
+#         Input("chain-tabs", "active_tab"),
+#     )
+#     def do_something(active_tab):
+#         pass
+
+page_property = {
+    'dataworks': {},
+    'chain_id': 'steel',
+    'chain_name': '黑色金属',
+    'chain_url': '',
+    'variety_url': ''
+}
+
+tab_overview = html.Div([
+    dbc.Card(    
+        dbc.CardBody(
+            [
+                dbc.Col([
+                    html.P("Overview")
+                ])
+            ]
+        ),
+    ) 
+])
+
+tab_basis = html.Div([
+    dbc.Card(    
+        dbc.CardBody(
+            [
+                dbc.Col([
+                    html.P("basis")
+                ])
+            ]
+        ),
+    ) 
 ])
 
 tab_cycle = html.Div([
@@ -109,22 +233,6 @@ global_vars = {
     "tab-overview": "/basis",
 }
 
-
-page_layout = html.Div(
-    [
-        dbc.Row([
-            dbc.Col([
-                sidebar,
-            ], width=2),
-            dbc.Col([
-                tab_overview,
-            ], 
-            width='auto',
-            id="main-content"),
-        ]),
-    ],
-)
-
 def layout(pathname):
     page_property["chain_url"] = pathname
     if '/chain' in pathname:
@@ -163,40 +271,15 @@ def initialize():
     # symbol_chain.add_symbol(symbol_i)
     # symbol_chain.initialize_data(dws)
     return
-
-# def callback(app):
-    # @app.callback(
-        # Output("tab-overview", "children"), 
-        # Output("tab-symbol-rb", "children"), 
-        # Output("url", "pathname"), 
-        # Input("chain-tabs", "active_tab"),
-    # )
-    # def tab_content(active_tab):
-        # global_vars["active_tab"] = active_tab
-        # print("on_clic_tab: ", global_vars["active_tab"])
-        # if active_tab in global_vars:
-        #     return global_vars[active_tab]
-        # else:
-        #     return "/basis"
-        # if active_tab=="tab-overview":
-        #     return tab_overview, {}, {}
-        # elif active_tab=="tab-symbol-rb":
-        #     return {}, tab_basis, {}
-        # elif active_tab=="tab-symbol-i":
-        #     return {}, {}, tab_basis
-        # else:
-        #     return {}, {}, {}
         
-def page_router(app):
+def callback(app):
     @app.callback(
-        Output("main-content", "children"), 
+        Output("sidebar-content", "children"), 
         # Output("page-content", "children", allow_duplicate=True),
-        Input("url", "pathname")
+        Input('switch_marker', "value"),
+        State('url', 'pathname')
     )
-    def nav_page_router(pathname):
-        print('Chain Router:', pathname)
-        # if '/chain' in pathname:
-        #     None
-        # elif pathname == "/tab_basis":
-        #     None
-        return tab_basis
+    def nav_page_router(switch_values, pathname):
+        print('Chain Callback:', switch_values, pathname)
+        content = html.Div(pathname)
+        return content
