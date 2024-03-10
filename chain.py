@@ -116,7 +116,20 @@ class ChainPage:
         if variety == '':
             variety = 'overview' if self.active_variety == None else self.active_variety
 
+        variety_menu_items = [
+            dbc.DropdownMenuItem("Deep thought", id="dropdown-menu-item-1"),
+            dbc.DropdownMenuItem("Hal", id="dropdown-menu-item-2"),
+            dbc.DropdownMenuItem(divider=True),
+            dbc.DropdownMenuItem("Clear", id="dropdown-menu-item-clear"),
+        ]
         tab_content = html.Div([
+            dbc.Row([
+                dbc.DropdownMenu(variety_menu_items, label="品种切换"),
+                dbc.Button("基本面分析", outline=True, color="primary", className="me-1"),
+                dbc.Button("周期性分析", outline=True, color="primary", className="me-1"),
+                dbc.Button("跨期分析", outline=True, color="primary", className="me-1"),
+                dbc.Button("跨品种分析", outline=True, color="primary", className="me-1"),
+            ]),
             dbc.Card(    
                 dbc.CardBody(
                     [
