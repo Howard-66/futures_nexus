@@ -1,7 +1,7 @@
 import dash
 from dash import Dash, dcc, html, Input, Output, State, callback
 import dash_bootstrap_components as dbc
-import chain_page
+import chain
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -129,6 +129,7 @@ main_content = html.Div(
 
 app.layout = html.Div([dcc.Location(id="url"), side_bar, main_content])
 
+# chain.callback(app)
 
 @app.callback(
         Output("sidebar-nav", "children"),
@@ -158,14 +159,11 @@ def render_page_content(pathname):
         main_content = home_page
     elif module == 'chain': 
         print(chain_name, variety, analysis_type)
-        side_bar_nav, main_content = chain_page.page_router(chain_name, variety, analysis_type)
-        # main_content = not_found_page if main_content is None else main_content        
-        # main_content = {}
-        print(side_bar_nav, main_content)
+        side_bar_nav, main_content = chain.page_router(chain_name, variety, analysis_type)
     else:
         main_content = not_found_page
 
     return side_bar_nav, main_content
 
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8868)
+    app.run_server(debug=True, port=8898)

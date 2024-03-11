@@ -130,3 +130,15 @@ def page_router(chain_name, variety, analysis_type):
     if chain_name not in chain_page_maps:
         chain_page_maps[chain_name] = ChainPage(chain_name)
     return chain_page_maps[chain_name].get_layout(variety, analysis_type)
+
+# def callback(app):
+#     @app.callback(
+#         Output("sidebar-content", "children"), 
+#         # Output("page-content", "children", allow_duplicate=True),
+#         Input('switch_marker', "value"),
+#         State('url', 'pathname')
+#     )
+#     def nav_page_router(switch_values, pathname):
+#         print('Chain Callback:', switch_values, pathname)
+#         content = html.Div(pathname)
+#         return content
