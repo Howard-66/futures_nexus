@@ -10,7 +10,7 @@ sidebar_nav = dbc.Nav(
     pills=True,
 )
 
-variety_menu = dbc.Nav(
+chain_menu = dbc.Nav(
     children=[
     ],
     pills=True,
@@ -35,42 +35,92 @@ class ChainPage:
         with open(self.chain_config, encoding='utf-8') as chains_file:
             chains_setting = json.load(chains_file)[self.chain_name]      
         self.variety_list = chains_setting["variety_list"]
+        self.chain_menu = None
+        self.chain_overview = None
     
     def get_variety_list(self):
         return self.variety_list
 
+    # 创建侧边导航栏
     def create_sidebar_nav(self, variety):
-        return sidebar_nav
+        side_bar_nav = dbc.Nav(
+            [        
+            ],
+            vertical=True,
+            pills=True,
+        )
+        if variety == 'overview':
+            side_bar_nav.children = []
+        else:
+            side_bar_nav.children = [
+                dbc.NavLink("基本面分析", href=f"/chain/{self.chain_name}/{variety}/basis", active="exact"),
+                dbc.NavLink("周期性分析", href=f"/chain/{self.chain_name}/{variety}/cycle", active="exact"),
+                dbc.NavLink("跨期分析", href=f"/chain/{self.chain_name}/{variety}/cross_period", active="exact"),
+                dbc.NavLink("跨品种分析", href=f"/chain/{self.chain_name}/{variety}/cross_variety", active="exact"),
+                dbc.NavLink("交易计划", href=f"/chain/{self.chain_name}/{variety}/plan", active="exact"),
+            ]
+        return side_bar_nav
+    
+    # 创建产业链品种切换菜单
+    def create_chain_menu(self):
+        if self.chain_menu is None:
+            chain_menu.children = [
+                dbc.NavLink("产业链视图", href=f"/chain/{self.chain_name}/overview", active="exact"),
+            ]
+            for variety in self.variety_list:
+                nav_link = dbc.NavLink(variety, href=f"/chain/{self.chain_name}/{variety}", active="exact")
+                chain_menu.children.append(nav_link)
+            self.chain_menu = chain_menu
+        return self.chain_menu
+    
+    def create_chain_overview(self):
+        return html.P("产业链视图")
 
-    def get_main_content(self, variety, analysis_type):
-        # variety_menu.children = []
-        variety_menu.children = [
-            dbc.NavLink("产业链视图", href=f"/chain/{self.chain_name}/overview", active="exact"),
-        ]
-        for variety in self.variety_list:
-            variety_nav_link = dbc.NavLink(variety, href=f"/chain/{self.chain_name}/{variety}", active="exact")
-            variety_menu.children.append(variety_nav_link)
+    # 创建分析页面
+    def create_analyzing_layout(self, variety, analysis_type):
+        # 根据analysis_type创建分析视图
+        if analysis_type == "basis":
+            analyzing_layout = html.P(f"{variety}-{analysis_type} page")
+        elif analysis_type == "cycle":
+            analyzing_layout = html.P(f"{variety}-{analysis_type} page")
+
+        return analyzing_layout
+    
+    def get_layout(self, variety, analysis_type):        
+        chain_menu = self.create_chain_menu()        
+        if variety not in self.page_maps: 
+            if variety == "overview":
+                side_bar_nav = self.create_sidebar_nav(variety)
+                analysis_type = None
+                analyzing_layout = self.create_chain_overview()
+                self.page_maps[variety] = {'sidebar_nav': side_bar_nav, 'active': analysis_type, analysis_type: analyzing_layout}
+            else:
+                side_bar_nav = self.create_sidebar_nav(variety)
+                analysis_type = 'basis'
+                analyzing_layout = self.create_analyzing_layout(variety, analysis_type)
+                self.page_maps[variety] = {'sidebar_nav': side_bar_nav, 'active': analysis_type, analysis_type: analyzing_layout}
+        else:
+            side_bar_nav = self.page_maps[variety]['sidebar_nav']
+            if analysis_type is None:
+                analysis_type = self.page_maps[variety]['active']
+            if analysis_type not in self.page_maps[variety]:
+                analyzing_layout = self.create_analyzing_layout(variety, analysis_type)
+                self.page_maps[variety][analysis_type] = analyzing_layout
+                self.page_maps[variety]['active'] = analysis_type
+            else:
+                analyzing_layout = self.page_maps[variety][analysis_type]
+                self.page_maps[variety]['active'] = analysis_type
         main_content = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(variety_menu),
+                        dbc.Col(chain_menu),
                         dbc.Col(index_selector),
                     ],
                 ),
-                dbc.Row(),
+                dbc.Row(analyzing_layout),
             ]
-        )
-        return main_content
-    
-    def get_layout(self, variety, analysis_type):
-        if variety not in self.page_maps:
-            side_bar_nav = self.create_sidebar_nav(variety)
-            main_content = self.get_main_content(variety, analysis_type)
-            self.page_maps[variety] = [side_bar_nav, main_content]
-        else:
-            side_bar_nav, main_content = self.page_maps[variety]
-
+        )        
         return side_bar_nav, main_content
 
     def get_data(self, variety, analysis_type):
