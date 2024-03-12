@@ -32,7 +32,7 @@ class ChainPage:
         self.chain_name = name
         self.page_maps = {}
         self.active_variety = None
-        self.chain_config = 'chains.json'
+        self.chain_config = 'setting/chains.json'
         with open(self.chain_config, encoding='utf-8') as chains_file:
             chains_setting = json.load(chains_file)[self.chain_name]      
         self.variety_list = chains_setting["variety_list"]

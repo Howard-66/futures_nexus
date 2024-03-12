@@ -5,7 +5,8 @@ import json
 class DataWorks:
     def __init__(self) -> None:
         self.conn = sqlite3.connect('data/futures.db')
-        self.variety_json = 'variety.json'
+        self.variety_setting = None
+        self.variety_json = 'setting/variety.json'
         self.variety_id_name_map = None
         self.variety_name_id_map = None
 
@@ -71,26 +72,28 @@ class DataWorks:
             self.variety_name_id_map = df.set_index('name')['code'].to_dict()
         return self.variety_id_name_map, self.variety_name_id_map
 
-    def save_variety_setting(self, setting, json_file=''):
-        # 将合并后的内容写入文件
-        if json_file!='':
-            self.variety_json = json_file
+    def get_variety_setting(self, json_file=''):
+        if self.variety_setting is None:
+            if json_file!='':
+                self.variety_json = json_file   
+            self.variety_setting = self.load_json_setting(self.variety_json)
+        return self.variety_setting
+    
+    def load_json_setting(self, json_file):
         try:
-            with open(self.variety_json, 'w', encoding='utf-8') as setting_file:
-                json.dump(setting, setting_file, indent=4, ensure_ascii=False)
-        except IOError as e:
-            print(f"Error saving configuration: {e}")
-
-    def load_variety_setting(self, json_file=''):
-        if json_file!='':
-            self.variety_json = json_file
-        try:
-            with open(self.variety_json, 'r', encoding='utf-8') as setting_file:
+            with open(json_file, 'r', encoding='utf-8') as setting_file:
                 setting = json.load(setting_file)
         except IOError as e:
             setting = None
             print(f"Error reading configuration: {e}")        
         return setting
     
+    def save_json_setting(self, json_file, setting):
+        try:
+            with open(json_file, 'w', encoding='utf-8') as setting_file:
+                json.dump(setting, setting_file, indent=4, ensure_ascii=False)
+        except IOError as e:
+            print(f"Error saving configuration: {e}")
+
     def close(self):
         self.conn.close()
