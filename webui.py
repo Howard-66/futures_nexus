@@ -24,9 +24,6 @@ CONTENT_STYLE = {
     "padding": "2rem 1rem",
 }
 
-# web app logo
-app_logo = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
-
 # 市场全景导航栏
 market_overview_nav = dbc.Nav(
     [
@@ -44,13 +41,13 @@ side_bar = html.Div(
     [
         dbc.Row(
             [
-                dbc.Col(html.Img(src=app_logo, height="30px"),width=2),
+                dbc.Col(html.Img(src='assets/logo.png', height="30px"),width=2),
                 dbc.Col(html.H4("Futures Nexus", className="display-10"),width='auto'),
             ],
         ),            
         # html.Hr(),
         html.P(
-            "quantitative analysis", className="p3"
+            # "quantitative analysis", className="p3"
         ),
         html.Div(id='sidebar-nav')
     ],
