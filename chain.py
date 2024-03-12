@@ -17,6 +17,11 @@ chain_menu = dbc.Nav(
     pills=True,
 )
 
+config_button = html.A(
+    html.I(className="bi bi-gear me-2", style={'font-size': '1.5rem', 'color': 'cornflowerblue'}, id='config-button'),
+    href='/'
+)
+
 index_selector = dbc.Select(
     options=[
         {'label': '基差-库存-利润', 'value': 'bsp'},
@@ -67,6 +72,8 @@ class ChainPage:
         if self.chain_menu is None:
             id_name_map = gs.variety_id_name_map
             chain_menu.children = [
+                # html.Img(src='assets/gear.svg', style={'width': '50px', 'height': '50px', 'filter': 'invert(1) sepia(1) saturate(5) hue-rotate(90deg)'}),
+                config_button,          
                 dbc.NavLink("产业链视图", href=f"/chain/{self.chain_name}/overview", active="exact"),
             ]
             for variety in self.variety_list:
@@ -135,12 +142,10 @@ def page_router(chain_name, variety, analysis_type):
 
 # def callback(app):
 #     @app.callback(
-#         Output("sidebar-content", "children"), 
-#         # Output("page-content", "children", allow_duplicate=True),
-#         Input('switch_marker', "value"),
+#         Output("config-button", "data"), 
+# #         # Output("page-content", "children", allow_duplicate=True),
+#         Input('config-button', "n_clicks"),
 #         State('url', 'pathname')
 #     )
-#     def nav_page_router(switch_values, pathname):
-#         print('Chain Callback:', switch_values, pathname)
-#         content = html.Div(pathname)
-#         return content
+#     def nav_page_router(n, pathname):
+#         return None
