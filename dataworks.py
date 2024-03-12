@@ -5,8 +5,9 @@ import json
 class DataWorks:
     def __init__(self) -> None:
         self.conn = sqlite3.connect('data/futures.db')
-        self.json_file = 'variety.json'
-        # self.conn = None
+        self.variety_json = 'variety.json'
+        self.variety_id_name_map = None
+        self.variety_name_id_map = None
 
     def __enter__(self):
         return self
@@ -62,21 +63,29 @@ class DataWorks:
         start_date, end_date = pd.read_sql_query(sql, self.conn).iloc[0]
         return start_date, end_date
     
+    def get_variety_map(self):
+        if self.variety_id_name_map is None or self.variety_name_id_map is None:
+            sql = f"SELECT code, name FROM symbols"
+            df = pd.read_sql_query(sql, self.conn)
+            self.variety_id_name_map = df.set_index('code')['name'].to_dict()
+            self.variety_name_id_map = df.set_index('name')['code'].to_dict()
+        return self.variety_id_name_map, self.variety_name_id_map
+
     def save_variety_setting(self, setting, json_file=''):
         # 将合并后的内容写入文件
-        if json_file=='':
-            json_file = self.json_file
+        if json_file!='':
+            self.variety_json = json_file
         try:
-            with open(json_file, 'w', encoding='utf-8') as setting_file:
+            with open(self.variety_json, 'w', encoding='utf-8') as setting_file:
                 json.dump(setting, setting_file, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"Error saving configuration: {e}")
 
     def load_variety_setting(self, json_file=''):
-        if json_file=='':
-            json_file = self.json_file        
+        if json_file!='':
+            self.variety_json = json_file
         try:
-            with open(json_file, 'r', encoding='utf-8') as setting_file:
+            with open(self.variety_json, 'r', encoding='utf-8') as setting_file:
                 setting = json.load(setting_file)
         except IOError as e:
             setting = None

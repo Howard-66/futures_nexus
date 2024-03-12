@@ -1,6 +1,7 @@
 from dash import Dash, dcc, html, Input, Output, State, callback
 import dash_bootstrap_components as dbc
 import json
+from global_service import gs
 
 # 市场全景导航栏
 sidebar_nav = dbc.Nav(
@@ -64,11 +65,12 @@ class ChainPage:
     # 创建产业链品种切换菜单
     def create_chain_menu(self):
         if self.chain_menu is None:
+            id_name_map = gs.variety_id_name_map
             chain_menu.children = [
                 dbc.NavLink("产业链视图", href=f"/chain/{self.chain_name}/overview", active="exact"),
             ]
             for variety in self.variety_list:
-                nav_link = dbc.NavLink(variety, href=f"/chain/{self.chain_name}/{variety}", active="exact")
+                nav_link = dbc.NavLink(id_name_map[variety], href=f"/chain/{self.chain_name}/{variety}", active="exact")
                 chain_menu.children.append(nav_link)
             self.chain_menu = chain_menu
         return self.chain_menu

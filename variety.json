@@ -8,7 +8,8 @@
             9,
             11
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "大豆"
     },
     "B": {
         "DominantMonths": [
@@ -25,7 +26,8 @@
             11,
             12
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "豆二"
     },
     "BB": {
         "DominantMonths": [
@@ -42,7 +44,8 @@
             11,
             12
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "胶合板"
     },
     "C": {
         "DominantMonths": [
@@ -53,7 +56,8 @@
             9,
             11
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "玉米"
     },
     "CS": {
         "DominantMonths": [
@@ -64,7 +68,8 @@
             9,
             11
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "玉米淀粉"
     },
     "EB": {
         "DominantMonths": [
@@ -81,7 +86,8 @@
             11,
             12
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "苯乙烯"
     },
     "EG": {
         "DominantMonths": [
@@ -89,7 +95,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "乙二醇"
     },
     "FB": {
         "DominantMonths": [
@@ -101,7 +108,8 @@
             9,
             10
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "纤维板"
     },
     "I": {
         "DominantMonths": [
@@ -110,7 +118,7 @@
             9
         ],
         "ExchangeID": "dce",
-        "DataIndex": {            
+        "DataIndex": {
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
@@ -147,7 +155,8 @@
                 "Y": 1.0
             },
             "其他成本": 0
-        }
+        },
+        "Name": "铁矿石"
     },
     "J": {
         "DominantMonths": [
@@ -200,7 +209,8 @@
                 "Y": 1.0
             },
             "其他成本": 0
-        }
+        },
+        "Name": "焦炭"
     },
     "JD": {
         "DominantMonths": [
@@ -212,7 +222,8 @@
             10,
             11
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "鸡蛋"
     },
     "JM": {
         "DominantMonths": [
@@ -220,7 +231,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "焦煤"
     },
     "L": {
         "DominantMonths": [
@@ -229,7 +241,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "塑料"
     },
     "M": {
         "DominantMonths": [
@@ -237,7 +250,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "豆粕"
     },
     "P": {
         "DominantMonths": [
@@ -245,7 +259,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "棕榈油"
     },
     "PG": {
         "DominantMonths": [
@@ -262,7 +277,8 @@
             11,
             12
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "Unknown"
     },
     "PP": {
         "DominantMonths": [
@@ -270,7 +286,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "聚丙烯"
     },
     "RR": {
         "DominantMonths": [
@@ -287,7 +304,8 @@
             11,
             12
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "粳米"
     },
     "V": {
         "DominantMonths": [
@@ -295,7 +313,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "PVC"
     },
     "Y": {
         "DominantMonths": [
@@ -303,7 +322,8 @@
             5,
             9
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "豆油"
     },
     "LH": {
         "DominantMonths": [
@@ -314,7 +334,8 @@
             9,
             11
         ],
-        "ExchangeID": "dce"
+        "ExchangeID": "dce",
+        "Name": "Unknown"
     },
     "AP": {
         "DominantMonths": [
@@ -322,7 +343,8 @@
             5,
             10
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "苹果"
     },
     "CF": {
         "DominantMonths": [
@@ -330,7 +352,8 @@
             5,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "棉花"
     },
     "CJ": {
         "DominantMonths": [
@@ -338,7 +361,8 @@
             5,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "红枣"
     },
     "CY": {
         "DominantMonths": [
@@ -346,7 +370,8 @@
             5,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "棉纱"
     },
     "FG": {
         "DominantMonths": [
@@ -354,7 +379,8 @@
             5,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "玻璃"
     },
     "JR": {
         "DominantMonths": [
@@ -365,7 +391,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "粳稻"
     },
     "LR": {
         "DominantMonths": [
@@ -376,7 +403,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "晚籼稻"
     },
     "MA": {
         "DominantMonths": [
@@ -384,7 +412,8 @@
             5,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "OI": {
         "DominantMonths": [
@@ -394,7 +423,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "PF": {
         "DominantMonths": [
@@ -411,7 +441,8 @@
             11,
             12
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "PM": {
         "DominantMonths": [
@@ -422,7 +453,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "普麦"
     },
     "RI": {
         "DominantMonths": [
@@ -433,7 +465,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "RM": {
         "DominantMonths": [
@@ -443,7 +476,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "菜籽粕"
     },
     "RS": {
         "DominantMonths": [
@@ -452,7 +486,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "油菜籽"
     },
     "SA": {
         "DominantMonths": [
@@ -460,7 +495,8 @@
             5,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "纯碱"
     },
     "SF": {
         "DominantMonths": [
@@ -477,7 +513,8 @@
             11,
             12
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "硅铁"
     },
     "SM": {
         "DominantMonths": [
@@ -492,7 +529,8 @@
             11,
             12
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "锰硅"
     },
     "SR": {
         "DominantMonths": [
@@ -502,7 +540,8 @@
             7,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "白糖"
     },
     "TA": {
         "DominantMonths": [
@@ -510,7 +549,8 @@
             5,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "PTA"
     },
     "UR": {
         "DominantMonths": [
@@ -519,7 +559,8 @@
             7,
             9
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "尿素"
     },
     "WH": {
         "DominantMonths": [
@@ -530,7 +571,8 @@
             9,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "ZC": {
         "DominantMonths": [
@@ -547,7 +589,8 @@
             11,
             12
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "PK": {
         "DominantMonths": [
@@ -557,19 +600,22 @@
             10,
             11
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "PX": {
         "DominantMonths": [
             5
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "SH": {
         "DominantMonths": [
             5
         ],
-        "ExchangeID": "czce"
+        "ExchangeID": "czce",
+        "Name": "Unknown"
     },
     "CU": {
         "DominantMonths": [
@@ -586,7 +632,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "铜"
     },
     "BC": {
         "DominantMonths": [
@@ -603,7 +650,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "Unknown"
     },
     "AL": {
         "DominantMonths": [
@@ -620,7 +668,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "铝"
     },
     "ZN": {
         "DominantMonths": [
@@ -637,7 +686,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "锌"
     },
     "PB": {
         "DominantMonths": [
@@ -654,7 +704,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "铅"
     },
     "NI": {
         "DominantMonths": [
@@ -671,7 +722,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "沪镍"
     },
     "SN": {
         "DominantMonths": [
@@ -688,7 +740,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "沪锡"
     },
     "AU": {
         "DominantMonths": [
@@ -699,7 +752,8 @@
             10,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "黄金"
     },
     "AG": {
         "DominantMonths": [
@@ -709,7 +763,8 @@
             10,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "白银"
     },
     "RB": {
         "DominantMonths": [
@@ -755,7 +810,8 @@
                 "焦炭": 0.6
             },
             "其他成本": 1200
-        }        
+        },
+        "Name": "螺纹钢"
     },
     "WR": {
         "DominantMonths": [
@@ -765,7 +821,8 @@
             10,
             11
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "线材"
     },
     "HC": {
         "DominantMonths": [
@@ -773,7 +830,8 @@
             5,
             10
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "热轧卷板"
     },
     "SS": {
         "DominantMonths": [
@@ -790,7 +848,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "不锈钢"
     },
     "SC": {
         "DominantMonths": [
@@ -807,7 +866,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "Unknown"
     },
     "LU": {
         "DominantMonths": [
@@ -824,7 +884,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "Unknown"
     },
     "FU": {
         "DominantMonths": [
@@ -834,7 +895,8 @@
             9,
             11
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "燃油"
     },
     "BU": {
         "DominantMonths": [
@@ -849,7 +911,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "沥青"
     },
     "RU": {
         "DominantMonths": [
@@ -857,7 +920,8 @@
             5,
             9
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "橡胶"
     },
     "NR": {
         "DominantMonths": [
@@ -874,7 +938,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "Unknown"
     },
     "SP": {
         "DominantMonths": [
@@ -888,7 +953,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "纸浆"
     },
     "AO": {
         "DominantMonths": [
@@ -898,7 +964,8 @@
             11,
             12
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "Unknown"
     },
     "BR": {
         "DominantMonths": [
@@ -906,12 +973,14 @@
             2,
             3
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "Unknown"
     },
     "EC": {
         "DominantMonths": [
             4
         ],
-        "ExchangeID": "shfe"
+        "ExchangeID": "shfe",
+        "Name": "Unknown"
     }
 }
