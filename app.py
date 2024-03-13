@@ -134,15 +134,16 @@ nav_bar = dbc.Navbar(
 
 app.layout = html.Div([
     dbc.Row(nav_bar),
-    dbc.Row(
-        html.Div([
-            html.Div(
-                dcc.Link(f"{page['name']} - {page['path']}", href=page["relative_path"])
-            ) for page in dash.page_registry.values()
-        ]),
-    ),
+    # dbc.Row(
+    #     html.Div([
+    #         html.Div(
+    #             dcc.Link(f"{page['name']} - {page['path']}", href=page["relative_path"])
+    #         ) for page in dash.page_registry.values()
+    #     ]),
+    # ),
     dbc.Row(dash.page_container),
 ])
 
 if __name__ == '__main__':
+
     app.run(debug=True)

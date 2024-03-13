@@ -3,20 +3,34 @@ from dash import html, dcc, callback, Input, Output
 
 dash.register_page(__name__)
 
-layout = html.Div([
-    html.H1('This is our Analytics page'),
-    html.Div([
-        "Select a city: ",
-        dcc.RadioItems(
-            options=['New York City', 'Montreal', 'San Francisco'],
-            value='Montreal',
-            id='analytics-input'
-        )
-    ]),
-    html.Br(),
-    html.Div(id='analytics-output'),
-])
+# page_layout = html.Div([
+#     html.H1('This is our Analytics page'),
+#     html.Div([
+#         "Select a city: ",
+#         dcc.RadioItems(
+#             options=['New York City', 'Montreal', 'San Francisco'],
+#             value='Montreal',
+#             id='analytics-input'
+#         )
+#     ]),
+#     html.Br(),
+#     html.Div(id='analytics-output'),
+# ])
 
+def layout():
+    return html.Div([
+        html.H1('This is our Analytics2 page'),
+        html.Div([
+            "Select a city: ",
+            dcc.RadioItems(
+                options=['New York City', 'Montreal', 'San Francisco'],
+                value='Montreal',
+                id='analytics-input'
+            )
+        ]),
+        html.Br(),
+        html.Div(id='analytics-output'),
+    ])
 
 @callback(
     Output('analytics-output', 'children'),
