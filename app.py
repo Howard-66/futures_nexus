@@ -11,10 +11,10 @@ main_menu = dbc.Nav(
         dbc.NavItem(dbc.NavLink("市场全景", active=True, href="/"), ),
         dbc.DropdownMenu(
             [
-                dbc.DropdownMenuItem("钢铁产业链", href="/chain/black_metals/overview"), 
-                dbc.DropdownMenuItem("贵金属产业链", href="/chain/precious_metals"),
-                dbc.DropdownMenuItem("铝产业链", href="/chain/alum"),
-                dbc.DropdownMenuItem("铜产业链", href="/chain/copper"),
+                dbc.DropdownMenuItem("钢铁产业链", href="/chain/overview?chain_id=black_metal"), 
+                dbc.DropdownMenuItem("贵金属产业链", href="/chain/overview?chain_id=precious_metal"),
+                dbc.DropdownMenuItem("铝产业链", href="/chain/overview?chain_id=alum"),
+                dbc.DropdownMenuItem("铜产业链", href="/chain/overview?chain_id=copper"),
              ],
             label="金属",
             nav=True,
@@ -22,9 +22,9 @@ main_menu = dbc.Nav(
         ),
         dbc.DropdownMenu(
             [
-                dbc.DropdownMenuItem("动力煤产业链", href="/chain/coal"), 
-                dbc.DropdownMenuItem("石油产业链", href="/chain/oil"),
-                dbc.DropdownMenuItem("原油产业链", href="/chain/crude"),
+                dbc.DropdownMenuItem("动力煤产业链", href="/chain/overview?chain_id=coal"), 
+                dbc.DropdownMenuItem("石油产业链", href="/chain/overview?chain_id=oil"),
+                dbc.DropdownMenuItem("原油产业链", href="/chain/overview?chain_id=crude"),
              ],
             label="能源",
             nav=True,
@@ -32,9 +32,9 @@ main_menu = dbc.Nav(
         ),
         dbc.DropdownMenu(
             [
-                dbc.DropdownMenuItem("化工产业链", href="/chain/chemical"),
-                dbc.DropdownMenuItem("沥青产业链", href="/chain/asphalt"),
-                dbc.DropdownMenuItem("橡胶产业链", href="/chain/rubber"),
+                dbc.DropdownMenuItem("化工产业链", href="/chain/overview?chain_id=chemical"),
+                dbc.DropdownMenuItem("沥青产业链", href="/chain/overview?chain_id=asphalt"),
+                dbc.DropdownMenuItem("橡胶产业链", href="/chain/overview?chain_id=rubber"),
              ],
             label="化工",
             nav=True,
@@ -42,13 +42,13 @@ main_menu = dbc.Nav(
         ),        
         dbc.DropdownMenu(
             [
-                dbc.DropdownMenuItem("菜籽油产业链", href="/chain/rapeseed_oil"), 
-                dbc.DropdownMenuItem("大豆产业链", href="/chain/soybeans"),
-                dbc.DropdownMenuItem("糖产业链", href="/chain/sugar"),
-                dbc.DropdownMenuItem("小麦产业链", href="/chain/wheat"),
-                dbc.DropdownMenuItem("玉米产业链", href="/chain/corn"),
-                dbc.DropdownMenuItem("棕榈油产业链", href="/chain/palm_oil"),
-                dbc.DropdownMenuItem("生猪产业链", href="/chain/pig"),
+                dbc.DropdownMenuItem("菜籽油产业链", href="/chain/overview?chain_id=rapeseed_oil"), 
+                dbc.DropdownMenuItem("大豆产业链", href="/chain/overview?chain_id=soybeans"),
+                dbc.DropdownMenuItem("糖产业链", href="/chain/overview?chain_id=sugar"),
+                dbc.DropdownMenuItem("小麦产业链", href="/chain/overview?chain_id=wheat"),
+                dbc.DropdownMenuItem("玉米产业链", href="/chain/overview?chain_id=corn"),
+                dbc.DropdownMenuItem("棕榈油产业链", href="/chain/overview?chain_id=palm_oil"),
+                dbc.DropdownMenuItem("生猪产业链", href="/chain/overview?chain_id=pig"),
              ],
             label="农产品",
             nav=True,

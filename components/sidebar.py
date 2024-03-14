@@ -1,7 +1,7 @@
 import dash
 from dash import html, dcc, Input, Output, State, callback
 import dash_bootstrap_components as dbc
-
+import components.style as style
 nav = dbc.Nav(
     [
         dbc.NavItem(dbc.NavLink("产业链视图", active=True, href="#")),
@@ -12,42 +12,46 @@ nav = dbc.Nav(
     vertical="md",
 )
 
-card_content = [
-    dbc.CardHeader("快速入口"),
-    dbc.CardBody(
-        [
-            nav,
-        ]
-    ),
-]
+# card_content = [
+#     dbc.CardHeader("快速入口"),
+#     dbc.CardBody(
+#         [
+#             nav,
+#         ]
+#     ),
+# ]
 
-# the style arguments for the sidebar. We use position:fixed and a fixed width
-SIDEBAR_STYLE = {
-    "position": "fixed",
-    "top": "3.5rem",
-    "left": 0,
-    "bottom": 0,
-    "width": "12rem",
-    "padding": "1rem 1rem",
-    "backgroundColor": "#f8f9fa",
-}
-
-layout = html.Div(
-    [
-        dbc.Row(html.P('Search')),
-        dbc.Row(dbc.Card(card_content, color="primary", outline=True), className="mb-4",),
-        # dbc.Row(card_content),
+chain_variety_nav = dbc.Nav(
+    children=[
     ],
-    style=SIDEBAR_STYLE
+    pills=True,
+    vertical=True,
 )
 
-def get_sidebar(chain_name =''):
+def get_sidebar(chain_id=None, id_name_map=None, chain_variety=None):
+    if chain_id is None:
+        chain_variety_nav.children=[]
+    else:
+        chain_variety_nav.children = [         
+            dbc.NavLink("产业链视图", href=f"/chain/overview?chain_id={chain_id}", active="exact"),
+        ]
+        for variety in chain_variety:
+            nav_link = dbc.NavLink(id_name_map[variety], href=f"/variety/overview?variety_id={variety}", active="exact")
+            chain_variety_nav.children.append(nav_link)
+    card_content = [
+        dbc.CardHeader("快速入口"),
+        dbc.CardBody(
+            [
+                chain_variety_nav,
+            ]
+        ),
+    ]
     layout = html.Div(
         [
-            dbc.Row(html.P('Search')),
-            # dbc.Row(dbc.Card(card_content, color="primary", outline=True), className="mb-4",),
-            dbc.Row(card_content),
+            # dbc.Row(html.P('Search')),
+            dbc.Row(dbc.Card(card_content, color="primary", outline=True), className="mb-4",),
         ],
+        style=style.SIDEBAR_STYLE
     )
     return layout
 
