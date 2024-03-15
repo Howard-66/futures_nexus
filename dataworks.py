@@ -4,7 +4,7 @@ import json
 
 class DataWorks:
     def __init__(self) -> None:
-        self.conn = sqlite3.connect('data/futures.db')
+        self.conn = sqlite3.connect('futures_nexus/data/futures.db')
         self.variety_setting = None
         self.variety_json = 'setting/variety.json'
         self.variety_id_name_map = None

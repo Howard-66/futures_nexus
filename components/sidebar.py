@@ -36,7 +36,7 @@ def get_sidebar(chain_id=None, id_name_map=None, chain_variety=None):
             dbc.NavLink("产业链视图", href=f"/chain/overview?chain_id={chain_id}", active="exact"),
         ]
         for variety in chain_variety:
-            nav_link = dbc.NavLink(id_name_map[variety], href=f"/variety/overview?variety_id={variety}", active="exact")
+            nav_link = dbc.NavLink(id_name_map[variety], href=f"/variety/overview?variety_id={variety}&chain_id={chain_id}", active="exact")
             chain_variety_nav.children.append(nav_link)
     card_content = [
         dbc.CardHeader("快速入口"),
