@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 import components.style as style
 from components.sidebar import get_sidebar
 from global_service import gs
+from variety import SymbolChain, SymbolData
 
 dash.register_page(__name__, path="/chain/overview")
 
@@ -12,16 +13,21 @@ dash.register_page(__name__, path="/chain/overview")
 chain_page_maps = {}
 
 class ChainPage:
-    def __init__(self, name) -> None:
-        self.chain_name = name
+    def __init__(self, chain_id) -> None:
+        self.chain_id = chain_id
         # self.page_maps = {}
         self.chain_config = 'futures_nexus/setting/chains.json'
-        with open(self.chain_config, encoding='utf-8') as chains_file:
-            chains_setting = json.load(chains_file)[self.chain_name]      
+        try:
+            with open(self.chain_config, encoding='utf-8') as chains_file:
+                chains_setting = json.load(chains_file)[self.chain_id]      
+        except IOError as e:
+            print(f"Error reading configuration: {e}")
         self.variety_list = chains_setting["variety_list"]
+        self.symbol_chain = SymbolChain(chain_id , "", self.variety_list)
+        self.symbol_chain.prepare_data()
         self.side_bar = None
         self.main_content = None
-    
+        
     def get_variety_list(self):
         return self.variety_list
 

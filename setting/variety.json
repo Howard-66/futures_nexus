@@ -122,28 +122,28 @@
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石产量.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/铁矿石/铁矿石产量.xlsx",
                 "Field": "产量:铁矿石原矿:当月值",
                 "DataFrame": "df_prodoction"
             },
             "库存": {
                 "Name": "instock",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
                 "Field": "国内铁矿石港口库存量",
                 "DataFrame": "df_instock"
             },
             "库存消费比": {
                 "Name": "instock_consumption_ratio",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
                 "Field": "全国:进口铁矿石:库存消费比",
                 "DataFrame": "df_instock_consumption_ratio"
             },
             "仓单": {
                 "Name": "receipt",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
                 "Field": "仓单数量:铁矿石",
                 "DataFrame": "df_instock"
             }
@@ -169,35 +169,35 @@
             "现货价格": {
                 "Name": "spot_price",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭基差.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/焦炭/焦炭基差.xlsx",
                 "Field": "现货价格:焦炭",
                 "DataFrame": "df_basis"
             },
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭产量.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/焦炭/焦炭产量.xlsx",
                 "Field": "产量:焦炭:当月值",
                 "DataFrame": "df_prodoction"
             },
             "销量": {
                 "Name": "sales",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭销量.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/焦炭/焦炭销量.xlsx",
                 "Field": "焦炭消费量:总计",
                 "DataFrame": "df_sales"
             },
             "库存": {
                 "Name": "instock",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭库存.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/焦炭/焦炭库存.xlsx",
                 "Field": "焦炭库存:样本钢厂:全国",
                 "DataFrame": "df_instock"
             },
             "仓单": {
                 "Name": "receipt",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭库存.xlsx",
+                "Path": "futures_nexus/black_metals/data/up-stream/焦炭/焦炭库存.xlsx",
                 "Field": "仓单数量:焦炭",
                 "DataFrame": "df_instock"
             }
@@ -777,28 +777,28 @@
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢产量.xlsx",
+                "Path": "futures_nexus/black_metals/data/mid-stream/螺纹钢/螺纹钢产量.xlsx",
                 "Field": "产量：钢筋：全国：当月值",
                 "DataFrame": "df_prodoction"
             },
             "销量": {
                 "Name": "sales",
                 "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢销量.xlsx",
+                "Path": "futures_nexus/black_metals/data/mid-stream/螺纹钢/螺纹钢销量.xlsx",
                 "Field": "销量：钢筋：累计值",
                 "DataFrame": "df_sales"
             },
             "库存": {
                 "Name": "instock",
                 "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
+                "Path": "futures_nexus/black_metals/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
                 "Field": "库存：螺纹钢：合计",
                 "DataFrame": "df_instock"
             },
             "仓单": {
                 "Name": "receipt",
                 "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
+                "Path": "futures_nexus/black_metals/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
                 "Field": "仓单数量：螺纹钢",
                 "DataFrame": "df_instock"
             }

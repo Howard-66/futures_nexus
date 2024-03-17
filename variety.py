@@ -10,13 +10,20 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import dataworks as dw
+from global_service import gs
 
 class SymbolChain:
-    def __init__(self, id, name):
+    def __init__(self, id, name, variety_list=None):
         self.id = id
         self.name = name
-        # self.config_file = config_file
-        self.symbol_dict = {}
+        self.variety_list = variety_list
+        self.symbol_dict = {}  
+    
+    def prepare_data(self):
+        for variety_id in self.variety_list:
+            symbol = SymbolData(variety_id, gs.variety_id_name_map[variety_id])
+            symbol.merge_data()
+            self.symbol_dict[variety_id] = symbol
 
     def add_symbol(self, symbol):
         self.symbol_dict[symbol.name] = symbol
@@ -29,7 +36,8 @@ class SymbolChain:
             return self.symbol_dict[symbol_name]
         else:
             return None
-        
+    
+    # TODO: remove funciton
     def initialize_data(self, dws):
         for _, symbol in self.symbol_dict.items():
             df = symbol.merge_data(dws)
@@ -60,13 +68,13 @@ class SymbolData:
         self.data_rank = pd.DataFrame() # 指标评级
         self.spot_months = pd.DataFrame() # 现货交易月
         self.signals = pd.DataFrame() # 指标信号
-        self.common_json = 'setting/common.json'
-        self.variety_json = 'setting/variety.json'
+        self.common_json = 'futures_nexus/setting/common.json'
+        self.variety_json = 'futures_nexus/setting/variety.json'
         with open(self.common_json, encoding='utf-8') as common_file: 
             symbol_dataindex_setting = json.load(common_file)['DataIndex']
         with open(self.variety_json, encoding='utf-8') as variety_file:
             variety_setting = json.load(variety_file)[self.id]      
-        variety_setting['DataIndex'] = {**symbol_dataindex_setting, **variety_setting['DataIndex']}
+        variety_setting['DataIndex'] = {**symbol_dataindex_setting, **variety_setting['DataIndex']} if 'DataIndex' in variety_setting else symbol_dataindex_setting
         self.symbol_setting = variety_setting
 
     def config_symbol_setting(self, symbol_setting):
@@ -220,7 +228,7 @@ class SymbolData:
             print('other modes is not implemented in update_akshare_file.')
             return None
 
-    def merge_data(self, dws):
+    def merge_data(self):
         """对数据索引中引用到的数据进行合并
             根据数据源（Choice/AKShare）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
         Returns:
@@ -229,6 +237,8 @@ class SymbolData:
         column_dict= {}
         data_frames = []
         data_index = self.symbol_setting['DataIndex']
+        # dws = gs.dataworks
+        dws = dw.DataWorks()
         for key in data_index:
             value_items =data_index[key]
             df_name = value_items['DataFrame']
