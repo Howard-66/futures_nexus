@@ -1,0 +1,6 @@
+sqlite3
+json
+plotly
+dash
+dash_bootstrap_components
+akshare

@@ -806,8 +806,8 @@
         "ProfitFormula": {
             "Name": "profit_formula",
             "Factor": {
-                "铁矿石": 1.6,
-                "焦炭": 0.6
+                "I": 1.6,
+                "J": 0.6
             },
             "其他成本": 1200
         },

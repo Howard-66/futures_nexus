@@ -11,6 +11,7 @@ dash.register_page(__name__, path="/chain/overview")
 
 # storage chain pages already openned
 chain_page_maps = {}
+# active_chain_page = None
 
 class ChainPage:
     def __init__(self, chain_id) -> None:
@@ -41,6 +42,7 @@ def layout(chain_id=None, **other_unknown_query_strings):
         chain_page.main_content = html.Div(f'This is our Chain-{chain_id} page content.', style=style.CONTENT_STYLE),
     else:
         chain_page = chain_page_maps[chain_id]
+    active_chain_page = chain_page
     layout = html.Div([
         dbc.Row(
             [

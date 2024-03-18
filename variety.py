@@ -26,14 +26,14 @@ class SymbolChain:
             self.symbol_dict[variety_id] = symbol
 
     def add_symbol(self, symbol):
-        self.symbol_dict[symbol.name] = symbol
+        self.symbol_dict[symbol.id] = symbol
 
-    def remove_symbol(self, symbol_name):
-        self.symbol_dict.pop(symbol_name, None)
+    def remove_symbol(self, symbol_id):
+        self.symbol_dict.pop(symbol_id, None)
 
-    def get_symbol(self, symbol_name):
-        if symbol_name in self.symbol_dict:
-            return self.symbol_dict[symbol_name]
+    def get_symbol(self, symbol_id):
+        if symbol_id in self.symbol_dict:
+            return self.symbol_dict[symbol_id]
         else:
             return None
     
