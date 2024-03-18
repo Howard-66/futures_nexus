@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-dash.register_page(__name__, path="/variety/overview")
+dash.register_page(__name__, path="/variety/basis")
 
 variety_page_maps = {}
 active_variety_page = None
@@ -23,7 +23,7 @@ chart_config = html.Div(
         dbc.Checklist(
             options=['基差率', '库存', '仓单', '持仓量', '库存消费比', '库存+仓单', '现货利润', '盘面利润', '现货利润+盘面利润'],
             value=['基差率', '库存', '仓单', '持仓量', '现货利润'],
-            id='select_index', inline=True
+            id='select-index', inline=True
         ),
         html.Hr(),
         dbc.Label('选择期货价格类型：', color='darkblue'),
@@ -35,7 +35,7 @@ chart_config = html.Div(
                 {"label": "近月合约结算价", "value": '近月合约结算价'},
             ],
             value='近月合约收盘价',
-            id="radio_future_price", inline=True
+            id="radio-future-price", inline=True
         ),
 
         html.Hr(),
@@ -43,7 +43,7 @@ chart_config = html.Div(
         dbc.Checklist(
             options=['现货交易月', '指标共振周期'],
             value=['现货交易月', '指标共振周期'],
-            id='switch_marker',
+            id='switch-marker',
             switch=True, inline=True
         ),
         html.Hr(),
@@ -51,7 +51,7 @@ chart_config = html.Div(
         dbc.Checklist(                    
             options=['基差率', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位', '库存|仓单', '现货利润|盘面利润'],
             value=['基差率', '库存历史时间分位'],
-            id='select_synchronize_index', inline=True                    
+            id='select-synchronize-index', inline=True                    
         ),
         html.Hr(),
         dbc.Label('历史分位回溯时间：', color='darkblue'),
@@ -60,66 +60,9 @@ chart_config = html.Div(
             marks={
                 6: '6个月', 12: '1年', 24: '2年', 36: '3年', 60: '5年', 120: '10年', 130: {'label': 'All', 'style': {'color': 'darkblue'}}
             },
-            id='look_forward_months'
+            id='look-forward-months'
         ),
     ]
-)
-
-# 基本面分析配置面板
-main_chart_config =dbc.Accordion(
-    [
-        dbc.AccordionItem(
-            [
-                dbc.Label('选择分析指标：', color='darkblue'),
-                dbc.Checklist(
-                    options=['基差率', '库存', '仓单', '持仓量', '库存消费比', '库存+仓单', '现货利润', '盘面利润', '现货利润+盘面利润'],
-                    value=['基差率', '库存', '仓单', '持仓量', '现货利润'],
-                    id='select-index', inline=True
-                ),
-                html.Hr(),
-                dbc.Label('选择期货价格类型：', color='darkblue'),
-                dbc.RadioItems(
-                    options=[
-                        {"label": "主力合约收盘价", "value": '主力合约收盘价'},
-                        {"label": "主力合约结算价", "value": '主力合约结算价'},
-                        {"label": "近月合约收盘价", "value": '近月合约收盘价'},
-                        {"label": "近月合约结算价", "value": '近月合约结算价'},
-                    ],
-                    value='近月合约收盘价',
-                    id="radio-future-price", inline=True
-                ),
-
-                html.Hr(),
-                dbc.Label('标记区间：', color='darkblue'),
-                dbc.Checklist(
-                    options=['现货交易月', '指标共振周期'],
-                    value=['现货交易月', '指标共振周期'],
-                    id='switch-marker',
-                    switch=True, inline=True
-                ),
-                html.Hr(),
-                dbc.Label('共振指标设置：', color='darkblue'),
-                dbc.Checklist(                    
-                    options=['基差率', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位', '库存|仓单', '现货利润|盘面利润'],
-                    value=['基差率', '库存历史时间分位'],
-                    id='select-synchronize-index', inline=True                    
-                ),
-                html.Hr(),
-                dbc.Label('历史分位回溯时间：', color='darkblue'),
-                dcc.Slider(
-                    0, 130, value=36, step=None,
-                    marks={
-                        6: '6个月', 12: '1年', 24: '2年', 36: '3年', 60: '5年', 120: '10年', 130: {'label': 'All', 'style': {'color': 'darkblue'}}
-                    },
-                    id='look-forward-months'
-                ),
-                # html.P(id='config-output'),
-            ], 
-        title='图表设置'),
-    ],
-    start_collapsed=True,
-    # always_open = True,
-    # flush=True,
 )
 
 analyzing_log = html.Div([
@@ -236,7 +179,7 @@ class VarietyPage:
         menu = dbc.Nav(
             [     
                 html.I(className="bi bi-gear me-2", style={'font-size': '1.5rem', 'color': 'cornflowerblue'}, id='config-button'),
-                dbc.NavLink("基本面分析", href=f"/variety_overview?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
+                dbc.NavLink("基本面分析", href=f"/variety_basis?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
                 dbc.NavLink("周期性分析", href=f"/variety_cycle?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
                 dbc.NavLink("跨期分析", href=f"/variety_period?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
                 # dbc.NavLink("跨品种分析", href=f"/variety_?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
@@ -280,13 +223,15 @@ class VarietyPage:
                 [
                     dbc.Row(
                         [
-                            dbc.Col(menu),
+                            # dbc.Col(menu),
+                            menu,
                             # dbc.Col(index_selector),
                         ],
                     ),
                     dbc.Row(analyzing_layout),
                 ],
-                style=style.CONTENT_STYLE
+                # style=style.CONTENT_STYLE
+                style={"left": "12rem", "top": "3.5rem", "margin-left": "12rem", "margin-right": "1rem", "padding": "1rem 1rem",}
             )
             self.main_content = layout
         else:
@@ -474,7 +419,7 @@ class VarietyPage:
         main_figure.update_layout(
             # yaxis_range=[min_y,max_y],
             #autosize=False,
-            #width=800,
+            # width=3000,
             height=800,
             margin=dict(l=0, r=0, t=0, b=0),
             plot_bgcolor='WhiteSmoke',  
@@ -534,27 +479,14 @@ def layout(variety_id=None, chain_id=None, **other_unknown_query_strings):
     else:
         variety_page = variety_page_maps[variety_id]
     variety_page_maps['active_variety'] = variety_page
+    # main_content = html.Div('This is our Home page content.', style=style.CONTENT_STYLE)
     layout = html.Div([
-        dbc.Row(
-            [
-                dbc.Col(sidebar,),
-                dbc.Col(variety_page.get_layout(),)
-            ],
-        )
+        sidebar, 
+        variety_page.get_layout(),
+        # main_content,
     ])
-
+    # print("Layout: ", layout)
     return layout
-
-@callback(
-    Output("modal-chart-config", "is_open"),
-    [Input("config-button", "n_clicks"), Input("close-button", "n_clicks")],
-    [State("modal-chart-config", "is_open")],
-)
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
-
 
 # TODO:
 # - 使用 prevent_initial_call避免以input的初始值调用回调函数
@@ -564,13 +496,13 @@ def toggle_modal(n1, n2, is_open):
 # - 使用Store存储/传递共享数据
 # Add controls to build the interaction
 @callback(
-    Output(component_id='main-figure-placeholder', component_property='figure'),
+    Output('main-figure-placeholder', 'figure'),
     Input('select-index', 'value'),
     Input('radio-future-price', 'value'),
     Input('switch-marker', 'value'),
     Input('select-synchronize-index', 'value'),
     Input('look-forward-months', 'value'),
-    allow_duplicate=True
+    # allow_duplicate=True
 )
 def update_graph(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
     if 'active_variety' not in variety_page_maps:
@@ -585,5 +517,14 @@ def update_graph(select_index_value, radio_future_value, switch_marker_value, se
     symbol_chain = variety_page.symbol_chain
     df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
     figure = variety_page.create_figure(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
-    print("Main Figure: ", figure)
     return figure
+
+@callback(
+    Output("modal-chart-config", "is_open"),
+    [Input("config-button", "n_clicks"), Input("close-button", "n_clicks")],
+    [State("modal-chart-config", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open

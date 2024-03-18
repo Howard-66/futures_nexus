@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 
 dash.register_page(__name__, path='/', title='Futures Nexus: 市场全景')
 
-main_content = html.Div('This is our Home page content.', style=style.CONTENT_STYLE),
+main_content = html.Div('This is our Home page content.', style=style.CONTENT_STYLE)
 
 def layout():
     sidebar = get_sidebar()

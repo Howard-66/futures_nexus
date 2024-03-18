@@ -18,5 +18,5 @@ CONTENT_STYLE = {
     "top": "3.5rem",
     "margin-left": "1rem",
     "margin-right": "1rem",
-    "padding": "0rem 0rem",
+    "padding": "1rem 1rem"
 }

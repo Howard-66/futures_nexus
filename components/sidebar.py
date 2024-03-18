@@ -12,15 +12,6 @@ nav = dbc.Nav(
     vertical="md",
 )
 
-# card_content = [
-#     dbc.CardHeader("快速入口"),
-#     dbc.CardBody(
-#         [
-#             nav,
-#         ]
-#     ),
-# ]
-
 chain_variety_nav = dbc.Nav(
     children=[
     ],
@@ -36,7 +27,7 @@ def get_sidebar(chain_id=None, id_name_map=None, chain_variety=None):
             dbc.NavLink("产业链视图", href=f"/chain/overview?chain_id={chain_id}", active="exact"),
         ]
         for variety in chain_variety:
-            nav_link = dbc.NavLink(id_name_map[variety], href=f"/variety/overview?variety_id={variety}&chain_id={chain_id}", active="exact")
+            nav_link = dbc.NavLink(id_name_map[variety], href=f"/variety/basis?variety_id={variety}&chain_id={chain_id}", active="exact")
             chain_variety_nav.children.append(nav_link)
     card_content = [
         dbc.CardHeader("快速入口"),
@@ -54,24 +45,3 @@ def get_sidebar(chain_id=None, id_name_map=None, chain_variety=None):
         style=style.SIDEBAR_STYLE
     )
     return layout
-
-# @callback(Output('tabs-content-inline-3', 'children'), 
-#           Input('tabs-inline', 'value'))
-# def render_content(tab):
-#     if tab == '版块':
-#         print(f"On tab: {tab}")
-#         return html.Div([
-#             html.H3('Tab content 1')
-#         ])
-    # elif tab == 'tab-2':
-    #     return html.Div([
-    #         html.H3('Tab content 2')
-    #     ])
-    # elif tab == 'tab-3':
-    #     return html.Div([
-    #         html.H3('Tab content 3')
-    #     ])
-    # elif tab == 'tab-4':
-    #     return html.Div([
-    #         html.H3('Tab content 4')
-    #     ])
