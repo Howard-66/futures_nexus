@@ -13,10 +13,10 @@ SIDEBAR_STYLE = {
 # the styles for the main content position it to the right of the sidebar and
 # add some padding.
 CONTENT_STYLE = {
-    "position": "fixed",
+    "position": "relative",
     "left": "12rem",
-    "top": "3.5rem",
+    "top": "-3rem",
     "margin-left": "1rem",
-    "margin-right": "1rem",
+    "margin-right": "12rem",
     "padding": "1rem 1rem"
 }

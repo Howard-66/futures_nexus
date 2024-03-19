@@ -98,8 +98,6 @@ tab_main = html.Div([
     dbc.Row([
         # 左侧面板
         dbc.Col([
-            # 配置面板
-            # dbc.Row(dbc.Form(main_chart_config)),
             # 图表面板
             dbc.Row(
                 # dbc.Card(
@@ -115,13 +113,7 @@ tab_main = html.Div([
             dbc.Row(
                 dbc.Card(
                     dbc.CardBody(
-                        [
-                        html.Div(
-                            [
-                                # html.P(id='figure-click-output'),
-                                dcc.Graph(figure={}, id='term-figure-placeholder'),    
-                            ])
-                        ]
+                        html.Div(dcc.Graph(figure={}, id='term-figure-placeholder'),)
                     ),
                     className="mt-3",
                 )
@@ -130,9 +122,7 @@ tab_main = html.Div([
             dbc.Row(
                 dbc.Card(
                     dbc.CardBody(
-                        [
                             dcc.Graph(figure={}, id='intertemporal-figure-placeholder'),
-                        ]
                     ),
                     className="mt-3",
                 )
@@ -210,7 +200,7 @@ class VarietyPage:
                     size="lg",
                     is_open=False,
                 ),          
-                tab_main            
+                tab_main
             ]
         )
         return layout
@@ -225,13 +215,13 @@ class VarietyPage:
                         [
                             # dbc.Col(menu),
                             menu,
+                            html.Hr()
                             # dbc.Col(index_selector),
                         ],
                     ),
                     dbc.Row(analyzing_layout),
                 ],
-                # style=style.CONTENT_STYLE
-                style={"left": "12rem", "top": "3.5rem", "margin-left": "12rem", "margin-right": "1rem", "padding": "1rem 1rem",}
+                style=style.CONTENT_STYLE
             )
             self.main_content = layout
         else:
@@ -479,7 +469,7 @@ def layout(variety_id=None, chain_id=None, **other_unknown_query_strings):
     else:
         variety_page = variety_page_maps[variety_id]
     variety_page_maps['active_variety'] = variety_page
-    # main_content = html.Div('This is our Home page content.', style=style.CONTENT_STYLE)
+
     layout = html.Div([
         sidebar, 
         variety_page.get_layout(),
