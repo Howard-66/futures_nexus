@@ -69,7 +69,7 @@ analyzing_log = html.Div([
     dbc.Label('量化分析标签', color='darkblue'),
     html.Div(
         html.Span(
-            id='html_analyzing_tags'
+            id='html-analyzing-tags'
         ),    
     ),
     html.Hr(),
@@ -82,13 +82,13 @@ analyzing_log = html.Div([
     #     value='单边/跨期做多',
     #     id="radio_trade_type", inline=True
     # ),       
-    html.Div(id='html_profit_loss'),
+    html.Div(id='html-profit-loss'),
     html.Hr(),
     dbc.Label('综合分析', color='darkblue'),
-    dbc.Textarea(className="mb-3", placeholder="分析结论", id='txt_log_conclusion'),
+    dbc.Textarea(className="mb-3", placeholder="分析结论", id='txt-log-conclusion'),
     html.Div([
-        dbc.Button("删除", color="danger", className="me-1", id='bt_log_delete'),
-        dbc.Button("保存", color="success", className="me-1", id='bt_log_save'),
+        dbc.Button("删除", color="danger", className="me-1", id='bt-log-delete'),
+        dbc.Button("保存", color="success", className="me-1", id='bt-log-save'),
     ])
 ])
 
@@ -589,7 +589,14 @@ blank_content = html.Div([
     dbc.RadioButton(id="radio-future-price"),
     dbc.Checklist(id='switch-marker'),
     dbc.Checklist(id='select-synchronize-index'),
-    dcc.Slider(id='look-forward-months')
+    dcc.Slider(id='look-forward-months'),
+    html.Span(id='html-analyzing-tags'),
+    html.Div(id='html-profit-loss'),
+    dbc.Textarea(id='txt-log-conclusion'),
+    dbc.Button(id='bt-log-delete'),
+    dbc.Button(id='bt-log-save'),
+    dcc.Graph(id='term-figure-placeholder'),
+    dcc.Graph(id='intertemporal-figure-placeholder')
 ], style=style.CONTENT_STYLE)
 
 def layout(variety_id=None, chain_id=None, **other_unknown_query_strings):
@@ -660,8 +667,8 @@ def toggle_modal(n1, n2, is_open):
     Output('term-figure-placeholder', 'figure'),
     Output('intertemporal-figure-placeholder', 'figure'),
     # Output('radio_trade_type', 'value'),
-    Output('html_analyzing_tags', 'children'),
-    Output('html_profit_loss', 'children'),
+    Output('html-analyzing-tags', 'children'),
+    Output('html-profit-loss', 'children'),
     # Output('log_basis', 'color'),
     # Output('log_term_structure', 'color'),
     # Output('log_inventory', 'color'),
