@@ -3,7 +3,10 @@ from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 from dash_bootstrap_components._components.Container import Container
 
-app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
+app = Dash(__name__, 
+           use_pages=True, 
+           external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
+           prevent_initial_callbacks='initial_duplicate')
 
 # 主菜单
 main_menu = dbc.Nav(

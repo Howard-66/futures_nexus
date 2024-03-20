@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlite3
 import json
+import akshare as ak
 
 class DataWorks:
     def __init__(self) -> None:
@@ -94,6 +95,6 @@ class DataWorks:
                 json.dump(setting, setting_file, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"Error saving configuration: {e}")
-
+    
     def close(self):
         self.conn.close()
