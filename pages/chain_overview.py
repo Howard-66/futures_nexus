@@ -17,7 +17,7 @@ class ChainPage:
     def __init__(self, chain_id) -> None:
         self.chain_id = chain_id
         # self.page_maps = {}
-        self.chain_config = 'futures_nexus/setting/chains.json'
+        self.chain_config = 'setting/chains.json'
         try:
             with open(self.chain_config, encoding='utf-8') as chains_file:
                 chains_setting = json.load(chains_file)[self.chain_id]      

@@ -40,7 +40,7 @@ class SymbolChain:
     # TODO: remove funciton
     def initialize_data(self, dws):
         for _, symbol in self.symbol_dict.items():
-            df = symbol.merge_data(dws)
+            df = symbol.merge_data()
         
 class SymbolData:
     """品种数据类:
@@ -68,8 +68,8 @@ class SymbolData:
         self.data_rank = pd.DataFrame() # 指标评级
         self.spot_months = pd.DataFrame() # 现货交易月
         self.signals = pd.DataFrame() # 指标信号
-        self.common_json = 'futures_nexus/setting/common.json'
-        self.variety_json = 'futures_nexus/setting/variety.json'
+        self.common_json = 'setting/common.json'
+        self.variety_json = 'setting/variety.json'
         with open(self.common_json, encoding='utf-8') as common_file: 
             symbol_dataindex_setting = json.load(common_file)['DataIndex']
         with open(self.variety_json, encoding='utf-8') as variety_file:
