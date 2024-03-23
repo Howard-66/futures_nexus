@@ -267,7 +267,7 @@ class SymbolData:
         # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
         self.symbol_data['库存'] = self.symbol_data['库存'].ffill()                   
         return self.symbol_data
-    
+
     def calculate_basis(self, future_type):
         # 强制使用期货结算价计算基差
         future_type = future_type[:4]+'结算价'
@@ -367,6 +367,10 @@ class SymbolData:
 
         if index_with_openinterest is not None:
             data_list[index_with_openinterest] = future_type[:4]+'持仓量'
+        if '现货利润' not in self.symbol_data.columns:
+            data_list.remove('现货利润')
+        if '盘面利润' not in self.symbol_data.columns:
+            data_list.remove('盘面利润')            
         df_basis = self.calculate_basis(future_type)
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
@@ -427,7 +431,7 @@ class SymbolData:
         此外,此函数还会更新 self.symbol_data,将计算得到的现货利润和盘面利润添加到其中。
         """        
         if 'ProfitFormula' not in self.symbol_setting:
-            pass
+            return None
 
         profit_formula = self.symbol_setting['ProfitFormula']
         cost_factors = profit_formula['Factor']
@@ -491,16 +495,22 @@ class SymbolData:
 
         此外,此函数还会更新 self.signals,将计算得到的信号添加到其中。
         """        
+        rank_list = ['库存历史时间分位', '仓单历史时间分位']
+        if '现货利润' in self.symbol_data.columns:
+            rank_list.append('现货利润历史时间分位')
+        if '盘面利润' in self.symbol_data.columns:
+            rank_list.append('盘面利润历史时间分位')            
         if self.signals.empty:
             self.signals = pd.merge(self.symbol_data[['date', '基差率']],
-                                    self.data_rank[['date', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']],
+                                    self.data_rank[['date'] + rank_list],
                                     on='date', how='outer')
             self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))            
             # For other columns
-            for col in ['库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']:
+            for col in rank_list:
                 self.signals[col] = self.signals[col].map(lambda x: -1 if x == 5 else (0 if x != 1 else 1)).fillna(0).astype(int)
             self.signals['库存|仓单'] = self.signals['库存历史时间分位'] | self.signals['仓单历史时间分位']
-            self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']
+            if '现货利润' in self.symbol_data.columns and '盘面利润' in self.symbol_data.columns:
+                self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']
         if len(selected_index)!=0:
             self.signals['信号数量'] = self.signals[selected_index].sum(axis=1)
         return self.signals

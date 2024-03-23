@@ -324,30 +324,32 @@ class VarietyPage:
 
         # 创建副图-现货利润
         key_spot_profit = '现货利润'
-        symbol.data_rank['现货利润分位颜色'] = symbol.data_rank['现货利润历史时间分位'].map(histroy_color_mapping)
-        if key_spot_profit in show_index:
-            # fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name='现货利润', mode='markers', marker=dict(size=2, color='rgb(234,69,70)'))
-            fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name=key_spot_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
-            fig_spot_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['现货利润历史时间百分位'], name='现货利润', 
-                                        marker=dict(color=symbol.data_rank['现货利润分位颜色'], opacity=0.6),
-                                        showlegend=False,
-                                        hovertemplate='%{y:.2%}')
-            main_figure.add_trace(fig_spot_profit_rank, row = sub_index_rows, col = 1, secondary_y=True)
-            main_figure.add_trace(fig_spot_profit, row = sub_index_rows, col = 1)
-            sub_index_rows = sub_index_rows + 1
+        if key_spot_profit in symbol.symbol_data.columns:
+            symbol.data_rank['现货利润分位颜色'] = symbol.data_rank['现货利润历史时间分位'].map(histroy_color_mapping)
+            if key_spot_profit in show_index:
+                # fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name='现货利润', mode='markers', marker=dict(size=2, color='rgb(234,69,70)'))
+                fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name=key_spot_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
+                fig_spot_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['现货利润历史时间百分位'], name='现货利润', 
+                                            marker=dict(color=symbol.data_rank['现货利润分位颜色'], opacity=0.6),
+                                            showlegend=False,
+                                            hovertemplate='%{y:.2%}')
+                main_figure.add_trace(fig_spot_profit_rank, row = sub_index_rows, col = 1, secondary_y=True)
+                main_figure.add_trace(fig_spot_profit, row = sub_index_rows, col = 1)
+                sub_index_rows = sub_index_rows + 1
 
         # 创建副图-盘面利润
         key_future_profit = '盘面利润'
-        symbol.data_rank['盘面利润分位颜色'] = symbol.data_rank['盘面利润历史时间分位'].map(histroy_color_mapping)
-        if key_future_profit in show_index:
-            fig_future_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['盘面利润'], name=key_future_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
-            fig_future_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['盘面利润历史时间百分位'], name='盘面利润 ', 
-                                            marker=dict(color=symbol.data_rank['盘面利润分位颜色'], opacity=0.6),
-                                            showlegend=False,
-                                            hovertemplate='%{y:.2%}')
-            main_figure.add_trace(fig_future_profit_rank, row = sub_index_rows, col = 1, secondary_y=True)
-            main_figure.add_trace(fig_future_profit, row = sub_index_rows, col = 1)
-            sub_index_rows = sub_index_rows + 1
+        if key_future_profit in symbol.symbol_data.columns:        
+            symbol.data_rank['盘面利润分位颜色'] = symbol.data_rank['盘面利润历史时间分位'].map(histroy_color_mapping)
+            if key_future_profit in show_index:
+                fig_future_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['盘面利润'], name=key_future_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
+                fig_future_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['盘面利润历史时间百分位'], name='盘面利润 ', 
+                                                marker=dict(color=symbol.data_rank['盘面利润分位颜色'], opacity=0.6),
+                                                showlegend=False,
+                                                hovertemplate='%{y:.2%}')
+                main_figure.add_trace(fig_future_profit_rank, row = sub_index_rows, col = 1, secondary_y=True)
+                main_figure.add_trace(fig_future_profit, row = sub_index_rows, col = 1)
+                sub_index_rows = sub_index_rows + 1
 
         # 用浅蓝色背景标记现货月时间范围
         key_mark_spot_months = '现货交易月'
@@ -410,7 +412,7 @@ class VarietyPage:
             # yaxis_range=[min_y,max_y],
             #autosize=False,
             # width=3000,
-            height=800,
+            height=1200,
             margin=dict(l=0, r=0, t=0, b=0),
             plot_bgcolor='WhiteSmoke',  
             hovermode='x unified',
@@ -703,8 +705,7 @@ def display_click_data(clickData):
         inventory_flag = click_data['库存分位颜色'].iloc[0]
         receipt_flag = click_data['仓单分位颜色'].iloc[0]
         openinterest_flag = click_data['持仓量分位颜色'].iloc[0]
-        spotprofit_flag = click_data['现货利润分位颜色'].iloc[0]
-        futureprofit_flag = click_data['盘面利润分位颜色'].iloc[0]
+
         html_analyzing_tags =[
             #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
             #     html.Span(" | "),
@@ -714,10 +715,14 @@ def display_click_data(clickData):
                 dbc.Badge("库存", color=flag_color2[inventory_flag], className="me-1", id='log_inventory'),
                 dbc.Badge("仓单", color=flag_color2[receipt_flag], className="me-1", id='log_receipt'),
                 dbc.Badge("持仓量", color=flag_color2[openinterest_flag], className="me-1", id='log_open_interest'),
-                html.Span(" | "),
-                dbc.Badge("现货利润", color=flag_color2[spotprofit_flag], className="me-1", id='log_spot_profit'),
-                dbc.Badge("盘面利润", color=flag_color2[futureprofit_flag], className="me-1", id='log_future_profit'),
+                html.Span(" | "),                                
         ]
+        if '现货利润' in symbol.symbol_data.columns:       
+            spotprofit_flag = click_data['现货利润分位颜色'].iloc[0]
+            html_analyzing_tags.append(dbc.Badge("现货利润", color=flag_color2[spotprofit_flag], className="me-1", id='log_spot_profit'))
+        if '盘面利润' in symbol.symbol_data.columns:    
+            futureprofit_flag = click_data['盘面利润分位颜色'].iloc[0]
+            html_analyzing_tags.append(dbc.Badge("盘面利润", color=flag_color2[futureprofit_flag], className="me-1", id='log_future_profit'),)
         strategy = []
         direction = []
         point_diff =[]
