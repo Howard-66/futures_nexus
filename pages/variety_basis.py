@@ -157,7 +157,8 @@ class VarietyPage:
         symbol.variety_data['date'] = pd.to_datetime(symbol.variety_data['date'])
         self.symbol = symbol
         self.look_forward_months = 0
-        self.main_figure = {}
+        self.main_figure = None
+        self.on_layout = False
         self.future_type = ''
         trade_date = ak.tool_trade_date_hist_sina()['trade_date']
         trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
@@ -226,12 +227,11 @@ class VarietyPage:
             self.main_content = layout
         else:
             layout = self.main_content
+        self.on_layout = True
         return layout
     
     def create_figure(self, show_index=[], future_type=[], mark_cycle=[], sync_index=[], look_forward_months='all'):
-        print("Call create_figure")
         symbol = self.symbol
-
         if (look_forward_months != self.look_forward_months) | (future_type !=self.future_type):
             symbol.calculate_data_rank(future_type, trace_back_months=look_forward_months)
         self.look_forward_months = look_forward_months
@@ -240,9 +240,8 @@ class VarietyPage:
         specs = [[{"secondary_y": True}] for _ in range(fig_rows)]
         row_widths = [0.1] * (fig_rows - 1) + [0.5]
         subtitles = ['现货/期货价格'] + show_index
-        self.main_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.02)
+        main_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.02)
         # 创建主图:期货价格、现货价格、基差
-        main_figure = self.main_figure
         fig_future_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[future_type], name='期货价格', 
                                     marker_color='rgb(84,134,240)')
         fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgba(105,206,159,0.4)')
@@ -427,7 +426,7 @@ class VarietyPage:
                 borderwidth=1
             )
         )
-        print("Return create_figure")
+        self.main_figure = main_figure
         return main_figure    
 
     def update_yaxes(self, xaxis_range):
@@ -642,16 +641,15 @@ def layout(variety_id=None, chain_id=None, **other_unknown_query_strings):
 def update_graph(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
     if 'active_variety' not in variety_page_maps:
         return dash.no_update
-    # print(f'on_update_graph: {variety_page_maps['active_variety'].variety_name}')
     variety_page = variety_page_maps['active_variety']
-    symbol = variety_page.symbol
-    # if symbol.name not in page_property['chart_setting']:
-    #     page_property['chart_setting'][symbol.name] = {}
-        # initial_data()
-        # page_property['symbol_figure'] = commodity.SymbolFigure(symbol)
-    symbol_chain = variety_page.symbol_chain
-    df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
-    figure = variety_page.create_figure(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
+    if variety_page.on_layout and variety_page.main_figure is not None:
+        figure = variety_page.main_figure
+        variety_page.on_layout = False
+    else:
+        symbol = variety_page.symbol
+        symbol_chain = variety_page.symbol_chain
+        df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
+        figure = variety_page.create_figure(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
     return figure
 
 @callback(

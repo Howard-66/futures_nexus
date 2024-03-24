@@ -4,7 +4,7 @@ Futures Nexus is a futures quantitative analysis and investment platform based o
 Futures Nexus是一款基于“基差-库存-利润”模式的期货量化分析和投资平台，可以提供基本面分析、周期性分析、跨期分析、跨品种分析、产业链分析，内置基本面分析指标，支持期货基本面数据下载，并通过基本面和技术面融合分析，指定交易计划。
 
 TODO:
-- 缓存已经打开的品种页面元素（图表），实现快速切换
+- 补齐仓单/库存的空数据
 - 合并AKshare和Choice的库存、仓单数自动初始化产业链，
 - 实现品种的快速访问：快速入口，搜索栏，自动初始化所属产业链页面数据
 
