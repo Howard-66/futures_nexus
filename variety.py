@@ -110,13 +110,13 @@ class SymbolData:
         return existing_data[self.name]
 
 
-    def load_choice_file(self, file_path):
+    def load_choice_file(self, path, field, name):
         """读取choice数据终端导出的数据文件.
             Choiced导出文件格式对应的处理规则. 
             - 原文件第一行为“宏观数据“或类似内容,但read_excel方法未加载该行内容
             - 数据的第一行作为指标标题
             - 第一列作为日期
-            - 前四行和最后一行都不是数据内容
+            - 前六行和最后一行都不是数据内容
             - 剔除“日期”字段为空的行和其他非数据内容（标识数据来源的文字内容）
             
             Choice文件导出注意事项:
@@ -130,14 +130,22 @@ class SymbolData:
         Returns:
             dataframe: 将Choice导出文件内容加载到dataframe,并返回
         """
-        if file_path=='':
+        if path=='':
             return None
-        df = pd.read_excel(file_path)
+        df = pd.read_excel(path)
         df.columns = df.iloc[0]
         df.rename(columns={df.columns[0]: 'date'}, inplace=True)
-        df = df[4:]
-        df.reset_index(drop=True, inplace=True)
-        df.dropna(axis=0, subset=['date'], inplace=True)
+        df = df.iloc[6:]
+        if isinstance(field, list):
+            df[name] = df[field[0]] + df[field[1]]
+            df = df[['date', name]]
+        else:
+            df.rename(columns={field: name}, inplace=True)
+            df = df[['date', name]]
+            
+        # df.reset_index(drop=True, inplace=True)
+        # df.set_index('date', inplace=True)
+        df.dropna(axis=0, subset=[name], inplace=True)
         df = df[df['date'] != '数据来源：东方财富Choice数据']
         df['date'] = pd.to_datetime(df['date'])
         return df
@@ -239,33 +247,25 @@ class SymbolData:
         data_index = self.symbol_setting['DataIndex']
         # dws = gs.dataworks
         dws = dw.DataWorks()
-        for key in data_index:
-            value_items =data_index[key]
-            df_name = value_items['DataFrame']
-            if df_name in locals():
-                pass
+        combined_df = None
+        for data_type, data_info in data_index.items():
+            # 从文件中加载指定字段的数据
+            data_source = data_info['Source']
+            if data_source=='Choice':
+                data_df = self.load_choice_file(data_info['Path'], data_info['Field'], data_type)
+            elif data_source=='SQLite':
+                data_df = dws.get_data_by_symbol(data_info['Path'], self.id, f"date,{data_info['Field']}")
+                data_df.rename(columns={data_info['Field']: data_type}, inplace=True)
+                data_df['date'] = pd.to_datetime(data_df['date'])
             else:
-                data_source = value_items['Source']
-                if data_source=='Choice':
-                    locals()[df_name] = self.load_choice_file(value_items['Path'])
-                elif data_source=='SQLite':
-                    locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
-                    locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
-                elif data_source=='AKShare':
-                    locals()[df_name] = self.load_akshare_file(value_items['Path'])
-                else:
-                    pass
-                column_dict[df_name] = ['date']
-            column_dict[df_name].append(value_items['Field'])
-        for df_key in column_dict:
-            locals()[df_key] = locals()[df_key][column_dict[df_key]]
-            data_frames.append(locals()[df_key])
-        self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
-        for key in data_index:
-            self.symbol_data.rename(columns={data_index[key]['Field']:key}, inplace=True)
+                continue
+            # 将数据添加到combined_df中
+            # combined_df = pd.concat([combined_df, data_df], axis=1)
+            combined_df = pd.merge(combined_df, data_df, on='date', how='outer') if combined_df is not None else data_df
+        if '库存' in combined_df.columns:
+            combined_df['库存'] = combined_df['库存'].ffill()        
+        self.symbol_data = combined_df
         self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
-        # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
-        self.symbol_data['库存'] = self.symbol_data['库存'].ffill()                   
         return self.symbol_data
 
     def calculate_basis(self, future_type):

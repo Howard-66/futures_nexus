@@ -49,13 +49,6 @@
             "Field": "spot_price",
             "DataFrame": "df_basis"
         },
-        "库存": {
-            "Name": "inventory",
-            "Source": "SQLite",
-            "Path": "inventory",
-            "Field": "库存",
-            "DataFrame": "df_inventory"
-        },
         "仓单": {
             "Name": "receipt",
             "Source": "SQLite",

@@ -119,33 +119,33 @@
         ],
         "ExchangeID": "dce",
         "DataIndex": {
-            "产量": {
-                "Name": "production",
+            "产量同比": {
+                "Name": "production_growth",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石产量.xlsx",
-                "Field": "产量：铁矿石原矿：全国：当月值[新频率:日(工作日), 方式:复制]",
-                "DataFrame": "df_prodoction"
+                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Field": "产量:铁矿石原矿:当月同比",
+                "DataFrame": "df_prodoction_growth"
             },
-            "库存": {
-                "Name": "instock",
+            "到岸价格": {
+                "Name": "cif",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
-                "Field": "国内铁矿石港口库存量",
-                "DataFrame": "df_instock"
+                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Field": "平均到岸价格(不含税):进口铁矿石(62%品位干基粉矿):折人民币",
+                "DataFrame": "df_cif"
+            },            
+            "库存": {
+                "Name": "inventory",
+                "Source": "Choice",
+                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Field": "库存:铁矿石:港口合计",
+                "DataFrame": "df_inventory"
             },
             "库存消费比": {
                 "Name": "instock_consumption_ratio",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
+                "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "全国:进口铁矿石:库存消费比",
                 "DataFrame": "df_instock_consumption_ratio"
-            },
-            "仓单": {
-                "Name": "receipt",
-                "Source": "Choice",
-                "Path": "black_metals/data/up-stream/铁矿石/铁矿石库存.xlsx",
-                "Field": "仓单数量:铁矿石",
-                "DataFrame": "df_instock"
             }
         },
         "Name": "铁矿石"
@@ -193,14 +193,6 @@
                 "Field": "仓单数量:焦炭",
                 "DataFrame": "df_instock"
             }
-        },
-        "ProfitFormula": {
-            "Name": "profit_formula",
-            "Factor": {
-                "X": 1.0,
-                "Y": 1.0
-            },
-            "其他成本": 0
         },
         "Name": "焦炭"
     },
@@ -766,33 +758,40 @@
         ],
         "ExchangeID": "shfe",
         "DataIndex": {
+            "需求": {
+                "Name": "demand",
+                "Source": "Choice",
+                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Field": "137家螺纹钢厂:周需求量",
+                "DataFrame": "df_demand"
+            },            
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢产量.xlsx",
-                "Field": "产量：钢筋：全国：当月值",
+                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Field": "137家螺纹钢厂:周产量",
                 "DataFrame": "df_prodoction"
             },
-            "销量": {
-                "Name": "sales",
+            "开工率": {
+                "Name": "operating_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢销量.xlsx",
-                "Field": "销量：钢筋：累计值",
-                "DataFrame": "df_sales"
-            },
+                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Field": "137家螺纹钢厂:开工率",
+                "DataFrame": "df_operating_rate"
+            },   
+            "产能利用率": {
+                "Name": "capacity_rate",
+                "Source": "Choice",
+                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Field": "137家螺纹钢厂:产能利用率",
+                "DataFrame": "df_capacity_rate"
+            },                           
             "库存": {
-                "Name": "instock",
+                "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
-                "Field": "库存：螺纹钢：合计[新频率:日(工作日), 方式:复制]",
-                "DataFrame": "df_instock"
-            },
-            "仓单": {
-                "Name": "receipt",
-                "Source": "Choice",
-                "Path": "black_metals/data/mid-stream/螺纹钢/螺纹钢库存.xlsx",
-                "Field": "仓单数量：螺纹钢",
-                "DataFrame": "df_instock"
+                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Field": ["137家螺纹钢厂:社会库存","137家螺纹钢厂:钢厂库存"],
+                "DataFrame": "df_inventory"
             }
         },
         "ProfitFormula": {
