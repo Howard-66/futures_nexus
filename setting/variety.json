@@ -124,28 +124,28 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "产量:铁矿石原矿:当月同比",
-                "DataFrame": "df_prodoction_growth"
+                "DataFrame": "df_choice"
             },
             "到岸价格": {
                 "Name": "cif",
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "平均到岸价格(不含税):进口铁矿石(62%品位干基粉矿):折人民币",
-                "DataFrame": "df_cif"
+                "DataFrame": "df_choice"
             },            
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "库存:铁矿石:港口合计",
-                "DataFrame": "df_inventory"
+                "DataFrame": "df_choice"
             },
             "库存消费比": {
                 "Name": "instock_consumption_ratio",
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "全国:进口铁矿石:库存消费比",
-                "DataFrame": "df_instock_consumption_ratio"
+                "DataFrame": "df_choice"
             }
         },
         "Name": "铁矿石"
@@ -763,35 +763,35 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:周需求量",
-                "DataFrame": "df_demand"
+                "DataFrame": "df_choice"
             },            
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:周产量",
-                "DataFrame": "df_prodoction"
+                "DataFrame": "df_choice"
             },
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:开工率",
-                "DataFrame": "df_operating_rate"
+                "DataFrame": "df_choice"
             },   
             "产能利用率": {
                 "Name": "capacity_rate",
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:产能利用率",
-                "DataFrame": "df_capacity_rate"
+                "DataFrame": "df_choice"
             },                           
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": ["137家螺纹钢厂:社会库存","137家螺纹钢厂:钢厂库存"],
-                "DataFrame": "df_inventory"
+                "DataFrame": "df_choice"
             }
         },
         "ProfitFormula": {
