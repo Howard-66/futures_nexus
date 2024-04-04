@@ -11,6 +11,8 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import dataworks as dw
 from global_service import gs
+import re
+from asteval import Interpreter
 
 class SymbolChain:
     def __init__(self, id, name, variety_list=None):
@@ -110,7 +112,7 @@ class SymbolData:
         return existing_data[self.name]
 
 
-    def load_choice_file(self, path, field, name):
+    def load_choice_file(self, file_path):
         """读取choice数据终端导出的数据文件.
             Choiced导出文件格式对应的处理规则. 
             - 原文件第一行为“宏观数据“或类似内容,但read_excel方法未加载该行内容
@@ -130,111 +132,17 @@ class SymbolData:
         Returns:
             dataframe: 将Choice导出文件内容加载到dataframe,并返回
         """
-        if path=='':
+        if file_path=='':
             return None
-        df = pd.read_excel(path)
+        df = pd.read_excel(file_path)
         df.columns = df.iloc[0]
         df.rename(columns={df.columns[0]: 'date'}, inplace=True)
-        df = df.iloc[6:]
-        if isinstance(field, list):
-            df[name] = df[field[0]] + df[field[1]]
-            df = df[['date', name]]
-        else:
-            df.rename(columns={field: name}, inplace=True)
-            df = df[['date', name]]
-            
-        # df.reset_index(drop=True, inplace=True)
-        # df.set_index('date', inplace=True)
-        df.dropna(axis=0, subset=[name], inplace=True)
+        df = df[6:]
+        df.reset_index(drop=True, inplace=True)
+        df.dropna(axis=0, subset=['date'], inplace=True)
         df = df[df['date'] != '数据来源：东方财富Choice数据']
         df['date'] = pd.to_datetime(df['date'])
         return df
-    
-    def load_akshare_file(self, file_path):
-        """读取通过AK Share接口下载保存的数据文件
-
-        Args:
-            file_path (str): 通过AKShare接口下载并保存的Excel文件绝对路径+文件名
-
-        Returns:
-            dataframe: 将加载的Excel文件经过格式化处理后以dataframe返回
-        """
-        if file_path == '':
-            return None
-        df = pd.read_excel(file_path)
-        # 格式化日期
-        df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
-        # 纠正AKShare基差/基差率计算错误（正负号）
-        df['near_basis'] = -df['near_basis']
-        df['dom_basis'] = -df['dom_basis']
-        df['near_basis_rate'] = -df['near_basis_rate']
-        df['dom_basis_rate'] = -df['dom_basis_rate']
-        # df.rename(columns={'日期': 'date'}, inplace=True)
-        # TODO:其他数据格式化
-        return df
-
-    def update_akshare_file(self, mode='append', start_date='', end_date=''):
-        """通过AKShare接口更新历史数据(废弃不用)
-
-        Args:
-            mode (str, optional): 更新模式. 默认值为 'append'.
-            - initial: 根据指定的时间段初始创建数据文件,后续使用period模式向前补充、append模式向后补充
-            - append: 根据文件最后记录,更新到当前日期,会覆盖更新历史数据中的最后一条记录
-            - period: 仅更新指定时间段的数据（目前仅支持向前追加,不做去重）
-            - all: 全部更新,并覆盖原数据\n
-            start_date (str, optional): 数据更新的起始日期\n
-            end_date (str, optional): 数据更新的默认日期.
-
-        Returns:
-            dataframe: 将新增数据与原数据合并并返回,同时保存至文件
-        """
-        basis_file = self.symbol_setting['DataIndex']['现货价格']['Path']
-        if mode == 'append':
-            df_basis = pd.read_excel(basis_file)
-            df_basis.reset_index(drop=True, inplace=True)
-            today = datetime.now().strftime("%Y%m%d")
-            last_date = str(df_basis.iloc[-1]['date'])
-            df_append = ak.futures_spot_price_daily(start_day=last_date, end_day=today, vars_list=[self.id])
-            # 移除最后一条重复数据,用最新数据替代
-            df_basis.drop(df_basis.shape[0]-1, inplace=True)
-            df_basis =pd.concat([df_basis, df_append])
-            df_basis.to_excel(basis_file, index=False)
-            return df_basis
-        elif mode=='period':
-            if start_date=='' or end_date=='':
-                return None
-            df_basis = pd.read_excel(basis_file)
-            df_basis.reset_index(drop=True, inplace=True)          
-            try:
-                df_period = ak.futures_spot_price_daily(start_day=start_date, end_day=end_date, vars_list=[self.id])
-                df_basis =pd.concat([df_period, df_basis])
-                # TODO: #目前仅支持向前补充数据,待增加与已有数据重叠更新（数据去重）
-                df_basis.to_excel(basis_file, index=False)
-                return df_basis                                
-            except Exception as e:
-                print(f"Error in downloading data: {e}") 
-                return df_basis
-        elif mode=='initial':
-            if start_date=='' or end_date=='':
-                return None
-            try:
-                df_basis = ak.futures_spot_price_daily(start_day=start_date, end_day=end_date, vars_list=[self.id])
-                df_basis.to_excel(basis_file, index=False)
-                return df_basis
-            except Exception as e:
-                print(f"Error in downloading data: {e}") 
-                return df_basis
-        else:
-            # TODO: 待增加全部更新并覆盖已有数据功能
-            # 获取当前日期  
-            now = datetime.now()  
-            # 获取前一个工作日  
-            previous_workday = datetime.now() - relativedelta(days=1, weekday=MO)  
-            # 统一设置所有数据起始日期为2011年1月4日
-            start_date = "20110104"
-            end_date = previous_workday.strftime("%Y%m%d")  
-            print('other modes is not implemented in update_akshare_file.')
-            return None
 
     def merge_data(self):
         """对数据索引中引用到的数据进行合并
@@ -242,30 +150,70 @@ class SymbolData:
         Returns:
             dataframe: 返回合并后的数据
         """
+        def extract_variables(format_str):
+            """从格式字符串中提取变量名"""
+            # 正则表达式模式，匹配非空字符（即变量）
+            variable_pattern = r'\b\w[\w:()%]*\b'  # 匹配以字母或数字开头，随后可以包含任意数量的字母、数字或冒号的序列，直到遇到非此类字符为止
+
+            # 使用正则表达式查找所有匹配的变量名
+            variables = re.findall(variable_pattern, format_str)
+            return variables  # 直接返回找到的变量名列表，无需额外处理
+        
         column_dict= {}
         data_frames = []
         data_index = self.symbol_setting['DataIndex']
         # dws = gs.dataworks
         dws = dw.DataWorks()
-        combined_df = None
-        for data_type, data_info in data_index.items():
-            # 从文件中加载指定字段的数据
-            data_source = data_info['Source']
-            if data_source=='Choice':
-                data_df = self.load_choice_file(data_info['Path'], data_info['Field'], data_type)
-            elif data_source=='SQLite':
-                data_df = dws.get_data_by_symbol(data_info['Path'], self.id, f"date,{data_info['Field']}")
-                data_df.rename(columns={data_info['Field']: data_type}, inplace=True)
-                data_df['date'] = pd.to_datetime(data_df['date'])
+        for key in data_index:
+            value_items =data_index[key]
+            df_name = value_items['DataFrame']            
+            fields = value_items['Field']
+            variables_list = extract_variables(fields)
+            if df_name in locals():        
+                if len(variables_list)==1:
+                    locals()[df_name].rename(columns={variables_list[0]:key}, inplace=True)
             else:
-                continue
-            # 将数据添加到combined_df中
-            # combined_df = pd.concat([combined_df, data_df], axis=1)
-            combined_df = pd.merge(combined_df, data_df, on='date', how='outer') if combined_df is not None else data_df
-        if '库存' in combined_df.columns:
-            combined_df['库存'] = combined_df['库存'].ffill()        
-        self.symbol_data = combined_df
+                data_source = value_items['Source']
+                if data_source=='Choice':
+                    locals()[df_name] = self.load_choice_file(value_items['Path'])
+                elif data_source=='SQLite':
+                    locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
+                    locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
+                else:
+                    continue
+                column_dict[df_name] = ['date']
+            df = locals()[df_name]
+            if len(variables_list)==1:
+                df.rename(columns={variables_list[0]:key}, inplace=True)
+                column_dict[df_name].append(key)
+            else:                
+                aeval = Interpreter()       
+                for var in variables_list:                    
+                    safe_var = re.sub(r'[0-9:]', '', var)
+                    print(f"safe_var: {safe_var}")
+                    df.rename(columns={var:safe_var}, inplace=True)                                     
+                    aeval.symtable[safe_var] = df[safe_var]
+                safe_fields = re.sub(r'[0-9:]', '', fields)
+                print(f"symbol: {self.id}, safe_fields: {safe_fields}, df_columns: {df.columns}")
+                df[key] = aeval.eval(safe_fields)
+                column_dict[df_name].append(key)
+            if 'FillNa' in value_items:
+                fill_na = value_items['FillNa']
+                if fill_na=='Forward':
+                    df[key] = df[key].fillna(method='ffill', limit=None)
+                elif fill_na=='Backward':
+                    df[key] = df[key].fillna(method='bfill', limit=None)
+                # elif fill_na=='Interpolate':
+
+        for df_key in column_dict:
+            df = locals()[df_key]
+            df = df[column_dict[df_key]]
+            data_frames.append(df)
+        self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
         self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
+        print(f"symbol: {self.id}, data_frames: {self.symbol_data.columns}")
+        # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
+        # self.symbol_data['库存'] = self.symbol_data['库存'].ffill()                   
         return self.symbol_data
 
     def calculate_basis(self, future_type):

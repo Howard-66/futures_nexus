@@ -138,6 +138,7 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "库存:铁矿石:港口合计",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
             "库存消费比": {
@@ -184,6 +185,7 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/up-stream/焦炭/焦炭库存.xlsx",
                 "Field": "焦炭库存:样本钢厂:全国",
+                "FillNa": "Forward",
                 "DataFrame": "df_instock"
             },
             "仓单": {
@@ -790,7 +792,8 @@
                 "Name": "inventory",
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
-                "Field": ["137家螺纹钢厂:社会库存","137家螺纹钢厂:钢厂库存"],
+                "Field": "137家螺纹钢厂:社会库存 + 137家螺纹钢厂:钢厂库存",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }
         },

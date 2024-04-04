@@ -4,3 +4,4 @@ plotly
 dash
 dash_bootstrap_components
 akshare
+asteval
