@@ -190,19 +190,18 @@ class SymbolData:
                 aeval = Interpreter()       
                 for var in variables_list:                    
                     safe_var = re.sub(r'[0-9:]', '', var)
-                    print(f"safe_var: {safe_var}")
                     df.rename(columns={var:safe_var}, inplace=True)                                     
                     aeval.symtable[safe_var] = df[safe_var]
                 safe_fields = re.sub(r'[0-9:]', '', fields)
-                print(f"symbol: {self.id}, safe_fields: {safe_fields}, df_columns: {df.columns}")
                 df[key] = aeval.eval(safe_fields)
                 column_dict[df_name].append(key)
             if 'FillNa' in value_items:
                 fill_na = value_items['FillNa']
+                print(f"symbol: {self.id}, key: {key}")
                 if fill_na=='Forward':
-                    df[key] = df[key].fillna(method='ffill', limit=None)
+                    df[key] = df[key].ffill()
                 elif fill_na=='Backward':
-                    df[key] = df[key].fillna(method='bfill', limit=None)
+                    df[key] = df[key].bfill()
                 # elif fill_na=='Interpolate':
 
         for df_key in column_dict:
@@ -211,7 +210,6 @@ class SymbolData:
             data_frames.append(df)
         self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
         self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
-        print(f"symbol: {self.id}, data_frames: {self.symbol_data.columns}")
         # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
         # self.symbol_data['库存'] = self.symbol_data['库存'].ffill()                   
         return self.symbol_data
@@ -302,7 +300,7 @@ class SymbolData:
         df_rank = pd.merge(df_rank, self.symbol_data[['date', field]], on='date', how='outer')
         return df_rank
 
-    def calculate_data_rank(self, future_type, data_list=['库存', '仓单', '持仓量', '现货利润', '盘面利润'], trace_back_months='all'):
+    def calculate_data_rank(self, future_type, trace_back_months='all'):
         """计算一组数据的历史分位数,
 
         Args:
@@ -311,19 +309,20 @@ class SymbolData:
         Returns:
             DataFrame: 返回包含历史分位数的 DataFrame,
         """
+        data_list = ['库存', '仓单', '持仓量', '现货利润', '盘面利润']
         index_with_openinterest = next((index for index, element in enumerate(data_list) if '持仓量' in element), None)
 
         if index_with_openinterest is not None:
             data_list[index_with_openinterest] = future_type[:4]+'持仓量'
-        if '现货利润' not in self.symbol_data.columns:
-            data_list.remove('现货利润')
-        if '盘面利润' not in self.symbol_data.columns:
-            data_list.remove('盘面利润')            
+        print(f"data_list: {data_list}")
+        dataframe_columns = self.symbol_data.columns.tolist()
+        existing_fields = list(set(data_list) & set(dataframe_columns))    
+        print(f"existing_fields: {existing_fields}")
         df_basis = self.calculate_basis(future_type)
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
         df_rank = pd.DataFrame()
-        for field in data_list:
+        for field in existing_fields:
             df_rank = self.history_time_ratio2(field, df_rank=df_rank, trace_back_months=trace_back_months)
         self.data_rank = df_rank
         return self.data_rank
@@ -443,24 +442,33 @@ class SymbolData:
 
         此外,此函数还会更新 self.signals,将计算得到的信号添加到其中。
         """        
-        rank_list = ['库存历史时间分位', '仓单历史时间分位']
-        if '现货利润' in self.symbol_data.columns:
-            rank_list.append('现货利润历史时间分位')
-        if '盘面利润' in self.symbol_data.columns:
-            rank_list.append('盘面利润历史时间分位')            
+        rank_list = ['库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']
+        dataframe_columns = self.data_rank.columns.tolist()
+        existing_fields = list(set(rank_list) & set(dataframe_columns))
+        print(f"Signal: existing_fields: {existing_fields}")
         if self.signals.empty:
             self.signals = pd.merge(self.symbol_data[['date', '基差率']],
-                                    self.data_rank[['date'] + rank_list],
+                                    self.data_rank[['date'] + existing_fields],
                                     on='date', how='outer')
-            self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))            
+            self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))     
+            existing_fields.append('基差率')
             # For other columns
-            for col in rank_list:
+            for col in existing_fields:
                 self.signals[col] = self.signals[col].map(lambda x: -1 if x == 5 else (0 if x != 1 else 1)).fillna(0).astype(int)
-            self.signals['库存|仓单'] = self.signals['库存历史时间分位'] | self.signals['仓单历史时间分位']
-            if '现货利润' in self.symbol_data.columns and '盘面利润' in self.symbol_data.columns:
-                self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']
-        if len(selected_index)!=0:
-            self.signals['信号数量'] = self.signals[selected_index].sum(axis=1)
+            if '库存历史时间分位' in existing_fields and '仓单历史时间分位' in existing_fields:
+                self.signals['库存|仓单'] = self.signals['库存历史时间分位'] | self.signals['仓单历史时间分位']
+                existing_fields.append('库存|仓单')
+            elif '库存历史时间分位' in existing_fields:
+                self.signals['库存|仓单'] = self.signals['库存历史时间分位']
+                existing_fields.append('库存历史时间分位')
+            elif '仓单历史时间分位' in existing_fields:
+                self.signals['库存|仓单'] = self.signals['仓单历史时间分位']
+                existing_fields.append('库存|仓单')
+            if '现货利润历史时间分位' in existing_fields and '盘面利润历史时间分位' in existing_fields:
+                self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']   
+        existing_signals = list(set(existing_fields) & set(selected_index))          
+        if len(existing_signals)!=0:
+            self.signals['信号数量'] = self.signals[existing_signals].sum(axis=1)
         return self.signals
     
     def prepare_data(self, trace_back_months=60):

@@ -118,26 +118,32 @@
             9
         ],
         "ExchangeID": "dce",
+        "Chain": "black_metals",
         "DataIndex": {
+            "产量": {
+                "Name": "production",
+                "Source": "Choice",
+                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Field": "产量:铁矿石原矿:当月值",
+                "Type": "Amount",
+                "FillNa": "Forward",                
+                "DataFrame": "df_choice"
+            },            
             "产量同比": {
                 "Name": "production_growth",
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "产量:铁矿石原矿:当月同比",
+                "Type": "Rate",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
-            },
-            "到岸价格": {
-                "Name": "cif",
-                "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.xlsx",
-                "Field": "平均到岸价格(不含税):进口铁矿石(62%品位干基粉矿):折人民币",
-                "DataFrame": "df_choice"
-            },            
+            },      
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "库存:铁矿石:港口合计",
+                "Type": "Amount",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -146,6 +152,8 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "全国:进口铁矿石:库存消费比",
+                "Type": "Rate",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }
         },
@@ -158,42 +166,42 @@
             9
         ],
         "ExchangeID": "dce",
+        "Chain": "black_metals",
         "DataIndex": {
             "现货价格": {
                 "Name": "spot_price",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭基差.xlsx",
+                "Path": "black_metals/data/焦炭经济数据.xlsx",
                 "Field": "现货价格:焦炭",
-                "DataFrame": "df_basis"
+                "Type": "Amount",
+                "DataFrame": "df_choice"
             },
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭产量.xlsx",
+                "Path": "black_metals/data/焦炭经济数据.xlsx",
                 "Field": "产量:焦炭:当月值",
-                "DataFrame": "df_prodoction"
+                "Type": "Amount",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
             },
-            "销量": {
-                "Name": "sales",
+            "产量同比": {
+                "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭销量.xlsx",
-                "Field": "焦炭消费量:总计",
-                "DataFrame": "df_sales"
-            },
+                "Path": "black_metals/data/焦炭经济数据.xlsx",
+                "Field": "产量:焦炭:当月同比",
+                "Type": "Rate",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            },            
             "库存": {
                 "Name": "instock",
                 "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭库存.xlsx",
+                "Path": "black_metals/data/焦炭经济数据.xlsx",
                 "Field": "焦炭库存:样本钢厂:全国",
+                "Type": "Amount",
                 "FillNa": "Forward",
-                "DataFrame": "df_instock"
-            },
-            "仓单": {
-                "Name": "receipt",
-                "Source": "Choice",
-                "Path": "black_metals/data/up-stream/焦炭/焦炭库存.xlsx",
-                "Field": "仓单数量:焦炭",
-                "DataFrame": "df_instock"
+                "DataFrame": "df_choice"
             }
         },
         "Name": "焦炭"
@@ -759,12 +767,15 @@
             10
         ],
         "ExchangeID": "shfe",
+        "Chain": "black_metals",
         "DataIndex": {
             "需求": {
                 "Name": "demand",
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:周需求量",
+                "Type": "Amount",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },            
             "产量": {
@@ -772,6 +783,8 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:周产量",
+                "Type": "Amount",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
             "开工率": {
@@ -779,6 +792,8 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:开工率",
+                "Type": "Rate",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },   
             "产能利用率": {
@@ -786,6 +801,8 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:产能利用率",
+                "Type": "Rate",
+                "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },                           
             "库存": {
@@ -793,6 +810,7 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:社会库存 + 137家螺纹钢厂:钢厂库存",
+                "Type": "Amount",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }
@@ -825,6 +843,45 @@
             10
         ],
         "ExchangeID": "shfe",
+        "Chain": "black_metals",
+        "DataIndex": {
+            "开工率": {
+                "Name": "operating_rate",
+                "Source": "Choice",
+                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Field": "产线开工率:热轧板卷",
+                "Type": "Rate",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            },
+            "产量": {
+                "Name": "production",
+                "Source": "Choice",
+                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Field": "日均产量:热轧板卷",
+                "Type": "Amount",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            },
+            "产能利用率": {
+                "Name": "capacity_rate",
+                "Source": "Choice",
+                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Field": "产能利用率:热轧板卷",
+                "Type": "Rate",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            },
+            "库存": {
+                "Name": "inventory",
+                "Source": "Choice",
+                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Field": "库存:热卷(板)",
+                "Type": "Amount",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            }            
+        },
         "Name": "热轧卷板"
     },
     "SS": {
@@ -843,6 +900,36 @@
             12
         ],
         "ExchangeID": "shfe",
+        "Chain": "black_metals",
+        "DataIndex": {
+            "开工率": {
+                "Name": "operating_rate",
+                "Source": "Choice",
+                "Path": "black_metals/data/不锈钢经济数据.xlsx",
+                "Field": "产线开工率:冷轧不锈钢:全国",
+                "Type": "Rate",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            },
+            "产量": {
+                "Name": "production",
+                "Source": "Choice",
+                "Path": "black_metals/data/不锈钢经济数据.xlsx",
+                "Field": "日均产量:冷轧不锈钢:全国",
+                "Type": "Amount",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            },
+            "产能利用率": {
+                "Name": "capacity_rate",
+                "Source": "Choice",
+                "Path": "black_metals/data/不锈钢经济数据.xlsx",
+                "Field": "产能利用率:冷轧不锈钢:全国",
+                "Type": "Rate",
+                "FillNa": "Forward",
+                "DataFrame": "df_choice"
+            }
+        },
         "Name": "不锈钢"
     },
     "SC": {
