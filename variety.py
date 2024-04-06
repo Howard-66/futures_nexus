@@ -153,8 +153,7 @@ class SymbolData:
         def extract_variables(format_str):
             """从格式字符串中提取变量名"""
             # 正则表达式模式，匹配非空字符（即变量）
-            variable_pattern = r'\b\w[\w:()%]*\b'  # 匹配以字母或数字开头，随后可以包含任意数量的字母、数字或冒号的序列，直到遇到非此类字符为止
-
+            variable_pattern = r'\w[\w:()%]*'
             # 使用正则表达式查找所有匹配的变量名
             variables = re.findall(variable_pattern, format_str)
             return variables  # 直接返回找到的变量名列表，无需额外处理
@@ -210,6 +209,8 @@ class SymbolData:
             data_frames.append(df)
         self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
         self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
+        columns_to_check = self.symbol_data.columns[1:]
+        self.symbol_data.dropna(subset=columns_to_check, how='all', inplace=True)        
         # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
         # self.symbol_data['库存'] = self.symbol_data['库存'].ffill()                   
         return self.symbol_data
