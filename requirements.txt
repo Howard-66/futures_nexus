@@ -3,5 +3,7 @@ json
 plotly
 dash
 dash_bootstrap_components
+dash_mantine_components
 akshare
 asteval
+dash-iconify
