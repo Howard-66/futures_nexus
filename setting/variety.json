@@ -815,6 +815,28 @@
                 "DataFrame": "df_choice"
             }
         },
+        "RelatedVariety": {
+            "现货价格": {
+                "Name": "spot_price",
+                "Source": "SQLite",
+                "Path": "basis",
+                "Field": "spot_price",
+                "Variety": ["I", "J"],
+                "DataFrame": "df_basis"
+            },
+            "主力合约结算价": {
+                "Name": "dominant_settle_price",
+                "Source": "SQLite",
+                "Path": "dominant",
+                "Field": "动态结算价",
+                "Variety": ["I", "J"],
+                "DataFrame": "df_dominant"
+            }        
+        },
+        "利润": {
+            "现货利润": "I_spot_price * 1.6 + J_spot_price * 0.6 - 1200",
+            "盘面利润": "I_dominant_settle_price * 1.6 + J_dominant_settle_price * 0.6 - 1200"
+        },
         "ProfitFormula": {
             "Name": "profit_formula",
             "Factor": {

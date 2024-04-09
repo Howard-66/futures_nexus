@@ -1,9 +1,7 @@
 import dash
 import json
 from dash import html
-import dash_bootstrap_components as dbc
-import components.style as style
-from components.sidebar import get_sidebar
+import dash_mantine_components as dmc
 from global_service import gs
 from variety import SymbolChain, SymbolData
 
@@ -38,16 +36,15 @@ def layout(chain_id=None, **other_unknown_query_strings):
     if chain_id not in chain_page_maps:
         chain_page = ChainPage(chain_id)
         chain_page_maps[chain_id] = chain_page
-        chain_page.sidebar = get_sidebar(chain_id, gs.variety_id_name_map, chain_page.get_variety_list())
-        chain_page.main_content = html.Div(f'This is our Chain-{chain_id} page content.', style=style.CONTENT_STYLE),
+        chain_page.main_content = html.Div(f'This is our Chain-{chain_id} page content.'),
     else:
         chain_page = chain_page_maps[chain_id]
     active_chain_page = chain_page
     layout = html.Div([
-        dbc.Row(
+        dmc.Container(
             [
-                dbc.Col(chain_page.sidebar,),
-                dbc.Col(chain_page.main_content,)
+                # dbc.Col(chain_page.sidebar,),
+                dmc.Col(chain_page.main_content,)
             ],
         )
     ])
