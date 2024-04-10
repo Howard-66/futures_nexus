@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import dash
 from dash import html, dcc, callback, Input, Output, State
-import dash_bootstrap_components as dbc
+# import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 from pages.chain_overview import chain_page_maps
 import components.style as style
 from global_service import gs
@@ -19,44 +20,63 @@ active_variety_page = None
 
 chart_config = html.Div(
     [
-        dbc.Label('选择分析指标：', color='darkblue'),
-        dbc.Checklist(
-            options=['基差率', '库存', '仓单', '持仓量', '库存消费比', '库存+仓单', '现货利润', '盘面利润', '现货利润+盘面利润'],
-            value=['基差率', '库存', '仓单', '持仓量', '现货利润'],
-            id='select-index', inline=True
-        ),
-        html.Hr(),
-        dbc.Label('选择期货价格类型：', color='darkblue'),
-        dbc.RadioItems(
-            options=[
-                {"label": "主力合约收盘价", "value": '主力合约收盘价'},
-                {"label": "主力合约结算价", "value": '主力合约结算价'},
-                {"label": "近月合约收盘价", "value": '近月合约收盘价'},
-                {"label": "近月合约结算价", "value": '近月合约结算价'},
+        dmc.CheckboxGroup(
+            label='选择分析指标：',
+            children=[
+                dmc.Checkbox(label='基差率', value='基差率'),
+                dmc.Checkbox(label='库存', value='库存'),
+                dmc.Checkbox(label='仓单', value='仓单'),
+                dmc.Checkbox(label='持仓量', value='持仓量'),
+                dmc.Checkbox(label='库存消费比', value='库存消费比'),
+                dmc.Checkbox(label='库存+仓单', value='库存+仓单'),
+                dmc.Checkbox(label='现货利润', value='现货利润'),
+                dmc.Checkbox(label='盘面利润', value='盘面利润'),
+                dmc.Checkbox(label='现货利润+盘面利润', value='现货利润+盘面利润'),
             ],
-            value='近月合约收盘价',
-            id="radio-future-price", inline=True
+            value=['基差率', '库存', '仓单', '持仓量', '现货利润'],
+            id='select-index',
         ),
-
         html.Hr(),
-        dbc.Label('标记区间：', color='darkblue'),
-        dbc.Checklist(
-            options=['现货交易月', '指标共振周期'],
+        dmc.RadioGroup(
+            label='选择期货价格类型：',
+            children=[
+                dmc.Radio(label='主力合约收盘价', value='主力合约收盘价'),
+                dmc.Radio(label='主力合约结算价', value='主力合约结算价'),
+                dmc.Radio(label='近月合约收盘价', value='近月合约收盘价'),
+                dmc.Radio(label='近月合约结算价', value='近月合约结算价'),                
+            ],
+            value='主力合约收盘价',
+            id='radio-future-price',
+        ),
+        html.Hr(),
+        dmc.CheckboxGroup(
+            label='标记区间：',
+            children=[
+                dmc.Checkbox(label='现货交易月', value='现货交易月'),
+                dmc.Checkbox(label='指标共振周期', value='指标共振周期'),
+            ],
             value=['现货交易月', '指标共振周期'],
             id='switch-marker',
-            switch=True, inline=True
         ),
         html.Hr(),
-        dbc.Label('共振指标设置：', color='darkblue'),
-        dbc.Checklist(                    
-            options=['基差率', '库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位', '库存|仓单', '现货利润|盘面利润'],
+        dmc.CheckboxGroup(
+            label='共振指标设置：',
+            children=[
+                dmc.Checkbox(label='基差率', value='基差率'),
+                dmc.Checkbox(label='库存历史时间分位', value='库存历史时间分位'),
+                dmc.Checkbox(label='仓单历史时间分位', value='仓单历史时间分位'),
+                dmc.Checkbox(label='现货利润历史时间分位', value='现货利润历史时间分位'),
+                dmc.Checkbox(label='盘面利润历史时间分位', value='盘面利润历史时间分位'),
+                dmc.Checkbox(label='库存|仓单', value='库存|仓单'),
+                dmc.Checkbox(label='现货利润|盘面利润', value='现货利润|盘面利润'),
+            ],
             value=['基差率', '库存历史时间分位'],
-            id='select-synchronize-index', inline=True                    
+            id='select-synchronize-index',
         ),
         html.Hr(),
-        dbc.Label('历史分位回溯时间：', color='darkblue'),
-        dcc.Slider(
-            0, 130, value=36, step=None,
+        dmc.Text('历史分位回溯时间：', color='darkblue'),
+        dmc.Slider(
+            value=36, min=6, max=130, step=None,
             marks={
                 6: '6个月', 12: '1年', 24: '2年', 36: '3年', 60: '5年', 120: '10年', 130: {'label': 'All', 'style': {'color': 'darkblue'}}
             },
@@ -66,14 +86,14 @@ chart_config = html.Div(
 )
 
 analyzing_log = html.Div([
-    dbc.Label('量化分析标签', color='darkblue'),
+    dmc.Text('量化分析标签', color='darkblue'),
     html.Div(
         html.Span(
             id='html-analyzing-tags'
         ),    
     ),
     html.Hr(),
-    dbc.Label('盈利-风险测算', color='darkblue'),
+    dmc.Text('盈利-风险测算', color='darkblue'),
     # dbc.RadioItems(
     #     options=[
     #         {"label": "单边/跨期做多", "value": '单边/跨期做多'},
@@ -84,60 +104,41 @@ analyzing_log = html.Div([
     # ),       
     html.Div(id='html-profit-loss'),
     html.Hr(),
-    dbc.Label('综合分析', color='darkblue'),
-    dbc.Textarea(className="mb-3", placeholder="分析结论", id='txt-log-conclusion'),
+    dmc.Text('综合分析', color='darkblue'),
+    dmc.Textarea(placeholder="分析结论", id='txt-log-conclusion'),
     html.Div([
-        dbc.Button("删除", color="danger", className="me-1", id='bt-log-delete'),
-        dbc.Button("保存", color="success", className="me-1", id='bt-log-save'),
+        dmc.Button("删除", color="red", id='bt-log-delete'),
+        dmc.Button("保存", color="blue", id='bt-log-save'),
     ])
 ])
 
 # 基本面分析图表面板
 tab_main = html.Div([
     # 主框架
-    dbc.Row([
+    dmc.Grid([
         # 左侧面板
-        dbc.Col([
+        dmc.Col(
             # 图表面板
-            dbc.Row(
-                # dbc.Card(
-                #     dbc.CardBody([
-                        dcc.Graph(figure={}, id='main-figure-placeholder'),    
-                #     ])
-                # )
-            )                        
-        ], width=9),
+            dcc.Graph(figure={}, id='main-figure-placeholder'),                      
+            span=9),
         # 右侧面板
-        dbc.Col([
-            # 期限结构分析图表
-            dbc.Row(
-                dbc.Card(
-                    dbc.CardBody(
-                        html.Div(dcc.Graph(figure={}, id='term-figure-placeholder'),)
+        dmc.Col([            
+            dmc.Stack(
+                [
+                    # 期限结构分析图表
+                    dmc.Paper(
+                        dcc.Graph(figure={}, id='term-figure-placeholder')
                     ),
-                    className="mt-3",
-                )
+                    # 跨期分析图表
+                    dmc.Paper(
+                        dcc.Graph(figure={}, id='intertemporal-figure-placeholder')
+                    ),         
+                    dmc.Paper(
+                        analyzing_log
+                    ),     
+                ],  
             ),
-            # 跨期分析图表
-            dbc.Row(
-                dbc.Card(
-                    dbc.CardBody(
-                            dcc.Graph(figure={}, id='intertemporal-figure-placeholder'),
-                    ),
-                    className="mt-3",
-                )
-            ),
-            dbc.Row(
-                dbc.Card(
-                    dbc.CardBody(
-                        [                            
-                            dbc.Form(analyzing_log),
-                        ]
-                    ),
-                    className="mt-3",
-                )                
-            )
-        ], width=3)
+        ], span=3)
     ])
 ])
 
@@ -167,42 +168,37 @@ class VarietyPage:
         self.trade_breaks = list(set(dt_all) - set(trade_date))        
 
     def create_variety_menu(self):
-        menu = dbc.Nav(
-            [     
-                html.I(className="bi bi-gear me-2", style={'font-size': '1.5rem', 'color': 'cornflowerblue'}, id='config-button'),
-                dbc.NavLink("基本面分析", href=f"/variety_basis?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
-                dbc.NavLink("周期性分析", href=f"/variety_cycle?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
-                dbc.NavLink("跨期分析", href=f"/variety_period?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
-                # dbc.NavLink("跨品种分析", href=f"/variety_?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
-                dbc.NavLink("交易计划", href=f"/variety_plan?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),                
-            ],
-            pills=True,
-        )     
-        return menu   
+        # menu = dbc.Nav(
+        #     [     
+        #         html.I(className="bi bi-gear me-2", style={'font-size': '1.5rem', 'color': 'cornflowerblue'}, id='config-button'),
+        #         dbc.NavLink("基本面分析", href=f"/variety_basis?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
+        #         dbc.NavLink("周期性分析", href=f"/variety_cycle?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
+        #         dbc.NavLink("跨期分析", href=f"/variety_period?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
+        #         # dbc.NavLink("跨品种分析", href=f"/variety_?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),
+        #         dbc.NavLink("交易计划", href=f"/variety_plan?variety_id={self.variety_name}&chain_id={self.chain_name}", active="exact"),                
+        #     ],
+        #     pills=True,
+        # )     
+        return None   
  
     def create_analyzing_layout(self):
         layout = html.Div(
             [
-                dbc.Modal(
-                    [
-                        dbc.ModalHeader(dbc.ModalTitle("图表设置"), close_button=True),
-                        dbc.ModalBody(chart_config),
-                        dbc.ModalFooter(
-                            dbc.Button(
-                                "确定",
-                                id="close-button",
-                                className="ms-auto",
-                                n_clicks=0,
-                            )
-                        ),
-                    ],
+                dmc.Modal(
+                    title="图表设置",
                     id="modal-chart-config",
-                    centered=True,
-                    size="lg",
-                    is_open=False,
-                ),          
-                tab_main
-            ]
+                    children=[
+                        chart_config,
+                        dmc.Space(h=20),
+                        dmc.Group(
+                            [
+                                dmc.Button("确定", id="close-button"),
+                            ],
+                        )
+                    ],            
+                ),                
+                tab_main,
+            ],
         )
         return layout
 
@@ -212,17 +208,8 @@ class VarietyPage:
             analyzing_layout = self.create_analyzing_layout()
             layout = html.Div(
                 [
-                    dbc.Row(
-                        [
-                            # dbc.Col(menu),
-                            menu,
-                            html.Hr()
-                            # dbc.Col(index_selector),
-                        ],
-                    ),
-                    dbc.Row(analyzing_layout),
+                    analyzing_layout,
                 ],
-                style=style.CONTENT_STYLE
             )
             self.main_content = layout
         else:
@@ -584,31 +571,34 @@ class VarietyPage:
         return cross_term_figure, profit_loss
 
 blank_content = html.Div([
-    dbc.Modal(id='modal-chart-config'),
+    html.Div(id='methods-navlink'),
+    dmc.SegmentedControl(id='segmented-variety-switcher', data=[]),
+    dmc.Select(id='variety-select'),
+    dmc.Modal(id='modal-chart-config'),
     html.I(id='config-button'),
-    dbc.Button(id='close-button'),
+    dmc.Button(id='close-button'),
     dcc.Graph(id='main-figure-placeholder'),
-    dbc.Checklist(id='select-index'),
-    dbc.RadioButton(id="radio-future-price"),
-    dbc.Checklist(id='switch-marker'),
-    dbc.Checklist(id='select-synchronize-index'),
-    dcc.Slider(id='look-forward-months'),
+    dmc.CheckboxGroup(id='select-index'),
+    dmc.RadioGroup(id="radio-future-price"),
+    dmc.CheckboxGroup(id='switch-marker'),
+    dmc.CheckboxGroup(id='select-synchronize-index'),
+    dmc.Slider(id='look-forward-months'),
     html.Span(id='html-analyzing-tags'),
     html.Div(id='html-profit-loss'),
-    dbc.Textarea(id='txt-log-conclusion'),
-    dbc.Button(id='bt-log-delete'),
-    dbc.Button(id='bt-log-save'),
+    dmc.Textarea(id='txt-log-conclusion'),
+    dmc.Button(id='bt-log-delete'),
+    dmc.Button(id='bt-log-save'),
     dcc.Graph(id='term-figure-placeholder'),
     dcc.Graph(id='intertemporal-figure-placeholder')
-], style=style.CONTENT_STYLE)
+])
 
 def layout(variety_id=None, chain_id=None, **other_unknown_query_strings):
     if variety_id is None:
         return html.Div([
-            dbc.Row(blank_content)
+            blank_content
         ])
     chain_page = chain_page_maps[chain_id]
-    sidebar = chain_page.sidebar
+    # sidebar = chain_page.sidebar
     if variety_id not in variety_page_maps:
         variety_page = VarietyPage(variety_id, chain_id)
         variety_page_maps[variety_id] = variety_page
@@ -617,7 +607,7 @@ def layout(variety_id=None, chain_id=None, **other_unknown_query_strings):
     variety_page_maps['active_variety'] = variety_page
 
     layout = html.Div([
-        sidebar, 
+        # sidebar, 
         variety_page.get_layout(),
         # main_content,
     ])
@@ -655,14 +645,14 @@ def update_graph(select_index_value, radio_future_value, switch_marker_value, se
     return figure
 
 @callback(
-    Output("modal-chart-config", "is_open"),
-    [Input("config-button", "n_clicks"), Input("close-button", "n_clicks")],
-    [State("modal-chart-config", "is_open")],
+    Output("modal-chart-config", "opened"),
+    [Input("button-methond-config", "n_clicks"), Input("close-button", "n_clicks")],
+    [State("modal-chart-config", "opened")],
 )
-def toggle_modal(n1, n2, is_open):
+def toggle_modal(n1, n2, opened):
     if n1 or n2:
-        return not is_open
-    return is_open
+        return not opened
+    return opened
 
     
 @callback(
@@ -709,20 +699,20 @@ def display_click_data(clickData):
         html_analyzing_tags =[
             #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
             #     html.Span(" | "),
-                dbc.Badge("基差", color=flag_color[basis_flag], className="me-1", id='log_basis'),
-                dbc.Badge("期限结构", color=flag_color[term_flag], className="me-1", id='log_term_structure'),
+                dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
+                dmc.Badge("期限结构", color=flag_color[term_flag], id='log_term_structure'),
                 html.Span(" | "),
-                dbc.Badge("库存", color=flag_color2[inventory_flag], className="me-1", id='log_inventory'),
-                dbc.Badge("仓单", color=flag_color2[receipt_flag], className="me-1", id='log_receipt'),
-                dbc.Badge("持仓量", color=flag_color2[openinterest_flag], className="me-1", id='log_open_interest'),
+                dmc.Badge("库存", color=flag_color2[inventory_flag], id='log_inventory'),
+                dmc.Badge("仓单", color=flag_color2[receipt_flag], id='log_receipt'),
+                dmc.Badge("持仓量", color=flag_color2[openinterest_flag], id='log_open_interest'),
                 html.Span(" | "),                                
         ]
         if '现货利润' in symbol.symbol_data.columns:       
             spotprofit_flag = click_data['现货利润分位颜色'].iloc[0]
-            html_analyzing_tags.append(dbc.Badge("现货利润", color=flag_color2[spotprofit_flag], className="me-1", id='log_spot_profit'))
+            html_analyzing_tags.append(dmc.Badge("现货利润", color=flag_color2[spotprofit_flag], id='log_spot_profit'))
         if '盘面利润' in symbol.symbol_data.columns:    
             futureprofit_flag = click_data['盘面利润分位颜色'].iloc[0]
-            html_analyzing_tags.append(dbc.Badge("盘面利润", color=flag_color2[futureprofit_flag], className="me-1", id='log_future_profit'),)
+            html_analyzing_tags.append(dmc.Badge("盘面利润", color=flag_color2[futureprofit_flag],  id='log_future_profit'),)
         strategy = []
         direction = []
         point_diff =[]
@@ -746,7 +736,7 @@ def display_click_data(clickData):
                 "周期": duration,
             }
         )        
-        html_profit_loss = dbc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
+        html_profit_loss = dmc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
         return term_fig, cross_term_figure, html_analyzing_tags, html_profit_loss
         # return term_fig, cross_term_figure, trade_type[basis_flag], flag_color[basis_flag], flag_color[term_flag], flag_color2[inventory_flag], flag_color2[receipt_flag], flag_color2[openinterest_flag], flag_color2[spotprofit_flag], flag_color2[futureprofit_flag], 
     else:

@@ -36,16 +36,9 @@ def layout(chain_id=None, **other_unknown_query_strings):
     if chain_id not in chain_page_maps:
         chain_page = ChainPage(chain_id)
         chain_page_maps[chain_id] = chain_page
-        chain_page.main_content = html.Div(f'This is our Chain-{chain_id} page content.'),
+        chain_page.main_content = f'This is our Chain-{chain_id} page content.'
     else:
         chain_page = chain_page_maps[chain_id]
     active_chain_page = chain_page
-    layout = html.Div([
-        dmc.Container(
-            [
-                # dbc.Col(chain_page.sidebar,),
-                dmc.Col(chain_page.main_content,)
-            ],
-        )
-    ])
+    layout = html.Div(chain_page.main_content)
     return layout
