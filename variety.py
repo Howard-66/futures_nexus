@@ -146,7 +146,7 @@ class SymbolData:
 
     def merge_data(self):
         """对数据索引中引用到的数据进行合并
-            根据数据源（Choice/AKShare）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
+            根据数据源（Choice/Sqlite）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
         Returns:
             dataframe: 返回合并后的数据
         """
@@ -161,17 +161,22 @@ class SymbolData:
         column_dict= {}
         data_frames = []
         data_index = self.symbol_setting['DataIndex']
+        related_data = self.symbol_setting['RelatedData']
+
         # dws = gs.dataworks
         dws = dw.DataWorks()
         for key in data_index:
+            # 按照配置文件中的DataFrame键值，将同类内容合并到同一张表中
             value_items =data_index[key]
             df_name = value_items['DataFrame']            
             fields = value_items['Field']
             variables_list = extract_variables(fields)
             if df_name in locals():        
+                # 键值是独立字段的，列名修改为key
                 if len(variables_list)==1:
                     locals()[df_name].rename(columns={variables_list[0]:key}, inplace=True)
             else:
+                # 未加载的数据，整表读取到df_name中
                 data_source = value_items['Source']
                 if data_source=='Choice':
                     locals()[df_name] = self.load_choice_file(value_items['Path'])
@@ -181,11 +186,13 @@ class SymbolData:
                 else:
                     continue
                 column_dict[df_name] = ['date']
-            df = locals()[df_name]
+            df = locals()[df_name]            
             if len(variables_list)==1:
+                # Field是独立字段的，列名修改为key
                 df.rename(columns={variables_list[0]:key}, inplace=True)
                 column_dict[df_name].append(key)
             else:                
+                # Field是公式表达的，进行解析计算
                 aeval = Interpreter()       
                 for var in variables_list:                    
                     safe_var = re.sub(r'[0-9:]', '', var)
@@ -194,6 +201,7 @@ class SymbolData:
                 safe_fields = re.sub(r'[0-9:]', '', fields)
                 df[key] = aeval.eval(safe_fields)
                 column_dict[df_name].append(key)
+            # 根据配置中指定的填充方式填充缺失值
             if 'FillNa' in value_items:
                 fill_na = value_items['FillNa']
                 print(f"symbol: {self.id}, key: {key}")

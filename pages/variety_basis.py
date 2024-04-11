@@ -736,7 +736,10 @@ def display_click_data(clickData):
                 "周期": duration,
             }
         )        
-        html_profit_loss = dmc.Table.from_dataframe(df, striped=True, bordered=True, hover=True)
+        columns, values = df.columns, df.values
+        header = [html.Tr([html.Th(col) for col in columns])]
+        rows = [html.Tr([html.Td(cell) for cell in row]) for row in values]      
+        html_profit_loss = dmc.Table([html.Thead(header), html.Tbody(rows)], striped=True, highlightOnHover=True, withBorder=False, withColumnBorders=False)
         return term_fig, cross_term_figure, html_analyzing_tags, html_profit_loss
         # return term_fig, cross_term_figure, trade_type[basis_flag], flag_color[basis_flag], flag_color[term_flag], flag_color2[inventory_flag], flag_color2[receipt_flag], flag_color2[openinterest_flag], flag_color2[spotprofit_flag], flag_color2[futureprofit_flag], 
     else:

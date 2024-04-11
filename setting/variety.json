@@ -815,7 +815,7 @@
                 "DataFrame": "df_choice"
             }
         },
-        "RelatedVariety": {
+        "RelatedData": {
             "现货价格": {
                 "Name": "spot_price",
                 "Source": "SQLite",
