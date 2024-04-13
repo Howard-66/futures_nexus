@@ -4,14 +4,15 @@ import dash
 from dash import html, dcc, callback, Input, Output, State
 # import dash_bootstrap_components as dbc
 import dash_mantine_components as dmc
-from pages.chain_overview import chain_page_maps
-import components.style as style
+# from pages.chain_overview import chain_page_maps
+# import components.style as style
 from global_service import gs
 from dataworks import DataWorks
 import akshare as ak
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from variety import SymbolData
 
 dash.register_page(__name__, path="/variety/basis")
 
@@ -119,7 +120,10 @@ tab_main = html.Div([
         # 左侧面板
         dmc.Col(
             # 图表面板
-            dcc.Graph(figure={}, id='main-figure-placeholder'),                      
+            [
+                # dmc.Space(h=40),
+                dcc.Graph(figure={}, id='main-figure-placeholder'),      
+            ],                            
             span=9),
         # 右侧面板
         dmc.Col([            
@@ -127,30 +131,45 @@ tab_main = html.Div([
                 [
                     # 期限结构分析图表
                     dmc.Paper(
-                        dcc.Graph(figure={}, id='term-figure-placeholder')
+                        dcc.Graph(figure={}, id='term-figure-placeholder'),
+                        shadow="sm",
+                        radius="xs",
+                        p="xs",
+                        withBorder=True,                           
                     ),
                     # 跨期分析图表
                     dmc.Paper(
-                        dcc.Graph(figure={}, id='intertemporal-figure-placeholder')
+                        dcc.Graph(figure={}, id='intertemporal-figure-placeholder'),
+                        shadow="sm",
+                        radius="xs",
+                        p="xs",
+                        withBorder=True,                           
                     ),         
                     dmc.Paper(
-                        analyzing_log
+                        analyzing_log,
+                        shadow="sm",
+                        radius="xs",
+                        p="xs",
+                        withBorder=True,                           
                     ),     
                 ],  
+                p=10,
             ),
         ], span=3)
     ])
 ])
 
 class VarietyPage:
-    def __init__(self, name, chain) -> None:
+    def __init__(self, name) -> None:
         self.variety_name = name
-        self.chain_name = chain
+        # self.chain_name = chain
         # self.page_maps = {}
-        self.chain_config = 'futures_nexus/setting/chains.json'
+        # self.chain_config = 'futures_nexus/setting/chains.json'
         self.main_content = None
-        self.symbol_chain = chain_page_maps[self.chain_name].symbol_chain
-        symbol = self.symbol_chain.get_symbol(name)
+        # self.symbol_chain = chain_page_maps[self.chain_name].symbol_chain
+        # symbol = self.symbol_chain.get_symbol(name)
+        symbol = SymbolData(name)
+        symbol_data = symbol.merge_data()
         symbol.get_spot_months() 
         dws = DataWorks()
         # symbol.variety_data = gs.dataworks.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], symbol.id, ['symbol', 'date', 'close', 'volume', 'open_interest', 'settle', 'variety'])
@@ -161,7 +180,7 @@ class VarietyPage:
         self.main_figure = None
         self.on_layout = False
         self.future_type = ''
-        trade_date = ak.tool_trade_date_hist_sina()['trade_date']
+        trade_date = dws.get_trade_date()
         trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
         dt_all = pd.date_range(start=symbol.symbol_data['date'].iloc[0],end=symbol.symbol_data['date'].iloc[-1])
         dt_all = [d.strftime("%Y-%m-%d") for d in dt_all]
@@ -187,6 +206,9 @@ class VarietyPage:
                 dmc.Modal(
                     title="图表设置",
                     id="modal-chart-config",
+                    size="xl",
+                    centered=True,
+                    opened=False,
                     children=[
                         chart_config,
                         dmc.Space(h=20),
@@ -373,14 +395,14 @@ class VarietyPage:
             rangeslider_visible = False, # 下方滑动条缩放
             range=[date_one_year_ago, date_now],
             # 增加固定范围选择
-            rangeselector = dict(
-                buttons = list([
-                    dict(count = 6, label = '6M', step = 'month', stepmode = 'backward'),
-                    dict(count = 1, label = '1Y', step = 'year', stepmode = 'backward'),
-                    # dict(count = 1, label = 'YTD', step = 'year', stepmode = 'todate'),                
-                    dict(count = 3, label = '3Y', step = 'year', stepmode = 'backward'),
-                    dict(step = 'all')
-                    ]))
+            # rangeselector = dict(
+            #     buttons = list([
+            #         dict(count = 6, label = '6M', step = 'month', stepmode = 'backward'),
+            #         dict(count = 1, label = '1Y', step = 'year', stepmode = 'backward'),
+            #         # dict(count = 1, label = 'YTD', step = 'year', stepmode = 'todate'),                
+            #         dict(count = 3, label = '3Y', step = 'year', stepmode = 'backward'),
+            #         dict(step = 'all')
+            #         ]))
         )
         main_figure.update_yaxes(
             showgrid=False,
@@ -398,12 +420,13 @@ class VarietyPage:
         # main_figure.update_yaxes(range=[min_y2, max_y2], row=1, col=1, secondary_y=True)
         main_figure.update_layout(
             # yaxis_range=[min_y,max_y],
-            #autosize=False,
+            autosize=True,
             # width=3000,
             height=1200,
             margin=dict(l=0, r=0, t=0, b=0),
             plot_bgcolor='WhiteSmoke',  
             hovermode='x unified',
+            modebar={},
             legend=dict(
                 orientation='h',
                 yanchor='top',
@@ -592,15 +615,15 @@ blank_content = html.Div([
     dcc.Graph(id='intertemporal-figure-placeholder')
 ])
 
-def layout(variety_id=None, chain_id=None, **other_unknown_query_strings):
+def layout(variety_id=None, **other_unknown_query_strings):
     if variety_id is None:
         return html.Div([
             blank_content
         ])
-    chain_page = chain_page_maps[chain_id]
+    # chain_page = chain_page_maps[chain_id]
     # sidebar = chain_page.sidebar
     if variety_id not in variety_page_maps:
-        variety_page = VarietyPage(variety_id, chain_id)
+        variety_page = VarietyPage(variety_id)
         variety_page_maps[variety_id] = variety_page
     else:
         variety_page = variety_page_maps[variety_id]
@@ -639,8 +662,8 @@ def update_graph(select_index_value, radio_future_value, switch_marker_value, se
         variety_page.on_layout = False
     else:
         symbol = variety_page.symbol
-        symbol_chain = variety_page.symbol_chain
-        df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
+        # symbol_chain = variety_page.symbol_chain
+        # df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
         figure = variety_page.create_figure(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
     return figure
 
@@ -686,8 +709,8 @@ def display_click_data(clickData):
         cross_term_figure, profit_loss = variety_page.display_cross_term_figure(click_date, df_dominant_contract)
         # print(profit_loss)
         # 准备分析日志数据
-        flag_color ={'Long': 'danger', 'Short': 'success', 'X': 'dark'}
-        flag_color2 ={'red': 'danger', 'green': 'success', 'gray': 'dark'}        
+        flag_color ={'Long': 'red', 'Short': 'lime', 'X': 'gray'}
+        flag_color2 ={'red': 'red', 'green': 'lime', 'gray': 'gray'}        
         trade_type = {'Long': '单边/跨期做多', 'Short': '单边/跨期做空'}
         basis = clickData['points'][2]['y']
         basis_flag = 'Long' if basis>0 else 'Short'

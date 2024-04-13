@@ -49,7 +49,7 @@ class SymbolData:
         用于品种对应的数据更新、加载、预处理和访问
     """
     
-    def __init__(self, id, name):
+    def __init__(self, id, name=''):
         """
         SymbolData类的构造函数,
     
@@ -62,10 +62,10 @@ class SymbolData:
         Returns:
             SymbolData: 返回SymbolData对象,如果未提供id、name和配置文件,则返回空
         """
-        if id =='' or name=='':
+        if id =='':
             return None
         self.id = id # 商品ID（英文缩写）
-        self.name = name # 商品名
+        # self.name = name # 商品名
         self.basis_color = pd.DataFrame() # 基差率绘图颜色
         self.data_rank = pd.DataFrame() # 指标评级
         self.spot_months = pd.DataFrame() # 现货交易月
@@ -161,13 +161,11 @@ class SymbolData:
         column_dict= {}
         data_frames = []
         data_index = self.symbol_setting['DataIndex']
-        related_data = self.symbol_setting['RelatedData']
 
         # dws = gs.dataworks
         dws = dw.DataWorks()
-        for key in data_index:
+        for key, value_items in data_index.items():
             # 按照配置文件中的DataFrame键值，将同类内容合并到同一张表中
-            value_items =data_index[key]
             df_name = value_items['DataFrame']            
             fields = value_items['Field']
             variables_list = extract_variables(fields)
@@ -210,27 +208,51 @@ class SymbolData:
                 elif fill_na=='Backward':
                     df[key] = df[key].bfill()
                 # elif fill_na=='Interpolate':
+        # 读取相关品种数据
+        # if 'RelatedData' in self.symbol_setting:
+        #     related_data = self.symbol_setting['RelatedData']
+        #     for key, value in enumerate(related_data.items()):
+        #         df_name = value['DataFrame']            
+        #         field = value['Field']                
+        #         variables_list = value["Variety"]
+        #         name = value['Name']
+        #         for var in variables_list:
+        #             df_name = f"{df_name}_{var}"
+        #             locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], var, f'date, {field}')
+        #             locals()[df_name].rename(columns={field:f"{name}_{var}"}, inplace=True)                
+        #             locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])     
+        #             column_dict[df_name] = ['date', key]       
 
         for df_key in column_dict:
             df = locals()[df_key]
             df = df[column_dict[df_key]]
             data_frames.append(df)
         self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
+        # if "利润" in self.symbol_setting:
+        #     for key, value in enumerate(self.symbol_setting['利润'].items()):
+        #         variables_list = extract_variables(value)
+        #         aeval = Interpreter()       
+        #         for var in variables_list:                                              
+        #             aeval.symtable[var] = df[var]
+        #         self.symbol_data[key] = aeval.eval(value)
+
         self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
-        columns_to_check = self.symbol_data.columns[1:]
-        self.symbol_data.dropna(subset=columns_to_check, how='all', inplace=True)        
-        # self.symbol_data['库存'] = self.symbol_data['库存'].fillna(method='ffill', limit=None)
-        # self.symbol_data['库存'] = self.symbol_data['库存'].ffill()                   
+        # columns_to_check = self.symbol_data.columns[1:]
+        # self.symbol_data.dropna(subset=columns_to_check, how='all', inplace=True)        
+        # 剔除非交易日数据
+        trade_date = dws.get_trade_date()
+        valid_dates_mask = self.symbol_data['date'].isin(trade_date)
+        self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   
         return self.symbol_data
 
-    def calculate_basis(self, future_type):
+    def _calculate_basis(self, future_type):
         # 强制使用期货结算价计算基差
         future_type = future_type[:4]+'结算价'
         self.symbol_data['基差'] = self.symbol_data['现货价格'] - self.symbol_data[future_type]
         self.symbol_data['基差率'] = self.symbol_data['基差'] / self.symbol_data['现货价格']
         return self.symbol_data 
     
-    def history_time_ratio(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
+    def _history_time_ratio(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
         """返回指定数据序列的历史分位(废弃不用)
             计算数据在序列中的历史数值百分位或时间百分位,并根据区间划定分位.
         Args:
@@ -279,7 +301,7 @@ class SymbolData:
             df_rank = pd.merge(df_rank, df_append, on='date', how='outer')
         return df_rank
     
-    def history_time_ratio2(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
+    def _history_time_ratio2(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
         '''history_time_ratio2采用当前时间的历史分位由此向前追溯到给定日期范围内进行历史排位,每一个bar单独计算,其他与history_time_ratio相同
         '''
         df_append= pd.DataFrame()
@@ -327,12 +349,12 @@ class SymbolData:
         dataframe_columns = self.symbol_data.columns.tolist()
         existing_fields = list(set(data_list) & set(dataframe_columns))    
         print(f"existing_fields: {existing_fields}")
-        df_basis = self.calculate_basis(future_type)
+        df_basis = self._calculate_basis(future_type)
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
         df_rank = pd.DataFrame()
         for field in existing_fields:
-            df_rank = self.history_time_ratio2(field, df_rank=df_rank, trace_back_months=trace_back_months)
+            df_rank = self._history_time_ratio2(field, df_rank=df_rank, trace_back_months=trace_back_months)
         self.data_rank = df_rank
         return self.data_rank
 

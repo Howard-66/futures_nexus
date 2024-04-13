@@ -5,6 +5,8 @@
             "Source": "SQLite",
             "Path": "dominant",
             "Field": "收盘价",
+            "Type": "Amount",
+            "Chart": "Main",
             "DataFrame": "df_dominant"
         },
         "主力合约结算价": {
@@ -12,6 +14,8 @@
             "Source": "SQLite",
             "Path": "dominant",
             "Field": "动态结算价",
+            "Type": "Amount",
+            "Chart": "Main",            
             "DataFrame": "df_dominant"
         },
         "主力合约持仓量": {
@@ -19,6 +23,8 @@
             "Source": "SQLite",
             "Path": "dominant",
             "Field": "持仓量",
+            "Type": "Amount",
+            "Chart": "Sub",            
             "DataFrame": "df_dominant"
         },
         "近月合约收盘价": {
@@ -26,6 +32,8 @@
             "Source": "SQLite",
             "Path": "near",
             "Field": "close",
+            "Type": "Amount",
+            "Chart": "Main",            
             "DataFrame": "df_near"
         },
         "近月合约结算价": {
@@ -33,6 +41,8 @@
             "Source": "SQLite",
             "Path": "near",
             "Field": "settle",
+            "Type": "Amount",
+            "Chart": "Main",            
             "DataFrame": "df_near"
         },
         "近月合约持仓量": {
@@ -40,6 +50,8 @@
             "Source": "SQLite",
             "Path": "near",
             "Field": "open_interest",
+            "Type": "Amount",
+            "Chart": "Sub",            
             "DataFrame": "df_near"
         },
         "现货价格": {
@@ -47,6 +59,8 @@
             "Source": "SQLite",
             "Path": "basis",
             "Field": "spot_price",
+            "Type": "Amount",
+            "Chart": "Sub",            
             "DataFrame": "df_basis"
         },
         "仓单": {
@@ -54,7 +68,25 @@
             "Source": "SQLite",
             "Path": "receipt",
             "Field": "receipt",
+            "Type": "Amount",
+            "Chart": "Sub",            
             "DataFrame": "df_receipt"
-        }                
+        },
+        "基差": {
+            "Name": "basis",
+            "Source": "Calculate",
+            "Field": "",
+            "Type": "Rate",
+            "Chart": "Sub",            
+            "DataFrame": "df_basis"
+        },       
+        "基差率": {
+            "Name": "basis_rate",
+            "Source": "Calculate",
+            "Field": "",
+            "Type": "Rate",
+            "Chart": "Sub",            
+            "DataFrame": "df_basis"
+        }           
     }
 }

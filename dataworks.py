@@ -10,6 +10,7 @@ class DataWorks:
         self.variety_json = 'setting/variety.json'
         self.variety_id_name_map = None
         self.variety_name_id_map = None
+        self.trade_date = None
 
     def __enter__(self):
         return self
@@ -55,7 +56,14 @@ class DataWorks:
         sql = f"SELECT {date_field} FROM {table} WHERE {condition}"
         last_date = pd.read_sql_query(sql, self.conn).iloc[0][date_field]
         return last_date
-    
+
+    def get_trade_date(self):
+        if self.trade_date is None:
+            trade_date = ak.tool_trade_date_hist_sina()['trade_date']
+            trade_date = pd.to_datetime(trade_date)
+        else:
+            trade_date = self.trade_date
+        return trade_date
     def get_date_scope(self, table, symbol_id='', date_field='date'):
         if symbol_id:
             condition = f"WHERE variety='{symbol_id}'"

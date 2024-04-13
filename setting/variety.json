@@ -126,6 +126,7 @@
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "产量:铁矿石原矿:当月值",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",                
                 "DataFrame": "df_choice"
             },            
@@ -135,6 +136,7 @@
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "产量:铁矿石原矿:当月同比",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },      
@@ -144,6 +146,7 @@
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "库存:铁矿石:港口合计",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -153,6 +156,7 @@
                 "Path": "black_metals/data/铁矿石经济数据.xlsx",
                 "Field": "全国:进口铁矿石:库存消费比",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }
@@ -174,6 +178,7 @@
                 "Path": "black_metals/data/焦炭经济数据.xlsx",
                 "Field": "现货价格:焦炭",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "DataFrame": "df_choice"
             },
             "产量": {
@@ -182,6 +187,7 @@
                 "Path": "black_metals/data/焦炭经济数据.xlsx",
                 "Field": "产量:焦炭:当月值",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -191,6 +197,7 @@
                 "Path": "black_metals/data/焦炭经济数据.xlsx",
                 "Field": "产量:焦炭:当月同比",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },            
@@ -200,6 +207,7 @@
                 "Path": "black_metals/data/焦炭经济数据.xlsx",
                 "Field": "焦炭库存:样本钢厂:全国",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }
@@ -775,6 +783,7 @@
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:周需求量",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },            
@@ -784,6 +793,7 @@
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:周产量",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -793,6 +803,7 @@
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:开工率",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },   
@@ -802,6 +813,7 @@
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:产能利用率",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },                           
@@ -811,6 +823,7 @@
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
                 "Field": "137家螺纹钢厂:社会库存 + 137家螺纹钢厂:钢厂库存",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }
@@ -873,6 +886,7 @@
                 "Path": "black_metals/data/热卷经济数据.xlsx",
                 "Field": "产线开工率:热轧板卷",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -882,6 +896,7 @@
                 "Path": "black_metals/data/热卷经济数据.xlsx",
                 "Field": "日均产量:热轧板卷",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -891,6 +906,7 @@
                 "Path": "black_metals/data/热卷经济数据.xlsx",
                 "Field": "产能利用率:热轧板卷",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -900,6 +916,7 @@
                 "Path": "black_metals/data/热卷经济数据.xlsx",
                 "Field": "库存:热卷(板)",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }            
@@ -930,6 +947,7 @@
                 "Path": "black_metals/data/不锈钢经济数据.xlsx",
                 "Field": "产线开工率:冷轧不锈钢:全国",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -939,6 +957,7 @@
                 "Path": "black_metals/data/不锈钢经济数据.xlsx",
                 "Field": "日均产量:冷轧不锈钢:全国",
                 "Type": "Amount",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },
@@ -948,6 +967,7 @@
                 "Path": "black_metals/data/不锈钢经济数据.xlsx",
                 "Field": "产能利用率:冷轧不锈钢:全国",
                 "Type": "Rate",
+                "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             }
