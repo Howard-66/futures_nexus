@@ -113,51 +113,34 @@ analyzing_log = html.Div([
     ])
 ])
 
-# 基本面分析图表面板
-tab_main = html.Div([
-    # 主框架
-    dmc.Grid([
-        # 左侧面板
-        dmc.Col(
-            # 图表面板
-            [
-                # dmc.Space(h=40),
-                dcc.Graph(figure={}, id='main-figure-placeholder'),      
-            ],                            
-            span=9),
-        # 右侧面板
-        dmc.Col([            
-            dmc.Stack(
-                [
-                    # 期限结构分析图表
-                    dmc.Paper(
-                        dcc.Graph(figure={}, id='term-figure-placeholder'),
-                        shadow="sm",
-                        radius="xs",
-                        p="xs",
-                        withBorder=True,                           
-                    ),
-                    # 跨期分析图表
-                    dmc.Paper(
-                        dcc.Graph(figure={}, id='intertemporal-figure-placeholder'),
-                        shadow="sm",
-                        radius="xs",
-                        p="xs",
-                        withBorder=True,                           
-                    ),         
-                    dmc.Paper(
-                        analyzing_log,
-                        shadow="sm",
-                        radius="xs",
-                        p="xs",
-                        withBorder=True,                           
-                    ),     
-                ],  
-                p=10,
-            ),
-        ], span=3)
-    ])
-])
+right_panel = dmc.Stack(
+    [
+        # 期限结构分析图表
+        dmc.Paper(
+            dcc.Graph(figure={}, id='term-figure-placeholder'),
+            shadow="sm",
+            radius="xs",
+            p="xs",
+            withBorder=True,                           
+        ),
+        # 跨期分析图表
+        dmc.Paper(
+            dcc.Graph(figure={}, id='intertemporal-figure-placeholder'),
+            shadow="sm",
+            radius="xs",
+            p="xs",
+            withBorder=True,                           
+        ),         
+        dmc.Paper(
+            analyzing_log,
+            shadow="sm",
+            radius="xs",
+            p="xs",
+            withBorder=True,                           
+        ),     
+    ],  
+    p=10,
+)
 
 class VarietyPage:
     def __init__(self, name) -> None:
@@ -201,25 +184,69 @@ class VarietyPage:
         return None   
  
     def create_analyzing_layout(self):
+        data_fields = self.symbol.get_data_fields()
+        left_panel = dmc.Stack(
+            [
+                # 图标配置面板
+                dmc.Space(h=5),
+                dmc.Group(
+                    [
+                        dmc.Text("显示指标:", size='xs'),
+                        dmc.ChipGroup(
+                            [dmc.Chip(x, value=x, variant="outline", radius="md", size="xs") for x in data_fields],
+                            id="show-indexs",
+                            value=data_fields, # TODO: Load from config file
+                            multiple=True,
+                        ),
+                        dmc.Divider(orientation='vertical'),
+                        dmc.Text("价格类型:", size='xs'),
+                        # dmc.ChipGroup(
+                        #     [dmc.Chip(x, value=x, variant="outline", radius='md', size='xs') for x in ['主力收盘', '主力结算', '近月收盘', '近月结算']],
+                        #     id='radio-price-type',
+                        #     value='主力收盘',
+                        # ),
+                        dmc.Select(
+                            size='xs',
+                            data=[
+                                {'label': '主力收盘', 'value': '主力收盘'},
+                                {'label': '主力结算', 'value': '主力结算'},
+                                {'label': '近月收盘', 'value': '近月收盘'},
+                                {'label': '近月结算', 'value': '近月结算'}],
+                            value='主力收盘',
+                            id='price-type',
+                            style={'width': 100}
+                        ),
+                        dmc.Divider(orientation='vertical'),
+                        dmc.Switch(label="现货交易月", id="switch-spot-months", checked=True, radius="lg", size='xs'),
+                        dmc.Divider(orientation='vertical'),
+                        dmc.Text("回溯周期:", size='xs'),
+                        dmc.Select(
+                            size='xs',
+                            data=[
+                                {'label': '6个月', 'value': 6},
+                                {'label': '1年', 'value': 12},
+                                {'label': '2年', 'value': 24},
+                                {'label': '3年', 'value': 36},
+                                {'label':'5年', 'value': 60},
+                                {'label':'全部', 'value': 0}],
+                            value=12,
+                            id='trace-back-months',
+                            style={'width': 100}
+                        ),
+                    ],
+                ),
+                # 图表面板
+                dmc.LoadingOverlay(dcc.Graph(figure={}, id='main-figure-placeholder'),)
+            ],
+        )              
         layout = html.Div(
             [
-                dmc.Modal(
-                    title="图表设置",
-                    id="modal-chart-config",
-                    size="xl",
-                    centered=True,
-                    opened=False,
-                    children=[
-                        chart_config,
-                        dmc.Space(h=20),
-                        dmc.Group(
-                            [
-                                dmc.Button("确定", id="close-button"),
-                            ],
-                        )
-                    ],            
-                ),                
-                tab_main,
+                dmc.Grid([
+                    # 左侧面板
+                    dmc.Col(left_panel, span=9),
+                    # 右侧面板
+                    dmc.Col(right_panel, span=3)
+                ])                
             ],
         )
         return layout
@@ -413,11 +440,11 @@ class VarietyPage:
         # 计算 y 轴的最大值和最小值
         max_y = filtered_data[future_type].max()*1.01
         min_y = filtered_data[future_type].min()*0.99
-        # max_y2 = filtered_data['基差'].max()*1.01
-        # min_y2 = filtered_data['基差'].min()*0.99
+        max_y2 = filtered_data['基差率'].max()*1.01
+        min_y2 = filtered_data['基差率'].min()*0.99
         # 设置 y 轴的范围
         main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
-        # main_figure.update_yaxes(range=[min_y2, max_y2], row=1, col=1, secondary_y=True)
+        main_figure.update_yaxes(range=[min_y2, max_y2], row=2, col=1, secondary_y=False)
         main_figure.update_layout(
             # yaxis_range=[min_y,max_y],
             autosize=True,
@@ -450,11 +477,11 @@ class VarietyPage:
         if self.future_type != '':
             max_y = filtered_data[self.future_type].max()*1.01
             min_y = filtered_data[self.future_type].min()*0.99
-        # max_y2 = filtered_data['基差'].max()*1.01
-        # min_y2 = filtered_data['基差'].min()*0.99        
+        max_y2 = filtered_data['基差'].max()*1.01
+        min_y2 = filtered_data['基差'].min()*0.99        
         main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
         main_figure.update_xaxes(range=xaxis_range)
-        # main_figure.update_yaxes(range=[min_y2, max_y2], row=1, col=1, secondary_y=True)
+        main_figure.update_yaxes(range=[min_y2, max_y2], row=1, col=1, secondary_y=True)
         return main_figure
 
     def display_term_structure_figure(self, click_date, spot_price):

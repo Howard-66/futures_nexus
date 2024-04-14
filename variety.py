@@ -358,6 +358,8 @@ class SymbolData:
         self.data_rank = df_rank
         return self.data_rank
 
+    def get_data_fields(self):
+        return list(self.symbol_data.columns[9:])
     def dominant_months(self, year, month, previous_monts=2):
         """计算主力合约月份的前几个月的日期范围,
         一般情况下,主力合约在进入交割月之前的2个月遵循产业逻辑进行修复基差,因此这段时间非常适合进行以基差分析为基础的交易,
