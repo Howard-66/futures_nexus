@@ -78,6 +78,7 @@ class SymbolData:
             variety_setting = json.load(variety_file)[self.id]      
         variety_setting['DataIndex'] = {**symbol_dataindex_setting, **variety_setting['DataIndex']} if 'DataIndex' in variety_setting else symbol_dataindex_setting
         self.symbol_setting = variety_setting
+        self.data_fields = None
 
     def config_symbol_setting(self, symbol_setting):
         """
@@ -207,6 +208,7 @@ class SymbolData:
                     df[key] = df[key].ffill()
                 elif fill_na=='Backward':
                     df[key] = df[key].bfill()
+                    # df[key] = df[key].infer_objects(copy=False)
                 # elif fill_na=='Interpolate':
         # 读取相关品种数据
         # if 'RelatedData' in self.symbol_setting:
@@ -278,15 +280,15 @@ class SymbolData:
             df_selected_history = self.symbol_data.loc[self.symbol_data['date'] >= cutoff_date]
         df_append['date'] = df_selected_history['date']
         if mode=='time':
-            value_field = field + '历史时间百分位'
-            rank_field = field + '历史时间分位'
+            value_field = field + '百分位'
+            rank_field = field + '分位'
             df_append[value_field] = df_selected_history[field].rank(method='min', ascending=True)
             rank_count = len(df_append[value_field].dropna())
             df_append[value_field] = df_append[value_field] / rank_count
             quantiles = np.percentile(df_append[value_field].dropna(), quantiles)
         elif mode=='value':
-            value_field = field + '历史数值百分位'
-            rank_field = field + '历史数值分位'
+            value_field = field + '百分位'
+            rank_field = field + '分位'
             max_value = df_selected_history[field].max()
             min_value = df_selected_history[field].min()
             scope = max_value - min_value
@@ -311,13 +313,13 @@ class SymbolData:
         else:
             window_size = trace_back_months * 20  # assuming 30 days per month
         if mode=='time':
-            value_field = field + '历史时间百分位'
-            rank_field = field + '历史时间分位'
+            value_field = field + '百分位'
+            rank_field = field + '分位'
             df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
             quantiles = np.percentile(df_append[value_field].dropna(), quantiles)
         elif mode=='value':
-            value_field = field + '历史数值百分位'
-            rank_field = field + '历史数值分位'
+            value_field = field + '百分位'
+            rank_field = field + '分位'
             df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: (x[-1] - np.min(x)) / (np.max(x) - np.min(x)))
             quantiles = list(map(lambda x: x/100, quantiles))
         else:
@@ -331,7 +333,7 @@ class SymbolData:
         df_rank = pd.merge(df_rank, self.symbol_data[['date', field]], on='date', how='outer')
         return df_rank
 
-    def calculate_data_rank(self, future_type, trace_back_months='all'):
+    def calculate_data_rank(self, future_type, data_list, trace_back_months='all'):
         """计算一组数据的历史分位数,
 
         Args:
@@ -340,15 +342,15 @@ class SymbolData:
         Returns:
             DataFrame: 返回包含历史分位数的 DataFrame,
         """
-        data_list = ['库存', '仓单', '持仓量', '现货利润', '盘面利润']
-        index_with_openinterest = next((index for index, element in enumerate(data_list) if '持仓量' in element), None)
+        # data_list = ['库存', '仓单', '持仓量', '现货利润', '盘面利润']
+        # index_with_openinterest = next((index for index, element in enumerate(data_list) if '持仓量' in element), None)
 
-        if index_with_openinterest is not None:
-            data_list[index_with_openinterest] = future_type[:4]+'持仓量'
+        # if index_with_openinterest is not None:
+        data_list[1] = f"{future_type[:4]}持仓量"
         print(f"data_list: {data_list}")
         dataframe_columns = self.symbol_data.columns.tolist()
         existing_fields = list(set(data_list) & set(dataframe_columns))    
-        print(f"existing_fields: {existing_fields}")
+
         df_basis = self._calculate_basis(future_type)
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
@@ -359,8 +361,18 @@ class SymbolData:
         return self.data_rank
 
     def get_data_fields(self):
-        return list(self.symbol_data.columns[9:])
-    def dominant_months(self, year, month, previous_monts=2):
+        """
+        获取数据字段列表。
+
+        返回值:
+            list: 包含从第9列开始的所有列名的列表。
+        """
+        if self.data_fields is None:
+            self.data_fields = list(self.symbol_data.columns[9:])
+            self.data_fields.insert(1, "持仓量")
+        return self.data_fields
+    
+    def _dominant_months(self, year, month, previous_monts=2):
         """计算主力合约月份的前几个月的日期范围,
         一般情况下,主力合约在进入交割月之前的2个月遵循产业逻辑进行修复基差,因此这段时间非常适合进行以基差分析为基础的交易,
 
@@ -390,7 +402,7 @@ class SymbolData:
         self.spot_months = pd.DataFrame(columns=['Year', 'Contract Month', 'Start Date', 'End Date'])
         for year in years:
             for month in dominant_months:
-                start_date, end_date = self.dominant_months(year, month)
+                start_date, end_date = self._dominant_months(year, month)
                 new_row = pd.DataFrame({'Year': [year], 'Contract Month': [month], 'Start Date': [start_date], 'End Date': [end_date]})
                 # if not new_row.isnull().all().all():
                 self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)
@@ -475,7 +487,8 @@ class SymbolData:
 
         此外,此函数还会更新 self.signals,将计算得到的信号添加到其中。
         """        
-        rank_list = ['库存历史时间分位', '仓单历史时间分位', '现货利润历史时间分位', '盘面利润历史时间分位']
+        # TODO: 根据data_fields计算信号，取消rank_list的固定字段
+        rank_list = ['库存', '仓单', '现货利润', '盘面利润']
         dataframe_columns = self.data_rank.columns.tolist()
         existing_fields = list(set(rank_list) & set(dataframe_columns))
         print(f"Signal: existing_fields: {existing_fields}")
@@ -488,17 +501,17 @@ class SymbolData:
             # For other columns
             for col in existing_fields:
                 self.signals[col] = self.signals[col].map(lambda x: -1 if x == 5 else (0 if x != 1 else 1)).fillna(0).astype(int)
-            if '库存历史时间分位' in existing_fields and '仓单历史时间分位' in existing_fields:
-                self.signals['库存|仓单'] = self.signals['库存历史时间分位'] | self.signals['仓单历史时间分位']
-                existing_fields.append('库存|仓单')
-            elif '库存历史时间分位' in existing_fields:
-                self.signals['库存|仓单'] = self.signals['库存历史时间分位']
-                existing_fields.append('库存历史时间分位')
-            elif '仓单历史时间分位' in existing_fields:
-                self.signals['库存|仓单'] = self.signals['仓单历史时间分位']
-                existing_fields.append('库存|仓单')
-            if '现货利润历史时间分位' in existing_fields and '盘面利润历史时间分位' in existing_fields:
-                self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']   
+            # if '库存历史时间分位' in existing_fields and '仓单历史时间分位' in existing_fields:
+            #     self.signals['库存|仓单'] = self.signals['库存历史时间分位'] | self.signals['仓单历史时间分位']
+            #     existing_fields.append('库存|仓单')
+            # elif '库存历史时间分位' in existing_fields:
+            #     self.signals['库存|仓单'] = self.signals['库存历史时间分位']
+            #     existing_fields.append('库存历史时间分位')
+            # elif '仓单历史时间分位' in existing_fields:
+            #     self.signals['库存|仓单'] = self.signals['仓单历史时间分位']
+            #     existing_fields.append('库存|仓单')
+            # if '现货利润历史时间分位' in existing_fields and '盘面利润历史时间分位' in existing_fields:
+            #     self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']   
         existing_signals = list(set(existing_fields) & set(selected_index))          
         if len(existing_signals)!=0:
             self.signals['信号数量'] = self.signals[existing_signals].sum(axis=1)
@@ -524,7 +537,7 @@ class SymbolFigure:
     def create_figure(self, show_index=[], future_type=[], mark_cycle=[], sync_index=[], look_forward_months='all'):
         print("Call create_figure")
         symbol = self.symbol
-
+        # TODO: 根据show_indexs绘制图表
         if (look_forward_months != self.look_forward_months) | (future_type !=self.future_type):
             symbol.calculate_data_rank(future_type, trace_back_months=look_forward_months)
         self.look_forward_months = look_forward_months

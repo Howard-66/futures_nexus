@@ -208,16 +208,14 @@ class VarietyPage:
                         dmc.Select(
                             size='xs',
                             data=[
-                                {'label': '主力收盘', 'value': '主力收盘'},
-                                {'label': '主力结算', 'value': '主力结算'},
-                                {'label': '近月收盘', 'value': '近月收盘'},
-                                {'label': '近月结算', 'value': '近月结算'}],
-                            value='主力收盘',
+                                {'label': '主力合约', 'value': '主力合约'},
+                                {'label': '近月合约', 'value': '近月合约'}],
+                            value='主力合约',
                             id='price-type',
                             style={'width': 100}
                         ),
                         dmc.Divider(orientation='vertical'),
-                        dmc.Switch(label="现货交易月", id="switch-spot-months", checked=True, radius="lg", size='xs'),
+                        dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, radius="lg", size='xs'),                        
                         dmc.Divider(orientation='vertical'),
                         dmc.Text("回溯周期:", size='xs'),
                         dmc.Select(
@@ -673,14 +671,14 @@ def layout(variety_id=None, **other_unknown_query_strings):
 # Add controls to build the interaction
 @callback(
     Output('main-figure-placeholder', 'figure'),
-    Input('select-index', 'value'),
-    Input('radio-future-price', 'value'),
-    Input('switch-marker', 'value'),
-    Input('select-synchronize-index', 'value'),
-    Input('look-forward-months', 'value'),
+    Input('show-indexs', 'value'),
+    Input('price-type', 'value'),
+    Input('mark-spot-months', 'checked'),
+    # Input('select-synchronize-index', 'value'),
+    Input('trace-back-months', 'value'),
     # allow_duplicate=True
 )
-def update_graph(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value):   
+def update_graph(select_index_value, radio_future_value, switch_marker_value, look_forward_months_value):   
     if 'active_variety' not in variety_page_maps:
         return dash.no_update
     variety_page = variety_page_maps['active_variety']
@@ -691,18 +689,18 @@ def update_graph(select_index_value, radio_future_value, switch_marker_value, se
         symbol = variety_page.symbol
         # symbol_chain = variety_page.symbol_chain
         # df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
-        figure = variety_page.create_figure(select_index_value, radio_future_value, switch_marker_value, select_synchronize_index_value, look_forward_months_value)
+        figure = variety_page.create_figure(select_index_value, radio_future_value, switch_marker_value, select_index_value, look_forward_months_value)
     return figure
 
-@callback(
-    Output("modal-chart-config", "opened"),
-    [Input("button-methond-config", "n_clicks"), Input("close-button", "n_clicks")],
-    [State("modal-chart-config", "opened")],
-)
-def toggle_modal(n1, n2, opened):
-    if n1 or n2:
-        return not opened
-    return opened
+# @callback(
+#     Output("modal-chart-config", "opened"),
+#     [Input("button-methond-config", "n_clicks"), Input("close-button", "n_clicks")],
+#     [State("modal-chart-config", "opened")],
+# )
+# def toggle_modal(n1, n2, opened):
+#     if n1 or n2:
+#         return not opened
+#     return opened
 
     
 @callback(
@@ -711,13 +709,6 @@ def toggle_modal(n1, n2, opened):
     # Output('radio_trade_type', 'value'),
     Output('html-analyzing-tags', 'children'),
     Output('html-profit-loss', 'children'),
-    # Output('log_basis', 'color'),
-    # Output('log_term_structure', 'color'),
-    # Output('log_inventory', 'color'),
-    # Output('log_receipt', 'color'),
-    # Output('log_open_interest', 'color'),
-    # Output('log_spot_profit', 'color'),
-    # Output('log_future_profit', 'color'),
     Input('main-figure-placeholder', 'clickData'),
     allow_duplicate=True)
 def display_click_data(clickData):
