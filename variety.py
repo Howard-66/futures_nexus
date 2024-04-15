@@ -333,7 +333,7 @@ class SymbolData:
         df_rank = pd.merge(df_rank, self.symbol_data[['date', field]], on='date', how='outer')
         return df_rank
 
-    def calculate_data_rank(self, future_type, data_list, trace_back_months='all'):
+    def calculate_data_rank(self, future_type, trace_back_months='all'):
         """计算一组数据的历史分位数,
 
         Args:
@@ -346,10 +346,12 @@ class SymbolData:
         # index_with_openinterest = next((index for index, element in enumerate(data_list) if '持仓量' in element), None)
 
         # if index_with_openinterest is not None:
-        data_list[1] = f"{future_type[:4]}持仓量"
+        data_list = self.get_data_fields()
+        typed_vols_name = f"{future_type[:4]}持仓量"
+        self.data_fields[1] = typed_vols_name
         print(f"data_list: {data_list}")
         dataframe_columns = self.symbol_data.columns.tolist()
-        existing_fields = list(set(data_list) & set(dataframe_columns))    
+        existing_fields = list(set(self.data_fields) & set(dataframe_columns))    
 
         df_basis = self._calculate_basis(future_type)
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
@@ -357,6 +359,7 @@ class SymbolData:
         df_rank = pd.DataFrame()
         for field in existing_fields:
             df_rank = self._history_time_ratio2(field, df_rank=df_rank, trace_back_months=trace_back_months)
+        df_rank.rename(columns={typed_vols_name: '持仓量', typed_vols_name+'百分位': '持仓量百分位', typed_vols_name+'分位': '持仓量分位'}, inplace=True)
         self.data_rank = df_rank
         return self.data_rank
 
@@ -466,7 +469,7 @@ class SymbolData:
         self.symbol_data = pd.merge(self.symbol_data, df_profit, on='date', how='outer')
         return df_profit
 
-    def get_signals(self, future_type, selected_index=[]):
+    def get_signals(self, selected_index=[]):
         """
         此函数用于计算指定指标的信号。
 
@@ -487,18 +490,21 @@ class SymbolData:
 
         此外,此函数还会更新 self.signals,将计算得到的信号添加到其中。
         """        
-        # TODO: 根据data_fields计算信号，取消rank_list的固定字段
-        rank_list = ['库存', '仓单', '现货利润', '盘面利润']
+        # 使用分位数据计算信号
+        data_fields = self.get_data_fields()
+        rank_list = [item + '分位' for item in data_fields]
         dataframe_columns = self.data_rank.columns.tolist()
+        print(f"Signal: dataframe_columns: {dataframe_columns}")
         existing_fields = list(set(rank_list) & set(dataframe_columns))
         print(f"Signal: existing_fields: {existing_fields}")
         if self.signals.empty:
-            self.signals = pd.merge(self.symbol_data[['date', '基差率']],
-                                    self.data_rank[['date'] + existing_fields],
-                                    on='date', how='outer')
-            self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))     
-            existing_fields.append('基差率')
+            # self.signals = pd.merge(self.symbol_data[['date', '基差率']],
+            #                         self.data_rank[['date'] + existing_fields],
+            #                         on='date', how='outer')
+            # self.signals['基差率'] = self.signals['基差率'].map(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))     
+            # existing_fields.append('基差率')
             # For other columns
+            self.signals = self.data_rank[['date'] + existing_fields]
             for col in existing_fields:
                 self.signals[col] = self.signals[col].map(lambda x: -1 if x == 5 else (0 if x != 1 else 1)).fillna(0).astype(int)
             # if '库存历史时间分位' in existing_fields and '仓单历史时间分位' in existing_fields:
@@ -512,6 +518,7 @@ class SymbolData:
             #     existing_fields.append('库存|仓单')
             # if '现货利润历史时间分位' in existing_fields and '盘面利润历史时间分位' in existing_fields:
             #     self.signals['现货利润|盘面利润'] = self.signals['现货利润历史时间分位'] | self.signals['盘面利润历史时间分位']   
+        selected_index = [item + '分位' for item in selected_index]
         existing_signals = list(set(existing_fields) & set(selected_index))          
         if len(existing_signals)!=0:
             self.signals['信号数量'] = self.signals[existing_signals].sum(axis=1)
@@ -519,7 +526,7 @@ class SymbolData:
     
     def prepare_data(self, trace_back_months=60):
         self.merge_data()
-        self.get_profits()
+        # self.get_profits()
         self.calculate_data_rank(trace_back_months)
 
 class SymbolFigure:
