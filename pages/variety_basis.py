@@ -168,10 +168,10 @@ class VarietyPage:
         # 获取用户设置
         self.user_json='setting/user.json'
         user_setting = dws.load_json_setting(self.user_json)
-        if self.id not in user_setting:
-            user_setting[self.id] = {}
-            dws.save_json_setting(self.user_json, user_setting)        
-        self.user_setting = user_setting[self.id]
+        if symbol.id not in user_setting:
+            user_setting[symbol.id] = {}
+            # dws.save_json_setting(self.user_json, user_setting)        
+        self.user_setting = user_setting
         # 生成非交易日列表
         trade_date = dws.get_trade_date()
         trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
@@ -195,10 +195,11 @@ class VarietyPage:
         return None   
  
     def create_analyzing_layout(self):
-        if 'ShowIndexs' in self.user_setting:
-            data_fields = self.user_setting['ShowIndexs']
+        all_fields = self.symbol.get_data_fields()
+        if 'ShowIndexs' in self.user_setting[self.symbol.id]:
+            show_fields = self.user_setting[self.symbol.id]['ShowIndexs']
         else:
-            data_fields = self.symbol.get_data_fields()            
+            show_fields = all_fields           
         left_panel = dmc.Stack(
             [
                 # 图标配置面板
@@ -207,9 +208,9 @@ class VarietyPage:
                     [
                         dmc.Text("显示指标:", size='xs'),
                         dmc.ChipGroup(
-                            [dmc.Chip(x, value=x, variant="outline", radius="md", size="xs") for x in data_fields],
+                            [dmc.Chip(x, value=x, variant="outline", radius="md", size="xs") for x in all_fields],
                             id="show-indexs",
-                            value=data_fields, # TODO: Load from config file
+                            value=show_fields, # TODO: Load from config file
                             multiple=True,
                         ),
                         dmc.Divider(orientation='vertical'),
@@ -271,7 +272,9 @@ class VarietyPage:
             )
             self.main_content = layout
         else:
-            self.main_content.children[0].children[0].children[0].children[1].children[2].value=self.show_indexs
+            print(self.main_content.children[0].children[0].children)
+            print(self.main_content.children[0].children[0].children.children[1].children[1])
+            self.main_content.children[0].children[0].children.children[1].children[1].value=self.show_indexs
             layout = self.main_content
         self.on_layout = True
         return layout
@@ -280,11 +283,10 @@ class VarietyPage:
         symbol = self.symbol
         # show_index = symbol.get_data_fields()
         if show_index != self.show_indexs:
-            if 'ShowIndexs' in self.user_setting:
-                self.user_setting['ShowIndexs'] = show_index
-                dws = DataWorks()
-                dws.save_json_setting(self.user_json, self.user_setting)    
-                dws.close()
+            self.user_setting[symbol.id]['ShowIndexs'] = show_index
+            dws = DataWorks()
+            dws.save_json_setting(self.user_json, self.user_setting)    
+            dws.close()
             self.show_indexs = show_index
         # for i, item in enumerate(show_index):
         #     if item == '持仓量':

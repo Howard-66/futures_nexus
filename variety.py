@@ -352,7 +352,6 @@ class SymbolData:
         data_list = self.get_data_fields()
         typed_vols_name = f"{future_type[:4]}持仓量"
         self.data_fields[1] = typed_vols_name
-        print(f"data_list: {data_list}")
         dataframe_columns = self.symbol_data.columns.tolist()
         existing_fields = list(set(self.data_fields) & set(dataframe_columns))    
 
@@ -497,9 +496,7 @@ class SymbolData:
         data_fields = self.get_data_fields()
         rank_list = [item + '分位' for item in data_fields]
         dataframe_columns = self.data_rank.columns.tolist()
-        print(f"Signal: dataframe_columns: {dataframe_columns}")
         existing_fields = list(set(rank_list) & set(dataframe_columns))
-        print(f"Signal: existing_fields: {existing_fields}")
         if self.signals.empty:
             # self.signals = pd.merge(self.symbol_data[['date', '基差率']],
             #                         self.data_rank[['date'] + existing_fields],

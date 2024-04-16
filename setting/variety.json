@@ -787,26 +787,16 @@
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },            
-            "需求": {
-                "Name": "demand",
+            "需求生产比": {
+                "Name": "demand_production",
                 "Source": "Choice",
                 "Path": "black_metals/data/螺纹钢经济数据.xlsx",
-                "Field": "137家螺纹钢厂:周需求量",
+                "Field": "137家螺纹钢厂:周需求量 - 137家螺纹钢厂:周产量",
                 "Type": "Amount",
                 "Chart": "Sub",
                 "FillNa": "Forward",
                 "DataFrame": "df_choice"
             },            
-            "产量": {
-                "Name": "production",
-                "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
-                "Field": "137家螺纹钢厂:周产量",
-                "Type": "Amount",
-                "Chart": "Sub",
-                "FillNa": "Forward",
-                "DataFrame": "df_choice"
-            },
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
