@@ -77,7 +77,8 @@ class SymbolData:
             symbol_dataindex_setting = json.load(common_file)['DataIndex']
         with open(self.variety_json, encoding='utf-8') as variety_file:
             variety_setting = json.load(variety_file)[self.id]      
-        self.symbol_setting = {**symbol_dataindex_setting, **variety_setting['DataIndex']} if 'DataIndex' in variety_setting else symbol_dataindex_setting if 'DataIndex' in variety_setting else None      
+        variety_setting['DataIndex'] = {**symbol_dataindex_setting, **variety_setting['DataIndex']} if 'DataIndex' in variety_setting else symbol_dataindex_setting
+        self.symbol_setting = variety_setting
         self.data_fields = None
 
     
