@@ -165,11 +165,20 @@ class VarietyPage:
         self.on_layout = False
         self.show_indexs = None
         self.future_type = ''
+        # 获取用户设置
+        self.user_json='setting/user.json'
+        user_setting = dws.load_json_setting(self.user_json)
+        if self.id not in user_setting:
+            user_setting[self.id] = {}
+            dws.save_json_setting(self.user_json, user_setting)        
+        self.user_setting = user_setting[self.id]
+        # 生成非交易日列表
         trade_date = dws.get_trade_date()
         trade_date = [d.strftime("%Y-%m-%d") for d in trade_date]
         dt_all = pd.date_range(start=symbol.symbol_data['date'].iloc[0],end=symbol.symbol_data['date'].iloc[-1])
         dt_all = [d.strftime("%Y-%m-%d") for d in dt_all]
         self.trade_breaks = list(set(dt_all) - set(trade_date))        
+        dws.close()
 
     def create_variety_menu(self):
         # menu = dbc.Nav(
@@ -186,7 +195,10 @@ class VarietyPage:
         return None   
  
     def create_analyzing_layout(self):
-        data_fields = self.symbol.get_data_fields()
+        if 'ShowIndexs' in self.user_setting:
+            data_fields = self.user_setting['ShowIndexs']
+        else:
+            data_fields = self.symbol.get_data_fields()            
         left_panel = dmc.Stack(
             [
                 # 图标配置面板
@@ -239,16 +251,13 @@ class VarietyPage:
                 dmc.LoadingOverlay(dcc.Graph(figure={}, id='main-figure-placeholder'),)
             ],
         )              
-        layout = html.Div(
-            [
-                dmc.Grid([
+        layout = dmc.Grid([
                     # 左侧面板
                     dmc.Col(left_panel, span=9),
                     # 右侧面板
                     dmc.Col(right_panel, span=3)
-                ])                
-            ],
-        )
+        ])                
+
         return layout
 
     def get_layout(self):
@@ -262,6 +271,7 @@ class VarietyPage:
             )
             self.main_content = layout
         else:
+            self.main_content.children[0].children[0].children[0].children[1].children[2].value=self.show_indexs
             layout = self.main_content
         self.on_layout = True
         return layout
@@ -270,7 +280,11 @@ class VarietyPage:
         symbol = self.symbol
         # show_index = symbol.get_data_fields()
         if show_index != self.show_indexs:
-            # TODO: 保存指标用户选择            
+            if 'ShowIndexs' in self.user_setting:
+                self.user_setting['ShowIndexs'] = show_index
+                dws = DataWorks()
+                dws.save_json_setting(self.user_json, self.user_setting)    
+                dws.close()
             self.show_indexs = show_index
         # for i, item in enumerate(show_index):
         #     if item == '持仓量':

@@ -71,15 +71,16 @@ class SymbolData:
         self.spot_months = pd.DataFrame() # 现货交易月
         self.signals = pd.DataFrame() # 指标信号
         self.common_json = 'setting/common.json'
-        self.variety_json = 'setting/variety.json'
+        self.variety_json = 'setting/variety.json'        
+        # 从配置文件中获取data_index
         with open(self.common_json, encoding='utf-8') as common_file: 
             symbol_dataindex_setting = json.load(common_file)['DataIndex']
         with open(self.variety_json, encoding='utf-8') as variety_file:
             variety_setting = json.load(variety_file)[self.id]      
-        variety_setting['DataIndex'] = {**symbol_dataindex_setting, **variety_setting['DataIndex']} if 'DataIndex' in variety_setting else symbol_dataindex_setting
-        self.symbol_setting = variety_setting
+        self.symbol_setting = {**symbol_dataindex_setting, **variety_setting['DataIndex']} if 'DataIndex' in variety_setting else symbol_dataindex_setting if 'DataIndex' in variety_setting else None      
         self.data_fields = None
 
+    
     def config_symbol_setting(self, symbol_setting):
         """
         更新配置文件的内容（暂时废弃不用）
@@ -346,6 +347,7 @@ class SymbolData:
         # index_with_openinterest = next((index for index, element in enumerate(data_list) if '持仓量' in element), None)
 
         # if index_with_openinterest is not None:
+        # TODO: 从用户选择中读取fields
         data_list = self.get_data_fields()
         typed_vols_name = f"{future_type[:4]}持仓量"
         self.data_fields[1] = typed_vols_name
