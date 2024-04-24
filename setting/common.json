@@ -87,6 +87,15 @@
             "Type": "Rate",
             "Chart": "Sub",            
             "DataFrame": "df_basis"
-        }           
+        },
+        "期限结构": {
+            "Name": "term_structure",
+            "Source": "SQLite",
+            "Path": "term_structure",
+            "Field": "flag",
+            "Type": "Rate",
+            "Chart": "Sub",            
+            "DataFrame": "df_term_structure"
+        }
     }
 }
