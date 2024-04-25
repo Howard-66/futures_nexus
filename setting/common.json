@@ -23,7 +23,7 @@
             "Source": "SQLite",
             "Path": "dominant",
             "Field": "持仓量",
-            "Type": "Amount",
+            "Type": "AmountN",
             "Chart": "Sub",            
             "DataFrame": "df_dominant"
         },
@@ -50,7 +50,7 @@
             "Source": "SQLite",
             "Path": "near",
             "Field": "open_interest",
-            "Type": "Amount",
+            "Type": "AmountN",
             "Chart": "Sub",            
             "DataFrame": "df_near"
         },
@@ -68,7 +68,7 @@
             "Source": "SQLite",
             "Path": "receipt",
             "Field": "receipt",
-            "Type": "Amount",
+            "Type": "AmountN",
             "Chart": "Sub",            
             "DataFrame": "df_receipt"
         },
@@ -76,7 +76,7 @@
             "Name": "basis",
             "Source": "Calculate",
             "Field": "",
-            "Type": "Rate",
+            "Type": "RateP",
             "Chart": "Sub",            
             "DataFrame": "df_basis"
         },       
@@ -84,7 +84,7 @@
             "Name": "basis_rate",
             "Source": "Calculate",
             "Field": "",
-            "Type": "Rate",
+            "Type": "RateP",
             "Chart": "Sub",            
             "DataFrame": "df_basis"
         },
@@ -93,7 +93,7 @@
             "Source": "SQLite",
             "Path": "term_structure",
             "Field": "flag",
-            "Type": "Rate",
+            "Type": "NP1P",
             "Chart": "Sub",            
             "DataFrame": "df_term_structure"
         }

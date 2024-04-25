@@ -307,31 +307,34 @@ class SymbolData:
     
     def _history_time_ratio2(self, field, df_rank=None, mode='time', trace_back_months='all', quantiles=[0, 20, 40, 60, 80, 100], ranks=[1, 2, 3, 4, 5]):
         '''history_time_ratio2采用当前时间的历史分位由此向前追溯到给定日期范围内进行历史排位,每一个bar单独计算,其他与history_time_ratio相同
-        '''
-        df_append= pd.DataFrame()
-        df_append['date'] = self.symbol_data['date']
-        if trace_back_months == 'all':
-            window_size = len(self.symbol_data)
+        '''        
+        if mode=='original':
+            pass
         else:
-            window_size = trace_back_months * 20  # assuming 30 days per month
-        if mode=='time':
-            value_field = field + '百分位'
-            rank_field = field + '分位'
-            df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
-            quantiles = np.percentile(df_append[value_field].dropna(), quantiles)
-        elif mode=='value':
-            value_field = field + '百分位'
-            rank_field = field + '分位'
-            df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: (x[-1] - np.min(x)) / (np.max(x) - np.min(x)))
-            quantiles = list(map(lambda x: x/100, quantiles))
-        else:
-            None
-        df_append[rank_field] = pd.cut(df_append[value_field].dropna(), bins=quantiles, labels=ranks, include_lowest=True, duplicates='drop', right=False)
-        # df_append.loc[:window_size-1, rank_field] = 0.5
-        if df_rank.empty:
-            df_rank = df_append
-        else:
-            df_rank = pd.merge(df_rank, df_append, on='date', how='outer')
+            df_append= pd.DataFrame()
+            df_append['date'] = self.symbol_data['date']
+            if trace_back_months == 'all':
+                window_size = len(self.symbol_data)
+            else:
+                window_size = trace_back_months * 20  # assuming 30 days per month
+            if mode=='time':
+                value_field = field + '百分位'
+                rank_field = field + '分位'
+                df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
+                quantiles = np.percentile(df_append[value_field].dropna(), quantiles)
+            elif mode=='value':
+                value_field = field + '百分位'
+                rank_field = field + '分位'
+                df_append[value_field] = self.symbol_data[field].rolling(window=window_size, min_periods=1).apply(lambda x: (x[-1] - np.min(x)) / (np.max(x) - np.min(x)))
+                quantiles = list(map(lambda x: x/100, quantiles))
+            else:
+                None
+            df_append[rank_field] = pd.cut(df_append[value_field].dropna(), bins=quantiles, labels=ranks, include_lowest=True, duplicates='drop', right=False)
+            # df_append.loc[:window_size-1, rank_field] = 0.5
+            if df_rank.empty:
+                df_rank = df_append
+            else:
+                df_rank = pd.merge(df_rank, df_append, on='date', how='outer')
         df_rank = pd.merge(df_rank, self.symbol_data[['date', field]], on='date', how='outer')
         return df_rank
 
@@ -359,8 +362,14 @@ class SymbolData:
         self.basis_color['基差率颜色'] = self.symbol_data['基差率'] > 0
         self.basis_color['基差率颜色'] = self.basis_color['基差率颜色'].replace({True:1, False:0})
         df_rank = pd.DataFrame()
+        data_index = self.symbol_setting['DataIndex']      
         for field in existing_fields:
-            df_rank = self._history_time_ratio2(field, df_rank=df_rank, trace_back_months=trace_back_months)
+            typed_index = f"{future_type[:4]}持仓量" if field=='持仓量' else field
+            dateindex_type = data_index[typed_index]['Type']
+            if dateindex_type=='NP1P'or dateindex_type=='NP1N':
+                df_rank = self._history_time_ratio2(field, mode='original', df_rank=df_rank, trace_back_months=trace_back_months)
+            else:
+                df_rank = self._history_time_ratio2(field, df_rank=df_rank, trace_back_months=trace_back_months)
         df_rank.rename(columns={typed_vols_name: '持仓量', typed_vols_name+'百分位': '持仓量百分位', typed_vols_name+'分位': '持仓量分位'}, inplace=True)
         self.data_rank = df_rank
         return self.data_rank

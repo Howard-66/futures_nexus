@@ -326,10 +326,23 @@ class VarietyPage:
         main_figure.add_trace(fig_spot_price, row = 1, col = 1)
 
         histroy_color_mapping ={1:'red', 2:'gray', 3:'gray', 4:'gray', 5:'green'}        
+        index_color_mapping = {
+            'AmountN': {1:'red', 2:'gray', 3:'gray', 4:'gray', 5:'green'},
+            'AmountP': {1:'green', 2:'gray', 3:'gray', 4:'gray', 5:'red'},
+            'RateN': {1:'red', 2:'gray', 3:'gray', 4:'gray', 5:'green'},
+            'RateP': {1:'green', 2:'gray', 3:'gray', 4:'gray', 5:'red'},
+            'NP1N': {-1: 'red', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'green'},
+            'NP1P': {-1: 'green', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'red'},
+        }
         sub_index_rows = 2
-        # 创建副图-基差率,并根据基差率正负配色
+        data_index = symbol.symbol_setting['DataIndex']
         for index in show_index:
-            symbol.data_rank[index+'颜色'] = symbol.data_rank[index+'分位'].map(histroy_color_mapping)
+            typed_index = f"{future_type[:4]}持仓量" if index=='持仓量' else index
+            dateindex_type = data_index[typed_index]['Type']        
+            if dateindex_type=='NP1P' or dateindex_type=='NP1N':
+                symbol.data_rank[index+'颜色'] = symbol.data_rank[index].map(index_color_mapping[dateindex_type])
+            else:
+                symbol.data_rank[index+'颜色'] = symbol.data_rank[index+'分位'].map(index_color_mapping[dateindex_type])
             # fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name=key_storage, marker_color='rgb(239,181,59)', showlegend=False,)
             fig_index = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank[index], name=index, 
                                 marker=dict(color=symbol.data_rank[index+'颜色'], opacity=0.6),
@@ -339,94 +352,6 @@ class VarietyPage:
             # main_figure.add_trace(fig_storage_rank, row = sub_index_rows, col = 1, secondary_y=True)
             main_figure.add_trace(fig_index, row = sub_index_rows, col = 1)
             sub_index_rows = sub_index_rows + 1
-
-        # key_basis_rate = '基差率'
-        # if key_basis_rate in show_index:
-        #     sign_color_mapping = {0:'green', 1:'red'}
-        #     fig_basis_rate = go.Bar(x=symbol.symbol_data['date'], y = symbol.symbol_data['基差率'], name=key_basis_rate,
-        #                             marker=dict(color=symbol.basis_color['基差率颜色'], colorscale=list(sign_color_mapping.values()),
-        #                                         showscale=False),
-        #                             showlegend=False,
-        #                             hovertemplate='%{y:.2%}')
-        #     main_figure.add_trace(fig_basis_rate, row = sub_index_rows, col = 1)
-        #     sub_index_rows = sub_index_rows + 1
-
-        
-
-        # # 创建副图-库存
-        # key_storage = '库存'
-        # if key_storage in symbol.symbol_data.columns:
-        #     symbol.data_rank['库存分位颜色'] = symbol.data_rank['库存历史时间分位'].map(histroy_color_mapping)
-        #     if key_storage in show_index:
-        #         fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name=key_storage, marker_color='rgb(239,181,59)', showlegend=False,)
-        #         # fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name='库存', mode='markers', marker=dict(size=2, color='rgb(239,181,59)'))            
-        #         # fig_storage_rank = go.Bar(x=df_rank['date'], y=df_rank['库存历史时间百分位'], name='库存分位', marker_color='rgb(234,69,70)')
-        #         fig_storage_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['库存历史时间百分位'], name='库存分位', 
-        #                                 marker=dict(color=symbol.data_rank['库存分位颜色'], opacity=0.6),
-        #                                 showlegend=False,
-        #                                 hovertemplate='%{y:.2%}')
-        #         main_figure.add_trace(fig_storage_rank, row = sub_index_rows, col = 1, secondary_y=True)
-        #         main_figure.add_trace(fig_storage, row = sub_index_rows, col = 1)
-        #         sub_index_rows = sub_index_rows + 1
-
-        # # 创建副图-仓单
-        # key_receipt = '仓单'
-        # if key_receipt in symbol.symbol_data.columns:
-        #     symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
-        #     if key_receipt in show_index:
-        #         fig_receipt = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['仓单'], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)
-        #         # symbol.data_rank['仓单分位颜色'] = symbol.data_rank['仓单历史时间分位'].map(histroy_color_mapping)
-        #         # fig_receipt_rank = go.Scatter(x=symbol.data_rank['date'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位', marker_color='rgb(239,181,59)')            
-        #         fig_receipt_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['仓单历史时间百分位'], name='仓单分位',
-        #                                     marker=dict(color=symbol.data_rank['仓单分位颜色'], opacity=0.6),
-        #                                     showlegend=False,
-        #                                     hovertemplate='%{y:.2%}')
-        #         main_figure.add_trace(fig_receipt_rank, row = sub_index_rows, col = 1, secondary_y=True)
-        #         main_figure.add_trace(fig_receipt, row = sub_index_rows, col = 1)
-        #         sub_index_rows = sub_index_rows + 1
-
-        # # 创建副图-持仓量
-        # key_open_interest = '持仓量'
-        # open_interest_type = future_type[:4]+'持仓量'
-        # symbol.data_rank['持仓量分位颜色'] = symbol.data_rank[open_interest_type+'历史时间分位'].map(histroy_color_mapping)
-        # if key_open_interest in show_index:            
-        #     fig_open_interest = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[open_interest_type], name=key_receipt, marker_color='rgb(239,181,59)', showlegend=False,)            
-        #     fig_open_interest_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank[open_interest_type+'历史时间百分位'], name='持仓量分位',
-        #                                     marker=dict(color=symbol.data_rank['持仓量分位颜色'], opacity=0.6),
-        #                                     showlegend=False,
-        #                                     hovertemplate='%{y:.2%}')
-        #     main_figure.add_trace(fig_open_interest_rank, row = sub_index_rows, col = 1, secondary_y=True)
-        #     main_figure.add_trace(fig_open_interest, row = sub_index_rows, col = 1)
-        #     sub_index_rows = sub_index_rows + 1            
-
-        # # 创建副图-现货利润
-        # key_spot_profit = '现货利润'
-        # if key_spot_profit in symbol.symbol_data.columns:
-        #     symbol.data_rank['现货利润分位颜色'] = symbol.data_rank['现货利润历史时间分位'].map(histroy_color_mapping)
-        #     if key_spot_profit in show_index:
-        #         # fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name='现货利润', mode='markers', marker=dict(size=2, color='rgb(234,69,70)'))
-        #         fig_spot_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货利润'], name=key_spot_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
-        #         fig_spot_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['现货利润历史时间百分位'], name='现货利润', 
-        #                                     marker=dict(color=symbol.data_rank['现货利润分位颜色'], opacity=0.6),
-        #                                     showlegend=False,
-        #                                     hovertemplate='%{y:.2%}')
-        #         main_figure.add_trace(fig_spot_profit_rank, row = sub_index_rows, col = 1, secondary_y=True)
-        #         main_figure.add_trace(fig_spot_profit, row = sub_index_rows, col = 1)
-        #         sub_index_rows = sub_index_rows + 1
-
-        # # 创建副图-盘面利润
-        # key_future_profit = '盘面利润'
-        # if key_future_profit in symbol.symbol_data.columns:        
-        #     symbol.data_rank['盘面利润分位颜色'] = symbol.data_rank['盘面利润历史时间分位'].map(histroy_color_mapping)
-        #     if key_future_profit in show_index:
-        #         fig_future_profit = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['盘面利润'], name=key_future_profit, marker_color='rgb(239,181,59)', showlegend=False,)            
-        #         fig_future_profit_rank = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank['盘面利润历史时间百分位'], name='盘面利润 ', 
-        #                                         marker=dict(color=symbol.data_rank['盘面利润分位颜色'], opacity=0.6),
-        #                                         showlegend=False,
-        #                                         hovertemplate='%{y:.2%}')
-        #         main_figure.add_trace(fig_future_profit_rank, row = sub_index_rows, col = 1, secondary_y=True)
-        #         main_figure.add_trace(fig_future_profit, row = sub_index_rows, col = 1)
-        #         sub_index_rows = sub_index_rows + 1
 
         # 用浅蓝色背景标记现货月时间范围
         if mark_spot_months:
@@ -784,7 +709,7 @@ def display_click_data(clickData):
             #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
             #     html.Span(" | "),
                 dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
-                dmc.Badge("期限结构", color=flag_color[term_flag], id='log_term_structure'),
+                # dmc.Badge("期限结构", color=flag_color[term_flag], id='log_term_structure'),
                 html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]
                 # dmc.Badge("库存", color=flag_color2[inventory_flag], id='log_inventory'),
                 # dmc.Badge("仓单", color=flag_color2[receipt_flag], id='log_receipt'),
