@@ -249,7 +249,7 @@ class VarietyPage:
                     ],
                 ),
                 # 图表面板
-                dmc.LoadingOverlay(dcc.Graph(figure={}, id='main-figure-placeholder'),)
+                dmc.LoadingOverlay(dcc.Graph(id='main-figure-placeholder', config={'displayModeBar': False}),)
             ],
         )              
         layout = dmc.Grid([
@@ -257,8 +257,7 @@ class VarietyPage:
                     dmc.Col(left_panel, span=9),
                     # 右侧面板
                     dmc.Col(right_panel, span=3)
-        ])                
-
+        ])        
         return layout
 
     def get_layout(self):
@@ -272,8 +271,8 @@ class VarietyPage:
             )
             self.main_content = layout
         else:
-            print(self.main_content.children[0].children[0].children)
-            print(self.main_content.children[0].children[0].children.children[1].children[1])
+            # print(self.main_content.children[0].children[0].children)
+            # print(self.main_content.children[0].children[0].children.children[1].children[1])
             self.main_content.children[0].children[0].children.children[1].children[1].value=self.show_indexs
             layout = self.main_content
         self.on_layout = True
@@ -321,6 +320,8 @@ class VarietyPage:
             fig_signal = go.Scatter(x=df_signals['date'], y=df_signals['绝对位置'], name='信号', mode='markers', showlegend=False,
                                     marker=dict(size=4, color=df_signals['信号颜色'], colorscale=list(signal_color_mapping.values())))
             main_figure.add_trace(fig_signal, row=1, col=1)        
+        main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=1, col=1)
+        main_figure.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
         main_figure.add_trace(fig_basis, row = 1, col = 1, secondary_y=True) 
         main_figure.add_trace(fig_future_price, row = 1, col = 1)
         main_figure.add_trace(fig_spot_price, row = 1, col = 1)
@@ -350,6 +351,9 @@ class VarietyPage:
                                 # hovertemplate='%{y:.2%}',
                                 )
             # main_figure.add_trace(fig_storage_rank, row = sub_index_rows, col = 1, secondary_y=True)
+            main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=sub_index_rows, col=1)
+            main_figure.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=sub_index_rows, col=1)
+            
             main_figure.add_trace(fig_index, row = sub_index_rows, col = 1)
             sub_index_rows = sub_index_rows + 1
 
@@ -415,7 +419,8 @@ class VarietyPage:
             # width=3000,
             height=1200,
             margin=dict(l=0, r=0, t=0, b=0),
-            plot_bgcolor='WhiteSmoke',  
+            plot_bgcolor='#f5f5f5',  
+            paper_bgcolor='#f5f5f5',
             hovermode='x unified',
             modebar={},
             legend=dict(
@@ -424,11 +429,20 @@ class VarietyPage:
                 y=1,
                 xanchor='left',
                 x=0,
-                bgcolor='WhiteSmoke',
-                bordercolor='LightSteelBlue',
-                borderwidth=1
-            )
+                # bgcolor='#f5f5f5',
+                # bordercolor='LightSteelBlue',
+                # borderwidth=0
+            ),
+            # xaxis=dict(linecolor='gray', tickcolor='gray'),
+            # yaxis=dict(linecolor='gray', tickcolor='gray'),
         )
+        main_figure.update_annotations(dict(
+            x=0,  # x=0 表示最左边
+            xanchor='left',  # 锚点设置为左边
+            xref="paper",  # 位置参考整个画布的宽度
+            yref="paper",  # 位置参考整个画布的高度
+            font=dict(size=12)  # 可选的字体大小设置
+        ))        
         self.main_figure = main_figure
         return main_figure    
 
