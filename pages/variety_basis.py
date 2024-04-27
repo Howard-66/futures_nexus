@@ -87,35 +87,37 @@ active_variety_page = None
 #     ]
 # )
 
-analyzing_log = html.Div([
+quant_tags = html.Div([
     dmc.Text('量化分析标签', color='darkblue'),
     html.Div(
         html.Span(
             id='html-analyzing-tags'
         ),    
     ),
-    html.Hr(),
+])
+
+analyzing_log = html.Div([
     dmc.Text('盈利-风险测算', color='darkblue'),
-    # dbc.RadioItems(
-    #     options=[
-    #         {"label": "单边/跨期做多", "value": '单边/跨期做多'},
-    #         {"label": "单边/跨期做空", "value": '单边/跨期做空'},
-    #     ],
-    #     value='单边/跨期做多',
-    #     id="radio_trade_type", inline=True
-    # ),       
     html.Div(id='html-profit-loss'),
-    html.Hr(),
-    dmc.Text('综合分析', color='darkblue'),
-    dmc.Textarea(placeholder="分析结论", id='txt-log-conclusion'),
-    html.Div([
-        dmc.Button("删除", color="red", id='bt-log-delete'),
-        dmc.Button("保存", color="blue", id='bt-log-save'),
-    ])
+    # html.Hr(),
+    # dmc.Text('综合分析', color='darkblue'),
+    # dmc.Textarea(placeholder="分析结论", id='txt-log-conclusion'),
+    # html.Div([
+    #     dmc.Button("删除", color="red", id='bt-log-delete'),
+    #     dmc.Button("保存", color="blue", id='bt-log-save'),
+    # ])
 ])
 
 right_panel = dmc.Stack(
     [
+        # 量化标签
+        dmc.Paper(
+            quant_tags,
+            shadow="sm",
+            radius="xs",
+            p="xs",
+            withBorder=True,                           
+        ),          
         # 期限结构分析图表
         dmc.Paper(
             dcc.Graph(figure={}, id='term-figure-placeholder'),
@@ -202,11 +204,11 @@ class VarietyPage:
             show_fields = all_fields           
         left_panel = dmc.Stack(
             [
-                # 图标配置面板
-                dmc.Space(h=5),
+                # 图表配置面板
+                dmc.Space(h=2),
                 dmc.Group(
                     [
-                        dmc.Text("显示指标:", size='xs'),
+                        dmc.Text("分析指标:", size='xs'),
                         dmc.ChipGroup(
                             [dmc.Chip(x, value=x, variant="outline", radius="md", size="xs") for x in all_fields],
                             id="show-indexs",
@@ -244,13 +246,14 @@ class VarietyPage:
                                 {'label':'全部', 'value': 0}],
                             value=12,
                             id='trace-back-months',
-                            style={'width': 100}
+                            style={'width': 80}
                         ),
                     ],
                 ),
                 # 图表面板
                 dmc.LoadingOverlay(dcc.Graph(id='main-figure-placeholder', config={'displayModeBar': False}),)
             ],
+            spacing=5,
         )              
         layout = dmc.Grid([
                     # 左侧面板
