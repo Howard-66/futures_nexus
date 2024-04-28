@@ -120,7 +120,7 @@ right_panel = dmc.Stack(
         ),          
         # 期限结构分析图表
         dmc.Paper(
-            dcc.Graph(figure={}, id='term-figure-placeholder'),
+            dcc.Graph(figure={}, id='term-figure-placeholder', config={'displayModeBar': False}),
             shadow="sm",
             radius="xs",
             p="xs",
@@ -128,7 +128,7 @@ right_panel = dmc.Stack(
         ),
         # 跨期分析图表
         dmc.Paper(
-            dcc.Graph(figure={}, id='intertemporal-figure-placeholder'),
+            dcc.Graph(figure={}, id='intertemporal-figure-placeholder', config={'displayModeBar': False}),
             shadow="sm",
             radius="xs",
             p="xs",
@@ -309,7 +309,7 @@ class VarietyPage:
                                     marker_color='rgb(84,134,240)')
         fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgba(105,206,159,0.4)')
         fig_basis = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
-                            marker=dict(color='rgb(239,181,59)', opacity=0.4), showlegend=False) 
+                            marker=dict(color='rgb(239,181,59)', opacity=0.6), showlegend=False) 
         # 绘制信号
         mark_signals = True
         if mark_signals:
@@ -412,10 +412,13 @@ class VarietyPage:
         max_y = filtered_data[future_type].max()*1.01
         min_y = filtered_data[future_type].min()*0.99
         max_y2 = filtered_data['基差率'].max()*1.01
-        min_y2 = filtered_data['基差率'].min()*0.99
+        min_y2 = filtered_data['基差率'].min()*0.99        
+        max_y3 = filtered_data['基差'].max()*1.01
+        min_y3 = filtered_data['基差'].min()*0.99    
         # 设置 y 轴的范围
         main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
         main_figure.update_yaxes(range=[min_y2, max_y2], row=2, col=1, secondary_y=False)
+        main_figure.update_yaxes(range=[min_y3, max_y3], row=1, col=1, secondary_y=True)
         main_figure.update_layout(
             # yaxis_range=[min_y,max_y],
             autosize=True,
@@ -436,8 +439,6 @@ class VarietyPage:
                 # bordercolor='LightSteelBlue',
                 # borderwidth=0
             ),
-            # xaxis=dict(linecolor='gray', tickcolor='gray'),
-            # yaxis=dict(linecolor='gray', tickcolor='gray'),
         )
         main_figure.update_annotations(dict(
             x=0,  # x=0 表示最左边
@@ -458,11 +459,14 @@ class VarietyPage:
         if self.future_type != '':
             max_y = filtered_data[self.future_type].max()*1.01
             min_y = filtered_data[self.future_type].min()*0.99
-        max_y2 = filtered_data['基差'].max()*1.01
-        min_y2 = filtered_data['基差'].min()*0.99        
+        max_y2 = filtered_data['基差率'].max()*1.01
+        min_y2 = filtered_data['基差率'].min()*0.99        
+        max_y3 = filtered_data['基差'].max()*1.01
+        min_y3 = filtered_data['基差'].min()*0.99               
         main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
         main_figure.update_xaxes(range=xaxis_range)
-        main_figure.update_yaxes(range=[min_y2, max_y2], row=1, col=1, secondary_y=True)
+        main_figure.update_yaxes(range=[min_y2, max_y2], row=2, col=1, secondary_y=False)
+        main_figure.update_yaxes(range=[min_y3, max_y3], row=1, col=1, secondary_y=True)
         return main_figure
 
     def display_term_structure_figure(self, click_date, spot_price):
@@ -499,9 +503,11 @@ class VarietyPage:
                                 # marker=dict(color='rgb(0, 123, 255)', opacity=1))
         future_figure = go.Scatter(x=df_dominant_contract['symbol'], y=df_dominant_contract['settle'], stackgroup='one', mode='markers',
                                              fill='tozeroy', fillcolor=color_flag,
-                                             marker=dict(color=color_flag))
+                                             marker=dict(color=color_flag, opacity=0.6))
         term_fig = go.Figure()
         # term_fig.add_trace(spot_figure)
+        term_fig.update_xaxes(linecolor='gray', tickfont=dict(color='gray'))
+        term_fig.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1)              
         term_fig.add_trace(future_figure)
         max_y = df_dominant_contract['settle'].max() * 1.01
         min_y = df_dominant_contract['settle'].min() * 0.99        
@@ -511,7 +517,7 @@ class VarietyPage:
                                title='期限结构:'+current_date,
                                height=120,
                                margin=dict(l=0, r=0, t=30, b=0),
-                               plot_bgcolor='WhiteSmoke',                   
+                               plot_bgcolor='White',                   
                                showlegend=False)
         term_fig.update_xaxes(showgrid=False)
         term_fig.update_yaxes(showgrid=False)
@@ -531,7 +537,7 @@ class VarietyPage:
         subtitles = ['跨期分析'] + list(domain_contract['symbol'][1:])
         # colors = ['rgba(239,181,59,1.0)', 'rgba(84,134,240,0.5)', 'rgba(105,206,159,0.5)']
         colors = px.colors.qualitative.Pastel1
-        cross_term_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.04)
+        cross_term_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.05)
         # cross_term_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, shared_xaxes=True, vertical_spacing=0.02)
         row = 1
         df_multi_term = pd.DataFrame()
@@ -539,8 +545,12 @@ class VarietyPage:
         for symbol_name in domain_contract['symbol']:
             df = df_term[df_term['symbol']==symbol_name][['date', 'close']]
             delivery_date = df['date'].max()    
-            last_trading_day = delivery_date.replace(day=1)                
+            last_trading_day = delivery_date.replace(day=1)
+            if last_trading_day <= click_date:
+                last_trading_day = delivery_date #TODO: 替换为交割月的前一个有效交易日
             symbol_figure = go.Scatter(x=df['date'], y=df['close'], name=symbol_name, marker_color=colors[row-1])
+            cross_term_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=row, col=1)
+            cross_term_figure.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=row, col=1)            
             cross_term_figure.add_trace(symbol_figure, row=1, col=1)
             df.rename(columns={'close': symbol_name}, inplace=True)
             df_trading = df[(df['date']>= click_date) & (df['date']<=last_trading_day)]
@@ -589,7 +599,7 @@ class VarietyPage:
         cross_term_figure.update_layout(
                                         height=400,
                                         margin=dict(l=0, r=0, t=20, b=0),
-                                        plot_bgcolor='WhiteSmoke',     
+                                        plot_bgcolor='White',     
                                         hovermode='x unified',              
                                         showlegend=False)
         cross_term_figure.update_xaxes(showgrid=False,
@@ -600,6 +610,13 @@ class VarietyPage:
                                     range=[start_date, end_date],)
         cross_term_figure.update_yaxes(showgrid=False)
         cross_term_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
+        cross_term_figure.update_annotations(dict(
+            x=0,  # x=0 表示最左边
+            xanchor='left',  # 锚点设置为左边
+            xref="paper",  # 位置参考整个画布的宽度
+            yref="paper",  # 位置参考整个画布的高度
+            font=dict(size=12)  # 可选的字体大小设置
+        ))              
         return cross_term_figure, profit_loss
 
 blank_content = html.Div([
@@ -675,17 +692,6 @@ def update_graph(select_index_value, radio_future_value, switch_marker_value, lo
         # df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
         figure = variety_page.create_figure(select_index_value, radio_future_value, switch_marker_value, select_index_value, look_forward_months_value)
     return figure
-
-# @callback(
-#     Output("modal-chart-config", "opened"),
-#     [Input("button-methond-config", "n_clicks"), Input("close-button", "n_clicks")],
-#     [State("modal-chart-config", "opened")],
-# )
-# def toggle_modal(n1, n2, opened):
-#     if n1 or n2:
-#         return not opened
-#     return opened
-
     
 @callback(
     Output('term-figure-placeholder', 'figure'),
@@ -709,7 +715,6 @@ def display_click_data(clickData):
         term_fig, df_dominant_contract, term_flag = variety_page.display_term_structure_figure(click_date, spot_price)
         # 绘制跨期套利分析视图
         cross_term_figure, profit_loss = variety_page.display_cross_term_figure(click_date, df_dominant_contract)
-        # print(profit_loss)
         # 准备分析日志数据
         flag_color ={'Long': 'red', 'Short': 'lime', 'X': 'gray'}
         flag_color2 ={'red': 'red', 'green': 'lime', 'gray': 'gray'}        
@@ -717,28 +722,12 @@ def display_click_data(clickData):
         basis = clickData['points'][2]['y']
         basis_flag = 'Long' if basis>0 else 'Short'
         click_data = symbol.data_rank[symbol.data_rank['date']==click_date]
-        # inventory_flag = click_data['库存分位颜色'].iloc[0]
-        # receipt_flag = click_data['仓单分位颜色'].iloc[0]
-        # openinterest_flag = click_data['持仓量分位颜色'].iloc[0]
         flag_list = variety_page.show_indexs        
         color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
         html_analyzing_tags =[
             #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
-            #     html.Span(" | "),
                 dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
-                # dmc.Badge("期限结构", color=flag_color[term_flag], id='log_term_structure'),
-                html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]
-                # dmc.Badge("库存", color=flag_color2[inventory_flag], id='log_inventory'),
-                # dmc.Badge("仓单", color=flag_color2[receipt_flag], id='log_receipt'),
-                # dmc.Badge("持仓量", color=flag_color2[openinterest_flag], id='log_open_interest'),
-                # html.Span(" | "),                
-
-        # if '现货利润' in symbol.symbol_data.columns:       
-        #     spotprofit_flag = click_data['现货利润分位颜色'].iloc[0]
-        #     html_analyzing_tags.append(dmc.Badge("现货利润", color=flag_color2[spotprofit_flag], id='log_spot_profit'))
-        # if '盘面利润' in symbol.symbol_data.columns:    
-        #     futureprofit_flag = click_data['盘面利润分位颜色'].iloc[0]
-        #     html_analyzing_tags.append(dmc.Badge("盘面利润", color=flag_color2[futureprofit_flag],  id='log_future_profit'),)
+                html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]        
         strategy = []
         direction = []
         point_diff =[]
@@ -767,10 +756,8 @@ def display_click_data(clickData):
         rows = [html.Tr([html.Td(cell) for cell in row]) for row in values]      
         html_profit_loss = dmc.Table([html.Thead(header), html.Tbody(rows)], striped=True, highlightOnHover=True, withBorder=False, withColumnBorders=False)
         return term_fig, cross_term_figure, html_analyzing_tags, html_profit_loss
-        # return term_fig, cross_term_figure, trade_type[basis_flag], flag_color[basis_flag], flag_color[term_flag], flag_color2[inventory_flag], flag_color2[receipt_flag], flag_color2[openinterest_flag], flag_color2[spotprofit_flag], flag_color2[futureprofit_flag], 
     else:
         return {}, {}, {}, {}
-        # return {}, {}, '', 'dark', 'dark', 'dark', 'dark', 'dark', 'dark', 'dark'
 
 @callback(
     Output(component_id='main-figure-placeholder', component_property='figure', allow_duplicate=True),
