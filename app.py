@@ -2,6 +2,7 @@ import dash
 from dash import Dash, html, dcc, Input, Output, State
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
+from dataworks import DataWorks
 
 SIDEBAR_WIDTH = 200
 PAGE_BACKGROUND_COLOR = "#f5f5f5"
@@ -157,14 +158,7 @@ header = dmc.Header(
                             dmc.Text("Futures Nexus", color="gray"),
                             dmc.Space(w=60),
                             dmc.Select(searchable=True, clearable=True, id="variety-search",
-                                       placeholder="输入品种代号", nothingFound="未找到品种",
-                                       data=[
-                                                {"value": "RB", "label": "螺纹钢"},
-                                                {"value": "I", "label": "铁矿石"},
-                                                {"value": "BCH", "label": "BCH"},
-                                                {"value": "LTC", "label": "LTC"},
-                                                {"value": "XRP", "label": "XRP"},
-                                                {"value": "EOS", "label": "EOS"},]),
+                                       placeholder="输入品种代号", nothingFound="未找到品种",),
                             # dmc.Button("Search", variant="outline", leftIcon=DashIconify(icon="wpf:search", width=20)),
                             # dmc.NavLink(variant="subtle", icon=DashIconify(icon="wpf:search", width=20)),
                             dmc.Space(w=60),
@@ -278,7 +272,7 @@ seg_variety = dmc.SegmentedControl(
         {"value": "market_overview", "label": "市场全景"},
     ],
     # mt=10,
-    color="gray",
+    color="#E0E0E0",
     style={"backgroundColor": PAGE_BACKGROUND_COLOR}
 ),
 
@@ -370,17 +364,23 @@ def update_stepper(pathname, search):
 # 品种搜索框回调函数
 @app.callback(
     Output("segmented-variety-switcher", "value"),
+    Output("variety-search", "data"),
     Input("variety-search", "value"),
-    prevent_initial_call=True,
+    State("variety-search", "data")
+    # prevent_initial_call=True,
 )
-def variety_search_callback(value):
+def variety_search_callback(value, data):
+    if data is None:
+        dws = DataWorks()
+        variety_id_name_map, variety_name_id_map = dws.get_variety_map()        
+        vareity_search_list = []
+        for variety_id, variety_name in variety_id_name_map.items():
+            vareity_search_list.append({"value": variety_id, "label": f'{variety_name}({variety_id})'})
+        return dash.no_update, vareity_search_list
     if value is None:
-        return dash.no_update
-    return value
+        return dash.no_update, dash.no_update
+    return value, dash.no_update
     
-
-
-
 @app.callback(
     Output("_pages_location", "pathname"),
     Output("_pages_location", "search"),
@@ -417,7 +417,9 @@ def update_variety(to_active_tab, tab_list):
             pathname = "/variety/basis"
             search = f"?variety_id={to_active_tab}"
             sidebar_analysis_tab= create_analysis_stepper(to_active_tab)
-        tab_list.append({"value": to_active_tab, "label": to_active_tab})
+        dws = DataWorks()
+        variety_id_name_map, variety_name_id_map = dws.get_variety_map()
+        tab_list.append({"value": to_active_tab, "label": variety_id_name_map[to_active_tab]})
     global_var["pre_active_tab"] = to_active_tab
     return pathname, search, sidebar_analysis_tab, tab_list
     
