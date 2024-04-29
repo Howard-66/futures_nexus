@@ -162,6 +162,32 @@ class VarietyPage:
                             id='trace-back-months',
                             style={'width': 80}
                         ),
+                        dmc.Divider(orientation='vertical'),
+                        dmc.Popover(
+                            [
+                                dmc.PopoverTarget(dmc.Button("分析日志", variant='outline', size='xs')),
+                                dmc.PopoverDropdown(
+                                    [
+                                        dmc.Textarea(
+                                                label="分析结论：",
+                                                placeholder="综合基本面量化模型进行分析……",
+                                                style={"width": 270},
+                                                autosize=True,
+                                                minRows=2,
+                                        ),        
+                                        dmc.Space(h=10),
+                                        dmc.Button('保存', id='save-log', color='Indigo', variant='outline', size='xs'),                                        
+                                        dmc.Button('删除', id='remove-log', color='Orange', variant='outline', size='xs'),                     
+                                    ]
+                                )
+                            ],
+                            p=5,
+                            width=300,
+                            position="bottom",
+                            withArrow=True,
+                            trapFocus=True,
+                            shadow="sm",                            
+                        )                        
                     ],
                 ),
                 # 图表面板
