@@ -60,9 +60,18 @@
             "Path": "basis",
             "Field": "spot_price",
             "Type": "Amount",
-            "Chart": "Sub",            
+            "Chart": "Main",            
             "DataFrame": "df_basis"
         },
+        "跨月价差": {
+            "Name": "spread",
+            "Source": "SQLite",
+            "Path": "spread",
+            "Field": "spread",
+            "Type": "AmountN",
+            "Chart": "Main",            
+            "DataFrame": "df_spread"
+        },        
         "仓单": {
             "Name": "receipt",
             "Source": "SQLite",

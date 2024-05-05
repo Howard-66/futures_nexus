@@ -19,6 +19,7 @@ dash.register_page(__name__, path="/variety/basis")
 
 variety_page_maps = {}
 active_variety_page = None
+SHOW_CHART_NUMBERS = 300
 
 quant_tags = html.Div([
     dmc.Text('量化分析标签', c='darkblue'),
@@ -220,7 +221,7 @@ class VarietyPage:
         self.on_layout = True
         return layout
     
-    def create_figure(self, show_index, future_type, mark_spot_months, sync_index, look_forward_months):        
+    def create_figure(self, show_index, future_type, mark_spot_months, sync_index, look_forward_months):                
         symbol = self.symbol
         # show_index = symbol.get_data_fields()
         if show_index != self.show_indexs:
@@ -242,33 +243,49 @@ class VarietyPage:
         specs = [[{"secondary_y": True}] for _ in range(fig_rows)]
         row_widths = [0.1] * (fig_rows - 1) + [0.5]
         subtitles = ['现货/期货价格'] + show_index
-        main_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.02)
+        main_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, shared_yaxes=True, vertical_spacing=0.02)
+
+        show_symbol_data = symbol.symbol_data.iloc[-SHOW_CHART_NUMBERS:]        
+        show_data_rank = symbol.data_rank.iloc[-SHOW_CHART_NUMBERS:]
+        # 图表初始加载时,显示最近一年的数据
+        one_year_ago = datetime.now() - timedelta(days=365)
+        date_now = datetime.now().strftime('%Y-%m-%d')
+        date_one_year_ago = one_year_ago.strftime('%Y-%m-%d')
+        # 根据 x 轴的范围筛选数据
+        filtered_symbol_data = show_symbol_data[(show_symbol_data['date'] >= date_one_year_ago) & (show_symbol_data['date'] <= date_now)]
+        filtered_rank_data = show_data_rank[(show_data_rank['date'] >= date_one_year_ago) & (show_data_rank['date'] <= date_now)]
+        # 计算 y 轴的最大值和最小值
+        max_y = filtered_symbol_data[future_type].max()*1.01
+        min_y = filtered_symbol_data[future_type].min()*0.99      
+        max_y3 = filtered_symbol_data['跨月价差'].max()*1.01
+        min_y3 = filtered_symbol_data['跨月价差'].min()*0.99    
+
         # 创建主图:期货价格、现货价格、基差
-        fig_future_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data[future_type], name='期货价格', 
+        fig_future_price = go.Scatter(x=show_symbol_data['date'], y=show_symbol_data[future_type], name='期货价格', 
                                     marker_color='rgb(84,134,240)')
-        fig_spot_price = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['现货价格'], name='现货价格', marker_color='rgba(105,206,159,0.4)')
-        fig_basis = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['基差'], stackgroup='one', name='基差', 
-                            marker=dict(color='rgb(239,181,59)', opacity=0.6), showlegend=False) 
+        fig_spot_price = go.Scatter(x=show_symbol_data['date'], y=show_symbol_data['现货价格'], name='现货价格', marker_color='rgba(105,206,159,0.4)')
+        fig_spread = go.Scatter(x=show_symbol_data['date'], y=show_symbol_data['跨月价差'], stackgroup='one', name='跨月价差', 
+                            marker=dict(color='rgb(239,181,59)', opacity=0.6), showlegend=True) 
         # 绘制信号
-        mark_signals = True
+        mark_signals = False
         if mark_signals:
             df_signals =symbol.get_signals(sync_index)
             signal_nums = len(sync_index)
             df_signals.loc[~((df_signals['信号数量'] == signal_nums) | (df_signals['信号数量'] == -signal_nums)), '信号数量'] = np.nan
             df_signals['位置偏移'] = df_signals['信号数量'].replace([signal_nums, -signal_nums], [0.99, 1.01])
-            df_signals['绝对位置'] = df_signals['位置偏移'] * symbol.symbol_data['主力合约收盘价']
+            df_signals['绝对位置'] = df_signals['位置偏移'] * show_symbol_data['主力合约收盘价']
             signal_color_mapping ={1.01:'green', 0.99:'red'}
             df_signals['信号颜色'] = df_signals['位置偏移'].map(signal_color_mapping)
             fig_signal = go.Scatter(x=df_signals['date'], y=df_signals['绝对位置'], name='信号', mode='markers', showlegend=False,
                                     marker=dict(size=4, color=df_signals['信号颜色'], colorscale=list(signal_color_mapping.values())))
             main_figure.add_trace(fig_signal, row=1, col=1)        
         main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=1, col=1)
-        main_figure.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
-        main_figure.add_trace(fig_basis, row = 1, col = 1, secondary_y=True) 
+        main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
+        main_figure.update_yaxes(range=[min_y3, max_y3], row=1, col=1, secondary_y=True)   
+        main_figure.add_trace(fig_spread, row = 1, col = 1, secondary_y=True) 
         main_figure.add_trace(fig_future_price, row = 1, col = 1)
         main_figure.add_trace(fig_spot_price, row = 1, col = 1)
-
-        histroy_color_mapping ={1:'red', 2:'gray', 3:'gray', 4:'gray', 5:'green'}        
+    
         index_color_mapping = {
             'AmountN': {1:'red', 2:'gray', 3:'gray', 4:'gray', 5:'green'},
             'AmountP': {1:'green', 2:'gray', 3:'gray', 4:'gray', 5:'red'},
@@ -285,17 +302,17 @@ class VarietyPage:
             if dateindex_type=='NP1P' or dateindex_type=='NP1N':
                 symbol.data_rank[index+'颜色'] = symbol.data_rank[index].map(index_color_mapping[dateindex_type])
             else:
-                symbol.data_rank[index+'颜色'] = symbol.data_rank[index+'分位'].map(index_color_mapping[dateindex_type])
-            # fig_storage = go.Scatter(x=symbol.symbol_data['date'], y=symbol.symbol_data['库存'], name=key_storage, marker_color='rgb(239,181,59)', showlegend=False,)
-            fig_index = go.Bar(x=symbol.data_rank['date'], y=symbol.data_rank[index], name=index, 
-                                marker=dict(color=symbol.data_rank[index+'颜色'], opacity=0.6),
+                symbol.data_rank[index+'颜色'] = symbol.data_rank[index+'分位'].map(index_color_mapping[dateindex_type])            
+            fig_index = go.Bar(x=symbol.data_rank['date'].iloc[-SHOW_CHART_NUMBERS:], y=symbol.data_rank[index].iloc[-SHOW_CHART_NUMBERS:], name=index, 
+                                marker=dict(color=symbol.data_rank[index+'颜色'].iloc[-SHOW_CHART_NUMBERS:], opacity=0.6),
                                 showlegend=False,
                                 # hovertemplate='%{y:.2%}',
                                 )
-            # main_figure.add_trace(fig_storage_rank, row = sub_index_rows, col = 1, secondary_y=True)
+            max_y = filtered_rank_data[index].max()*1.01
+            min_y = filtered_rank_data[index].min()*0.99              
             main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=sub_index_rows, col=1)
-            main_figure.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=sub_index_rows, col=1)
-            
+            # main_figure.update_yaxes(range=[min_y, max_y], row=sub_index_rows, col=1, secondary_y=False)
+            main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=sub_index_rows, col=1)            
             main_figure.add_trace(fig_index, row = sub_index_rows, col = 1)
             sub_index_rows = sub_index_rows + 1
 
@@ -316,17 +333,13 @@ class VarietyPage:
         else:
             # shapes = main_figure.layout.shapes
             # shapes[0]['line']['width'] = 0
-            main_figure.update_layout(shapes=[])
-        # 图表初始加载时,显示最近一年的数据
-        one_year_ago = datetime.now() - timedelta(days=365)
-        date_now = datetime.now().strftime('%Y-%m-%d')
-        date_one_year_ago = one_year_ago.strftime('%Y-%m-%d')
+            main_figure.update_layout(shapes=[])     
         # X轴坐标按照年-月显示
         main_figure.update_xaxes(
             showgrid=False,
             zeroline=True,
             dtick="M1",  # 按月显示
-            ticklabelmode="instant",   # instant  period
+            ticklabelmode="period",   # instant  period
             tickformat="%m\n%Y",
             rangebreaks=[dict(values=self.trade_breaks)],
             rangeslider_visible = False, # 下方滑动条缩放
@@ -345,21 +358,8 @@ class VarietyPage:
             showgrid=False,
         )
         #main_figure.update_traces(xbins_size="M1")       
-        # 根据 x 轴的范围筛选数据
-        filtered_data = symbol.symbol_data[(symbol.symbol_data['date'] >= date_one_year_ago) & (symbol.symbol_data['date'] <= date_now)]
-        # 计算 y 轴的最大值和最小值
-        max_y = filtered_data[future_type].max()*1.01
-        min_y = filtered_data[future_type].min()*0.99
-        max_y2 = filtered_data['基差率'].max()*1.01
-        min_y2 = filtered_data['基差率'].min()*0.99        
-        max_y3 = filtered_data['基差'].max()*1.01
-        min_y3 = filtered_data['基差'].min()*0.99    
-        # 设置 y 轴的范围
-        main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
-        main_figure.update_yaxes(range=[min_y2, max_y2], row=2, col=1, secondary_y=False)
-        main_figure.update_yaxes(range=[min_y3, max_y3], row=1, col=1, secondary_y=True)
+
         main_figure.update_layout(
-            # yaxis_range=[min_y,max_y],
             autosize=True,
             # width=3000,
             height=1200,
@@ -391,17 +391,18 @@ class VarietyPage:
 
     def update_yaxes(self, xaxis_range):
         symbol = self.symbol
+        show_symbol_data = symbol.symbol_data.iloc[-SHOW_CHART_NUMBERS:]
         main_figure = self.main_figure
         # xaxis_range = pd.to_datetime(xaxis_range)
-        filtered_data = symbol.symbol_data[(symbol.symbol_data['date'] >= xaxis_range[0]) & (symbol.symbol_data['date'] <= xaxis_range[1])]
+        filtered_data = show_symbol_data[(show_symbol_data['date'] >= xaxis_range[0]) & (show_symbol_data['date'] <= xaxis_range[1])]
         # 计算 y 轴的最大值和最小值
         if self.future_type != '':
             max_y = filtered_data[self.future_type].max()*1.01
             min_y = filtered_data[self.future_type].min()*0.99
         max_y2 = filtered_data['基差率'].max()*1.01
         min_y2 = filtered_data['基差率'].min()*0.99        
-        max_y3 = filtered_data['基差'].max()*1.01
-        min_y3 = filtered_data['基差'].min()*0.99               
+        max_y3 = filtered_data['跨月价差'].max()*1.01
+        min_y3 = filtered_data['跨月价差'].min()*0.99               
         main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=False)
         main_figure.update_xaxes(range=xaxis_range)
         main_figure.update_yaxes(range=[min_y2, max_y2], row=2, col=1, secondary_y=False)
@@ -657,16 +658,18 @@ def display_click_data(clickData):
         # 准备分析日志数据
         flag_color ={'Long': 'red', 'Short': 'lime', 'X': 'gray'}
         flag_color2 ={'red': 'red', 'green': 'lime', 'gray': 'gray'}        
-        trade_type = {'Long': '单边/跨期做多', 'Short': '单边/跨期做空'}
-        basis = clickData['points'][2]['y']
-        basis_flag = 'Long' if basis>0 else 'Short'
-        click_data = symbol.data_rank[symbol.data_rank['date']==click_date]
+        # trade_type = {'Long': '单边/跨期做多', 'Short': '单边/跨期做空'}
+        # basis = clickData['points'][2]['y']
+        # basis_flag = 'Long' if basis>0 else 'Short'
+        show_data_rank = symbol.data_rank.iloc[-SHOW_CHART_NUMBERS:]
+        click_data = show_data_rank[show_data_rank['date']==click_date]
         flag_list = variety_page.show_indexs        
         color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
-        html_analyzing_tags =[
-            #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
-                dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
-                html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]        
+        # html_analyzing_tags =[
+        #     #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
+        #         dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
+        #         html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]        
+        html_analyzing_tags =[dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]           
         strategy = []
         direction = []
         point_diff =[]
