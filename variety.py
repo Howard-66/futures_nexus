@@ -10,39 +10,40 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 import dataworks as dw
-from global_service import gs
+# from global_service import gs
 import re
 from asteval import Interpreter
+import polars as pl
 
-class SymbolChain:
-    def __init__(self, id, name, variety_list=None):
-        self.id = id
-        self.name = name
-        self.variety_list = variety_list
-        self.symbol_dict = {}  
+# class SymbolChain:
+#     def __init__(self, id, name, variety_list=None):
+#         self.id = id
+#         self.name = name
+#         self.variety_list = variety_list
+#         self.symbol_dict = {}  
     
-    def prepare_data(self):
-        for variety_id in self.variety_list:
-            symbol = SymbolData(variety_id, gs.variety_id_name_map[variety_id])
-            symbol.merge_data()
-            self.symbol_dict[variety_id] = symbol
+#     def prepare_data(self):
+#         for variety_id in self.variety_list:
+#             symbol = SymbolData(variety_id, gs.variety_id_name_map[variety_id])
+#             symbol.merge_data()
+#             self.symbol_dict[variety_id] = symbol
 
-    def add_symbol(self, symbol):
-        self.symbol_dict[symbol.id] = symbol
+#     def add_symbol(self, symbol):
+#         self.symbol_dict[symbol.id] = symbol
 
-    def remove_symbol(self, symbol_id):
-        self.symbol_dict.pop(symbol_id, None)
+#     def remove_symbol(self, symbol_id):
+#         self.symbol_dict.pop(symbol_id, None)
 
-    def get_symbol(self, symbol_id):
-        if symbol_id in self.symbol_dict:
-            return self.symbol_dict[symbol_id]
-        else:
-            return None
+#     def get_symbol(self, symbol_id):
+#         if symbol_id in self.symbol_dict:
+#             return self.symbol_dict[symbol_id]
+#         else:
+#             return None
     
-    # TODO: remove funciton
-    def initialize_data(self, dws):
-        for _, symbol in self.symbol_dict.items():
-            df = symbol.merge_data()
+#     # TODO: remove funciton
+#     def initialize_data(self, dws):
+#         for _, symbol in self.symbol_dict.items():
+#             df = symbol.merge_data()
         
 class SymbolData:
     """品种数据类:
@@ -147,6 +148,44 @@ class SymbolData:
         df['date'] = pd.to_datetime(df['date'])
         return df
 
+    def load_choice_file_by_polars(self, file_path):
+        """读取choice数据终端导出的数据文件.
+            Choiced导出文件格式对应的处理规则. 
+            - 原文件第一行为“宏观数据“或类似内容,但read_excel方法未加载该行内容
+            - 数据的第一行作为指标标题
+            - 第一列作为日期
+            - 前六行和最后一行都不是数据内容
+            - 剔除“日期”字段为空的行和其他非数据内容（标识数据来源的文字内容）
+            
+            Choice文件导出注意事项:
+            - 导出字段选择:指标名称、频率、单位、来源
+            - 日期排序:降序
+            - 图形设置:不导出图形
+            - 勾选“使用函数方式导出”
+        Args:
+            file_path (str): Choice导出文件(.xlsx)的绝对路径
+
+        Returns:
+            dataframe: 将Choice导出文件内容加载到dataframe,并返回
+        """
+        if file_path == '':
+            return None
+        df = pl.read_excel(file_path)
+        # 设置列名为文件的第二行（索引1），然后去除前7行和最后1行
+        df.columns = list(df.row(0))
+        # 剔除已用作列名的前7行
+        df = df.slice(6, df.height - 7)
+        # 剔除“日期”字段为空的行和其他非数据内容
+        df = df.filter((pl.col(df.columns[0]).is_not_null()) & (pl.col(df.columns[0]) != '数据来源：东方财富Choice数据'))        
+        # 先重命名第一列，然后转换其类型
+        df = df.rename({df.columns[0]: "date"})  # 重命名第一列为 'date'
+        df = df.with_columns(
+            pl.col("date").str.strptime(pl.Date, "%Y-%m-%d").alias("date"),
+        )  # 转换日期格式
+        df = df.with_columns(
+            [pl.col(name).cast(pl.Float64) for name in df.columns if name != "date"]
+        )        
+        return df
     def merge_data(self):
         """对数据索引中引用到的数据进行合并
             根据数据源（Choice/Sqlite）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
@@ -205,7 +244,6 @@ class SymbolData:
             # 根据配置中指定的填充方式填充缺失值
             if 'FillNa' in value_items:
                 fill_na = value_items['FillNa']
-                print(f"symbol: {self.id}, key: {key}")
                 if fill_na=='Forward':
                     df[key] = df[key].ffill()
                 elif fill_na=='Backward':
@@ -245,9 +283,69 @@ class SymbolData:
         # self.symbol_data.dropna(subset=columns_to_check, how='all', inplace=True)        
         # 剔除非交易日数据
         trade_date = dws.get_trade_date()
+        dws.close()
         valid_dates_mask = self.symbol_data['date'].isin(trade_date)
         self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   
         return self.symbol_data
+
+    def merge_data_by_polars(self):
+        """对数据索引中引用到的数据进行合并
+            根据数据源（Choice/Sqlite）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
+        Returns:
+            dataframe: 返回合并后的数据
+        """
+        def _extract_variables(format_str):
+            """从格式字符串中提取变量名"""
+            # 正则表达式模式，匹配非空字符（即变量）
+            variable_pattern = r'\w[\w:()%]*'
+            # 使用正则表达式查找所有匹配的变量名
+            variables = re.findall(variable_pattern, format_str)
+            return variables  # 直接返回找到的变量名列表，无需额外处理
+        data_frames = []
+        data_index = self.symbol_setting['DataIndex']
+        dws = dw.DataWorksDD()
+        for key, value_items in data_index.items():
+            df_name = value_items['DataFrame']
+            fields = value_items['Field']
+            variables_list = _extract_variables(fields)
+            data_source = value_items['Source']
+
+            if data_source == 'Choice':
+                df = self.load_choice_file_by_polars(value_items['Path'])
+            elif data_source == 'SQLite':
+                # Suppose we have a method to read from SQLite
+                df = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
+            else:
+                continue
+
+            if len(variables_list) == 1:
+                df = df.rename({variables_list[0]: key})
+            else:
+                aeval = Interpreter()
+                for var in variables_list:
+                    safe_var = re.sub(r'[0-9:]', '', var)
+                    df = df.rename({var:safe_var})       
+                    aeval.symtable[safe_var] = df.get_column(safe_var)
+                safe_fields = re.sub(r'[0-9:]', '', fields)
+                df = df.with_columns(pl.lit(aeval.eval(safe_fields)).alias(key))
+
+            if 'FillNa' in value_items:
+                fill_na = value_items['FillNa']
+                if fill_na == 'Forward':
+                    df.fill_null(strategy="forward")
+                elif fill_na == 'Backward':
+                    df.fill_null(strategy="backward")
+
+            data_frames.append(df)
+
+        symbol_data = pl.join(data_frames, how='outer', on='date')
+        symbol_data = symbol_data.sort('date')
+
+        trade_dates = self.get_trade_dates()  # Assuming a method to fetch trade dates
+        symbol_data = symbol_data.filter(pl.col('date').is_in(trade_dates))
+
+        return symbol_data
+
 
     def _calculate_basis(self, future_type):
         # 强制使用期货结算价计算基差
