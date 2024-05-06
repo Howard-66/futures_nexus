@@ -180,7 +180,7 @@ class SymbolData:
         # 先重命名第一列，然后转换其类型
         df = df.rename({df.columns[0]: "date"})  # 重命名第一列为 'date'
         df = df.with_columns(
-            pl.col("date").str.strptime(pl.Date, "%Y-%m-%d").alias("date"),
+            pl.col("date").str.strptime(pl.Datetime, "%Y-%m-%d", strict=False).cast(pl.Datetime("ns"))
         )  # 转换日期格式
         df = df.with_columns(
             [pl.col(name).cast(pl.Float64) for name in df.columns if name != "date"]
@@ -301,25 +301,39 @@ class SymbolData:
             # 使用正则表达式查找所有匹配的变量名
             variables = re.findall(variable_pattern, format_str)
             return variables  # 直接返回找到的变量名列表，无需额外处理
-        data_frames = []
+        column_dict= {}
+        data_frames = {}
         data_index = self.symbol_setting['DataIndex']
         dws = dw.DataWorksDD()
         for key, value_items in data_index.items():
             df_name = value_items['DataFrame']
             fields = value_items['Field']
             variables_list = _extract_variables(fields)
-            data_source = value_items['Source']
-
-            if data_source == 'Choice':
-                df = self.load_choice_file_by_polars(value_items['Path'])
-            elif data_source == 'SQLite':
-                # Suppose we have a method to read from SQLite
-                df = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
+            if df_name in data_frames:        
+                df = data_frames[df_name]
+                # 键值是独立字段的，列名修改为key
+                # if len(variables_list)==1:
+                #     df = df.rename({variables_list[0]:key})        
             else:
-                continue
-
+                data_source = value_items['Source']
+                if data_source == 'Choice':
+                    df = self.load_choice_file_by_polars(value_items['Path'])
+                    # data_frames[df_name] = df
+                elif data_source == 'SQLite':
+                    # Suppose we have a method to read from SQLite
+                    df = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
+                    df = pl.from_pandas(df)
+                    # data_frames[df_name] = df
+                    # df = df.with_columns(
+                    #     pl.col("date").str.strptime(pl.Date, "%Y-%m-%d").alias("date"),
+                    # )                   
+                else:
+                    continue
+                column_dict[df_name] = ['date']
+            
             if len(variables_list) == 1:
                 df = df.rename({variables_list[0]: key})
+                column_dict[df_name].append(key)
             else:
                 aeval = Interpreter()
                 for var in variables_list:
@@ -328,6 +342,7 @@ class SymbolData:
                     aeval.symtable[safe_var] = df.get_column(safe_var)
                 safe_fields = re.sub(r'[0-9:]', '', fields)
                 df = df.with_columns(pl.lit(aeval.eval(safe_fields)).alias(key))
+                column_dict[df_name].append(key)
 
             if 'FillNa' in value_items:
                 fill_na = value_items['FillNa']
@@ -335,17 +350,43 @@ class SymbolData:
                     df.fill_null(strategy="forward")
                 elif fill_na == 'Backward':
                     df.fill_null(strategy="backward")
+            data_frames[df_name] = df
 
-            data_frames.append(df)
+        for df_key in column_dict:    
+            data_frames[df_key] = data_frames[df_key][column_dict[df_key]]
+            # df = df[column_dict[df_key]]
+            # data_frames[df_name] = df   
+            # data_frames[df_key] = data_frames[df_key].with_columns(
+            #     pl.col("date").str.strptime(pl.Date, "%Y-%m-%d").alias("date")
+            # )    
+            # print(df_key, column_dict[df_key]) 
+            # if symbol_data is None:
+            #     symbol_data = data_frames[df_key]
+            # else:        
+            #     symbol_data = symbol_data.join(data_frames[df_key], on='date', how='outer')
 
-        symbol_data = pl.join(data_frames, how='outer', on='date')
-        symbol_data = symbol_data.sort('date')
+        # Concatenate all dataframes into a single dataframe
+        all_dfs = pl.concat(data_frames.values(), how='align')
 
-        trade_dates = self.get_trade_dates()  # Assuming a method to fetch trade dates
-        symbol_data = symbol_data.filter(pl.col('date').is_in(trade_dates))
+        # # Dynamically create the aggregation list
+        # # Use set to remove duplicate column names and avoid 'date'
+        # # columns_to_aggregate = list(set(all_dfs.columns) - {'date'})
+        # columns_to_aggregate = list(OrderedDict.fromkeys([col for df in data_frames.values() for col in df.columns if col != 'date']))
 
+        # # Build the aggregation expressions
+        # aggregations = [pl.col(col).first().alias(col) for col in columns_to_aggregate]
+
+        # # Group by 'date' and aggregate using dynamically built aggregation list
+        # symbol_data = all_dfs.group_by("date", maintain_order=True).agg(aggregations)
+
+        # symbol_data = symbol_data.sort('date')
+
+        trade_dates = dws.get_trade_date()
+        dws.close()
+        # valid_dates_mask = self.symbol_data['date'].isin(trade_date)
+        # self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)        
+        symbol_data = all_dfs.filter(pl.col('date').is_in(trade_dates))
         return symbol_data
-
 
     def _calculate_basis(self, future_type):
         # 强制使用期货结算价计算基差

@@ -7,3 +7,6 @@ dash_mantine_components
 akshare
 asteval
 dash-iconify
+polars
+duckdb
+xlsx2csv

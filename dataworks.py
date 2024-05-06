@@ -148,7 +148,7 @@ class DataWorksDD:
     def get_trade_date(self):
         if self.trade_date is None:
             trade_date = ak.tool_trade_date_hist_sina()['trade_date']
-            trade_date = pl.from_pandas(trade_date).str.strptime(pl.Datetime, "%Y-%m-%d")
+            trade_date = pl.from_pandas(trade_date).cast(pl.Datetime('ns'))         
         else:
             trade_date = self.trade_date
         return trade_date
