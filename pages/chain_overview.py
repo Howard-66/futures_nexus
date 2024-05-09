@@ -2,8 +2,8 @@ import dash
 import json
 from dash import html
 import dash_mantine_components as dmc
-from global_service import gs
-from variety import SymbolChain, SymbolData
+# from global_service import gs
+# from variety import SymbolChain, SymbolData
 
 dash.register_page(__name__, path="/chain/overview")
 

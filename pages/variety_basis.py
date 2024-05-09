@@ -6,7 +6,7 @@ from dash import html, dcc, callback, Input, Output, State
 import dash_mantine_components as dmc
 # from pages.chain_overview import chain_page_maps
 # import components.style as style
-from global_service import gs
+# from global_service import gs
 from dataworks import DataWorks
 import akshare as ak
 from datetime import datetime, timedelta
