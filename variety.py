@@ -180,7 +180,7 @@ class SymbolData:
         # 先重命名第一列，然后转换其类型
         df = df.rename({df.columns[0]: "date"})  # 重命名第一列为 'date'
         df = df.with_columns(
-            pl.col("date").str.strptime(pl.Datetime, "%Y-%m-%d", strict=False).cast(pl.Datetime("ns"))
+            pl.col("date").str.strptime(pl.Datetime, "%Y-%m-%d", strict=False).cast(pl.Datetime("us"))
         )  # 转换日期格式
         df = df.with_columns(
             [pl.col(name).cast(pl.Float64) for name in df.columns if name != "date"]
@@ -322,7 +322,7 @@ class SymbolData:
                 elif data_source == 'SQLite':
                     # Suppose we have a method to read from SQLite
                     df = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
-                    df = pl.from_pandas(df)
+                    # df = pl.from_pandas(df)
                     # data_frames[df_name] = df
                     # df = df.with_columns(
                     #     pl.col("date").str.strptime(pl.Date, "%Y-%m-%d").alias("date"),
@@ -366,6 +366,7 @@ class SymbolData:
             #     symbol_data = symbol_data.join(data_frames[df_key], on='date', how='outer')
 
         # Concatenate all dataframes into a single dataframe
+        print(data_frames.values())
         all_dfs = pl.concat(data_frames.values(), how='align')
 
         # # Dynamically create the aggregation list

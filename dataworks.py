@@ -123,12 +123,13 @@ class DataWorksDD:
         self.conn.close()
 
     def get_data_by_sql(self, sql):
-        return self.conn.execute(sql).fetchdf()
+        df = self.conn.execute(sql).fetchdf()
+        return pl.from_pandas(df)
 
     def get_data(self, table, condition, fields='*'):
         sql = f"SELECT {fields} FROM {table} WHERE {condition}"
-        return self.conn.execute(sql).fetchdf()
-
+        df = self.conn.execute(sql).fetchdf()
+        return pl.from_pandas(df)
     def get_data_by_symbol(self, table, symbol_id, fields='*'):
         condition = f"variety='{symbol_id}'"
         return self.get_data(table, condition, fields)
@@ -148,7 +149,7 @@ class DataWorksDD:
     def get_trade_date(self):
         if self.trade_date is None:
             trade_date = ak.tool_trade_date_hist_sina()['trade_date']
-            trade_date = pl.from_pandas(trade_date).cast(pl.Datetime('ns'))         
+            trade_date = pl.from_pandas(trade_date).cast(pl.Datetime('us'))         
         else:
             trade_date = self.trade_date
         return trade_date
