@@ -60,17 +60,10 @@ class DataSourceManager:
         if isinstance(columns, str):  # 如果是字符串公式，解析出涉及的列名
             formula = columns              
             columns = self._parse_columns_from_formula(columns)           
-        # columns = [re.sub(r'[0-9:]', '', col) for col in columns]          
         source['columns'] = columns if 'date' in columns else ['date'] + columns
 
         # 从数据源加载数据
         data = self._load_data(source)
-        # for col in columns:
-        #     # 尝试将每一列转换为数值类型
-        #     data[col] = pd.to_numeric(data[col])
-        # 排除 datetime 类型的列，对其余列应用 pd.to_numeric
-        data[data.select_dtypes(exclude=['datetime']).columns] = data.select_dtypes(exclude=['datetime']).apply(pd.to_numeric)
-
         
         # 如果有转换函数，对数据进行转换
         if source['transform']:
@@ -126,6 +119,11 @@ class DataSourceManager:
         df = df[df['date'].notna()]
         # 仅保留所需的列
         df = df[columns]
+        # for col in columns:
+        #     # 尝试将每一列转换为数值类型
+        #     data[col] = pd.to_numeric(data[col])
+        # 排除 datetime 类型的列，对其余列应用 pd.to_numeric
+        df[df.select_dtypes(exclude=['datetime']).columns] = df.select_dtypes(exclude=['datetime']).apply(pd.to_numeric)        
         return df
     
     def _transform_data(self, data, how, on):
