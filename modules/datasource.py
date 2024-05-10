@@ -1,5 +1,7 @@
 import pandas as pd
 import sqlite3
+import re
+from asteval import Interpreter
 
 class DataSourceManager:
     SQLITE_DB_PATH = 'data/futures.db'  # 定义SQLite数据库的常量路径
@@ -53,25 +55,38 @@ class DataSourceManager:
 
         # 获取数据源信息，并确保 'date' 列存在于数据列中
         source = self.sources[name]
-        key_cols = source['columns']
-        source['columns'] = key_cols if 'date' in key_cols else ['date'] + key_cols
+        columns = source['columns']
+        formula = None
+        if isinstance(columns, str):  # 如果是字符串公式，解析出涉及的列名
+            formula = columns              
+            columns = self._parse_columns_from_formula(columns)           
+        # columns = [re.sub(r'[0-9:]', '', col) for col in columns]          
+        source['columns'] = columns if 'date' in columns else ['date'] + columns
 
         # 从数据源加载数据
         data = self._load_data(source)
-        for column in key_cols:
-            # 尝试将每一列转换为数值类型
-            data[column] = pd.to_numeric(data[column])
+        # for col in columns:
+        #     # 尝试将每一列转换为数值类型
+        #     data[col] = pd.to_numeric(data[col])
+        # 排除 datetime 类型的列，对其余列应用 pd.to_numeric
+        data[data.select_dtypes(exclude=['datetime']).columns] = data.select_dtypes(exclude=['datetime']).apply(pd.to_numeric)
+
         
         # 如果有转换函数，对数据进行转换
         if source['transform']:
-            data = self._transform_data(data, source['transform'], key_cols)
-        
+            data = self._transform_data(data, source['transform'], columns)
+        # 如果原始列定义是公式
+        if formula and len(columns)>1:  
+            data = self._calculate_formula(data, name, formula, columns)
         # 将处理后的数据缓存起来
         self.cache[name] = data
 
         return data
 
     def _load_data(self, source):
+        """
+        根据提供的数据源信息从SQLite数据库/ChoiceExcel文件中加载数据。
+        """
         if source['source_type'] == 'SQLite':
             return self._load_data_from_sqlite(source['path'], source['table'], source['variety'], source['columns'])
         elif source['source_type'] == 'ChoiceExcel':
@@ -80,6 +95,9 @@ class DataSourceManager:
             raise ValueError("Unsupported data source type")
 
     def _load_data_from_sqlite(self, path, table, variety, columns):
+        """
+        从SQLite数据库中加载数据。
+        """
         conn = sqlite3.connect(path)
         query = f"SELECT {', '.join(columns)} FROM {table}"
         if variety:
@@ -89,6 +107,9 @@ class DataSourceManager:
         return data
 
     def _load_data_from_excel(self, path, columns):
+        """
+        从ChoiceExcel文件中加载数据。
+        """
         if not path:
             return None
         # 读取Excel文件，跳过前1行（假设第一行是“宏观数据”等标题，不是列名称）
@@ -108,11 +129,55 @@ class DataSourceManager:
         return df
     
     def _transform_data(self, data, how, on):
+        """
+        根据提供的转换函数对数据进行转换。
+        
+        参数:
+        - data: 要转换的数据。
+        - how: 转换函数的名称。
+        - on: 要转换的列名。
+        
+        返回值:
+        - 转换后的数据。
+        """
         if how == 'Fill_Forward':
             data[on] = data[on].ffill().infer_objects()
         elif how == 'Fill_Backward':
             data[on] = data[on].bfill().infer_objects()
         return data
 
-    def _calculate_data(self, data, func):
+    def _parse_columns_from_formula(self, formula):
+        """
+        从公式中解析出涉及的列名。
+        
+        参数:
+        - formula: 要解析的公式。
+        
+        返回值:
+        - 提取出的列名列表。
+        """
+        # 这里需要一个解析器来从公式中提取列名
+        # 示例实现，实际实现应更全面地处理字符串中的列名
+        return re.findall(r'\w[\w:()%]*', formula)  # 假设列名是单词字符
+    
+    def _calculate_formula(self, data, name, formula, columns):     
+        """
+        根据提供的公式对数据进行计算。
+        
+        参数:
+        - data: 要计算数据的数据框。
+        - name: 计算结果要保存的列名。
+        - formula: 要计算的公式。
+        - columns: 要计算公式的列名。
+        
+        返回值:
+        - 计算后的数据。
+        """              
+        aeval = Interpreter() 
+        for col in columns:                    
+            safe_col = re.sub(r'[0-9:]', '', col)
+            data.rename(columns={col:safe_col}, inplace=True)
+            aeval.symtable[safe_col] = data[safe_col]
+        formula = re.sub(r'[0-9:]', '', formula)
+        data[name] = aeval.eval(formula)
         return data
