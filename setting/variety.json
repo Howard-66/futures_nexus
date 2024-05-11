@@ -127,7 +127,7 @@
                 "Field": "库存:铁矿石:港口合计",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },
             "库存消费比": {
@@ -137,7 +137,7 @@
                 "Field": "全国:进口铁矿石:库存消费比",
                 "Type": "RateP",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },            
             "产量": {
@@ -147,7 +147,7 @@
                 "Field": "产量:铁矿石原矿:当月值",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",                
+                "Transform": "Fill_Forward",                
                 "DataFrame": "df_choice"
             },            
             "产量同比": {
@@ -157,7 +157,7 @@
                 "Field": "产量:铁矿石原矿:当月同比",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             }
         },
@@ -188,7 +188,7 @@
                 "Field": "焦炭库存:样本钢厂:全国",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },            
             "产量": {
@@ -198,7 +198,7 @@
                 "Field": "产量:焦炭:当月值",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },
             "产量同比": {
@@ -208,7 +208,7 @@
                 "Field": "产量:焦炭:当月同比",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             }
         },
@@ -784,7 +784,7 @@
                 "Field": "137家螺纹钢厂:社会库存 + 137家螺纹钢厂:钢厂库存",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },            
             "需求生产比": {
@@ -794,7 +794,7 @@
                 "Field": "137家螺纹钢厂:周需求量 - 137家螺纹钢厂:周产量",
                 "Type": "AmountP",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },            
             "开工率": {
@@ -804,7 +804,7 @@
                 "Field": "137家螺纹钢厂:开工率",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },   
             "产能利用率": {
@@ -814,7 +814,7 @@
                 "Field": "137家螺纹钢厂:产能利用率",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             }
         },
@@ -877,7 +877,7 @@
                 "Field": "库存:热卷(板)",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },                 
             "开工率": {
@@ -887,7 +887,7 @@
                 "Field": "产线开工率:热轧板卷",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },
             "产量": {
@@ -897,7 +897,7 @@
                 "Field": "日均产量:热轧板卷",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },
             "产能利用率": {
@@ -907,7 +907,7 @@
                 "Field": "产能利用率:热轧板卷",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             }
         },
@@ -960,7 +960,7 @@
                 "Field": "产线开工率:冷轧不锈钢:全国",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },
             "产量": {
@@ -970,7 +970,7 @@
                 "Field": "日均产量:冷轧不锈钢:全国",
                 "Type": "AmountN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },
             "产能利用率": {
@@ -980,7 +980,7 @@
                 "Field": "产能利用率:冷轧不锈钢:全国",
                 "Type": "RateN",
                 "Chart": "Sub",
-                "FillNa": "Forward",
+                "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             }
         },

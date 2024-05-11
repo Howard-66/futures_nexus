@@ -242,11 +242,11 @@ class SymbolData:
                 df[key] = aeval.eval(safe_fields)
                 column_dict[df_name].append(key)
             # 根据配置中指定的填充方式填充缺失值
-            if 'FillNa' in value_items:
-                fill_na = value_items['FillNa']
-                if fill_na=='Forward':
+            if 'Transform' in value_items:
+                fill_na = value_items['Transform']
+                if fill_na=='Fill_Forward':
                     df[key] = df[key].ffill()
-                elif fill_na=='Backward':
+                elif fill_na=='Fill_Backward':
                     df[key] = df[key].bfill()
                     # df[key] = df[key].infer_objects(copy=False)
                 # elif fill_na=='Interpolate':
@@ -287,6 +287,106 @@ class SymbolData:
         valid_dates_mask = self.symbol_data['date'].isin(trade_date)
         self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   
         return self.symbol_data
+    
+    def load_data(self):
+        """对数据索引中引用到的数据进行合并
+            根据数据源（Choice/Sqlite）调用对应的文件加载方法,并按照约定格式化数据,日期数据格式化为datatime,并按照升序排列,对应日期确实数据的置位NaN,
+        Returns:
+            dataframe: 返回合并后的数据
+        """
+        def extract_variables(format_str):
+            """从格式字符串中提取变量名"""
+            # 正则表达式模式，匹配非空字符（即变量）
+            variable_pattern = r'\w[\w:()%]*'
+            # 使用正则表达式查找所有匹配的变量名
+            variables = re.findall(variable_pattern, format_str)
+            return variables  # 直接返回找到的变量名列表，无需额外处理
+        
+        column_dict= {}
+        data_frames = []
+        data_index = self.symbol_setting['DataIndex']
+
+        # dws = gs.dataworks
+        dws = dw.DataWorks()
+        for key, value_items in data_index.items():
+            # 按照配置文件中的DataFrame键值，将同类内容合并到同一张表中
+            df_name = value_items['DataFrame']            
+            fields = value_items['Field']
+            variables_list = extract_variables(fields)
+            if df_name in locals():        
+                # 键值是独立字段的，列名修改为key
+                if len(variables_list)==1:
+                    locals()[df_name].rename(columns={variables_list[0]:key}, inplace=True)
+            else:
+                # 未加载的数据，整表读取到df_name中
+                data_source = value_items['Source']
+                if data_source=='Choice':
+                    locals()[df_name] = self.load_choice_file(value_items['Path'])
+                elif data_source=='SQLite':
+                    locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
+                    locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
+                else:
+                    continue
+                column_dict[df_name] = ['date']
+            df = locals()[df_name]            
+            if len(variables_list)==1:
+                # Field是独立字段的，列名修改为key
+                df.rename(columns={variables_list[0]:key}, inplace=True)
+                column_dict[df_name].append(key)
+            else:                
+                # Field是公式表达的，进行解析计算
+                aeval = Interpreter()       
+                for var in variables_list:                    
+                    safe_var = re.sub(r'[0-9:]', '', var)
+                    df.rename(columns={var:safe_var}, inplace=True)                                     
+                    aeval.symtable[safe_var] = df[safe_var]
+                safe_fields = re.sub(r'[0-9:]', '', fields)
+                df[key] = aeval.eval(safe_fields)
+                column_dict[df_name].append(key)
+            # 根据配置中指定的填充方式填充缺失值
+            if 'Transform' in value_items:
+                fill_na = value_items['Transform']
+                if fill_na=='Fill_Forward':
+                    df[key] = df[key].ffill()
+                elif fill_na=='Fill_Backward':
+                    df[key] = df[key].bfill()
+                    # df[key] = df[key].infer_objects(copy=False)
+                # elif fill_na=='Interpolate':
+        # 读取相关品种数据
+        # if 'RelatedData' in self.symbol_setting:
+        #     related_data = self.symbol_setting['RelatedData']
+        #     for key, value in enumerate(related_data.items()):
+        #         df_name = value['DataFrame']            
+        #         field = value['Field']                
+        #         variables_list = value["Variety"]
+        #         name = value['Name']
+        #         for var in variables_list:
+        #             df_name = f"{df_name}_{var}"
+        #             locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], var, f'date, {field}')
+        #             locals()[df_name].rename(columns={field:f"{name}_{var}"}, inplace=True)                
+        #             locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])     
+        #             column_dict[df_name] = ['date', key]       
+
+        for df_key in column_dict:
+            df = locals()[df_key]
+            df = df[column_dict[df_key]]
+            data_frames.append(df)
+        # self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
+        # if "利润" in self.symbol_setting:
+        #     for key, value in enumerate(self.symbol_setting['利润'].items()):
+        #         variables_list = extract_variables(value)
+        #         aeval = Interpreter()       
+        #         for var in variables_list:                                              
+        #             aeval.symtable[var] = df[var]
+        #         self.symbol_data[key] = aeval.eval(value)
+
+        # self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
+        # 剔除非交易日数据
+        # trade_date = dws.get_trade_date()
+        dws.close()
+        # valid_dates_mask = self.symbol_data['date'].isin(trade_date)
+        # self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   
+        return data_frames
 
     def merge_data_by_polars(self):
         """对数据索引中引用到的数据进行合并
