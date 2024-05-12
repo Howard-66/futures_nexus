@@ -1,28 +1,82 @@
 {
     "DataIndex": {
-        "主力合约收盘价": {
+        "收盘价": {
             "Name": "dominant_close_price",
             "Source": "SQLite",
             "Path": "dominant",
             "Field": "收盘价",
+            "Class": "SimpleIndicator",
             "Type": "Amount",
             "Chart": "Main",
+            "Color": "rgb(84,134,240)",
             "DataFrame": "df_dominant"
         },
-        "主力合约结算价": {
+        "结算价": {
             "Name": "dominant_settle_price",
             "Source": "SQLite",
             "Path": "dominant",
             "Field": "动态结算价",
             "Type": "Amount",
-            "Chart": "Main",            
+            "Chart": "None",            
             "DataFrame": "df_dominant"
+        },        
+        "跨月价差": {
+            "Name": "spread",
+            "Source": "SQLite",
+            "Path": "spread",
+            "Field": "spread",
+            "Class": "SimpleIndicator",
+            "Fill": "Area",
+            "Type": "AmountN",
+            "Chart": "Main_Y2",      
+            "Color": "rgb(239,181,59)",  
+            "DataFrame": "df_spread"
         },
-        "主力合约持仓量": {
+        "现货价格": {
+            "Name": "spot_price",
+            "Source": "SQLite",
+            "Path": "basis",
+            "Field": "spot_price",
+            "Type": "Amount",
+            "Chart": "None",            
+            "DataFrame": "df_basis"
+        },          
+        "基差": {
+            "Name": "basis",
+            "Source": "Calculate",
+            "Field": "",
+            "Type": "RateP",
+            "Chart": "None",            
+            "DataFrame": "df_basis"
+        },       
+        "基差率": {
+            "Name": "basis_rate",
+            "Source": "Calculate",
+            "Field": "",
+            "Class": "BasisRateRankColorIndicator",
+            "Direction": "Short",              
+            "Type": "RateP",
+            "Chart": "Sub",            
+            "DataFrame": "df_basis"
+        },
+        "期限结构": {
+            "Name": "term_structure",
+            "Source": "SQLite",
+            "Path": "term_structure",
+            "Field": "flag",
+            "Class": "MapColorIndicator",
+            "Direction": "Short",              
+            "Type": "NP1P",
+            "Chart": "Sub",            
+            "DataFrame": "df_term_structure"
+        },        
+        "持仓量": {
             "Name": "dominant_open_interest",
             "Source": "SQLite",
             "Path": "dominant",
             "Field": "持仓量",
+            "Class": "RankColorIndicator",
+            "Direction": "Short",            
             "Type": "AmountN",
             "Chart": "Sub",            
             "DataFrame": "df_dominant"
@@ -33,7 +87,7 @@
             "Path": "near",
             "Field": "close",
             "Type": "Amount",
-            "Chart": "Main",            
+            "Chart": "None",            
             "DataFrame": "df_near"
         },
         "近月合约结算价": {
@@ -42,7 +96,7 @@
             "Path": "near",
             "Field": "settle",
             "Type": "Amount",
-            "Chart": "Main",            
+            "Chart": "None",            
             "DataFrame": "df_near"
         },
         "近月合约持仓量": {
@@ -51,60 +105,19 @@
             "Path": "near",
             "Field": "open_interest",
             "Type": "AmountN",
-            "Chart": "Sub",            
+            "Chart": "None",            
             "DataFrame": "df_near"
-        },
-        "现货价格": {
-            "Name": "spot_price",
-            "Source": "SQLite",
-            "Path": "basis",
-            "Field": "spot_price",
-            "Type": "Amount",
-            "Chart": "Main",            
-            "DataFrame": "df_basis"
-        },
-        "跨月价差": {
-            "Name": "spread",
-            "Source": "SQLite",
-            "Path": "spread",
-            "Field": "spread",
-            "Type": "AmountN",
-            "Chart": "Main",            
-            "DataFrame": "df_spread"
-        },        
+        },   
         "仓单": {
             "Name": "receipt",
             "Source": "SQLite",
             "Path": "receipt",
             "Field": "receipt",
+            "Class": "RankColorIndicator",
+            "Direction": "Short",              
             "Type": "AmountN",
             "Chart": "Sub",            
             "DataFrame": "df_receipt"
-        },
-        "基差": {
-            "Name": "basis",
-            "Source": "Calculate",
-            "Field": "",
-            "Type": "RateP",
-            "Chart": "Sub",            
-            "DataFrame": "df_basis"
-        },       
-        "基差率": {
-            "Name": "basis_rate",
-            "Source": "Calculate",
-            "Field": "",
-            "Type": "RateP",
-            "Chart": "Sub",            
-            "DataFrame": "df_basis"
-        },
-        "期限结构": {
-            "Name": "term_structure",
-            "Source": "SQLite",
-            "Path": "term_structure",
-            "Field": "flag",
-            "Type": "NP1P",
-            "Chart": "Sub",            
-            "DataFrame": "df_term_structure"
         }
     }
 }

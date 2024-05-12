@@ -1,56 +1,141 @@
+from numba import jit
+import numpy as np
 import pandas as pd
-
-
-# 实现 Indicator 类
-class Indicator:
-    def __init__(self, name, func, params):
-        self.name = name
-        self.func = func
-        self.params = params
-
-    def calculate(self, data):
-        return self.func(data, **self.params)
-
-# 实现 IndicatorManager 类
-class IndicatorManager:
-    def __init__(self, data_source_manager):
-        self.indicators = {}
-        self.data_source_manager = data_source_manager
-
-    def add_indicator(self, data_source_name, name, func, params):
-        data = self.data_source_manager.get_data(data_source_name)
-        self.indicators[name] = Indicator(name, func, params, data)
-
-    def calculate_indicators(self):
-        results = {}
-        for name, indicator in self.indicators.items():
-            results[name] = indicator.calculate(indicator.data)
-        return results
-
-# 实现 ChartConfig 类
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-class ChartConfig:
-    def __init__(self, indicator_results):
-        self.indicator_results = indicator_results
-        self.fig = go.Figure()
+from abc import ABC, abstractmethod
+import time
 
-    def add_trace(self, data, trace_type="scatter", name="Trace", yaxis='y1', **kwargs):
-        trace = getattr(go, trace_type)(x=data.index, y=data, name=name, yaxis=yaxis, **kwargs)
-        self.fig.add_trace(trace)
+# @jit(nopython=True)
+def RRP(data, window_size):
+    """
+    Rolling Rank Percentile-计算制定窗口周期内的百分位排名
+    """
+    # 结果数组
+    rank_pct = np.full(data.shape, np.nan)  # 初始全为 NaN
+    # 对于每个可能的窗口位置
+    for i in range(window_size - 1, len(data)):
+        window = data[i - window_size + 1:i + 1]
+        sorted_indices = np.argsort(window)
+        current_rank = 1+ np.where(sorted_indices == window_size - 1)[0][0]
+        rank_pct[i] = current_rank / window_size  # 计算百分比排名
 
-    def set_layout(self, title, xaxis_title, yaxis_title, yaxis2_title=None, **layout_kwargs):
-        layout = {
-            'title': title,
-            'xaxis_title': xaxis_title,
-            'yaxis_title': yaxis_title,
-            'yaxis': {'title': yaxis_title},
-            'template': 'plotly_dark'
+    return rank_pct
+
+class Indicator(ABC):
+    def __init__(self, name, variety, config, **params):
+        self.name = name
+        self.variety = variety
+        self.config = config
+        self.chart_type = config.get('Chart', 'None')
+        self.order = config.get('Order', -1)
+        self.opacity = config.get('Opacity', 0.5)
+        self.showlegend = config.get('ShowLegend', False)
+        self.params = params
+        self.data = None
+
+    @abstractmethod
+    def calculate(self, **kwargs):
+        """
+        Abstract method to calculate the indicator values, to be implemented by subclasses.
+        """
+        pass
+
+    @abstractmethod
+    def figure(self, **kwargs):
+        """
+        Abstract method to calculate the indicator values, to be implemented by subclasses.
+        """
+        pass
+
+### SimpleIndicator Class
+class SimpleIndicator(Indicator): 
+    LINE_COLOR = 'lightblue'
+    def calculate(self, **kwargs):
+        self.data = self.variety.get_data(self.name)
+        return
+    
+    def figure(self, **kwargs):
+        color = self.config.get('Color', self.LINE_COLOR)
+        fill = self.config.get('Fill', 'none')
+        fill = 'tozeroy' if fill=='Area' else fill
+        fig = go.Scatter(x=self.data['date'], y=self.data[self.name], name=self.name,
+                            mode='lines',
+                            fill=fill,
+                            line=dict(color=color),
+                            opacity=self.opacity,
+                            showlegend=self.showlegend)
+        return fig
+
+class RankColorIndicator(Indicator): 
+    DEFAULT_WINDOW = 240
+    OVER_BUY = 0.8
+    OVER_SELL = 0.2
+    LONG_COLOR = 'red'
+    NO_COLOR = 'grey'
+    SHORT_COLOR = 'green'
+
+    def calculate(self, **kwargs):
+        start_time = time.perf_counter()
+        if self.data is None:
+            self.data = self.variety.get_data(self.name)
+        direction = self.config.get('Direction', 'Long')
+        roll_window = kwargs.get('window', self.DEFAULT_WINDOW)
+        over_buy = kwargs.get('over_buy', self.OVER_BUY)
+        over_sell = kwargs.get('over_sell', self.OVER_SELL)
+        # color_map = self.params.get('color_map', [self.LONG_COLOR, self.NO_COLOR, self.SHORT_COLOR])
+        # Pandas版本
+        # self.data[self.name+'_rank'] = self.data[self.name].rolling(window=roll_window, min_periods=1).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
+        # Numpy版本（速度更快）
+        np_data = self.data[self.name].to_numpy()
+        self.data[self.name+'_rank'] = RRP(np_data, roll_window)
+        if direction=='Long':
+            self.data[self.name+'_color'] = [self.SHORT_COLOR if x > over_buy else self.LONG_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
+        else:
+            self.data[self.name+'_color'] = [self.LONG_COLOR if x > over_buy else self.SHORT_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
+        run_time = time.perf_counter()- start_time
+        print(f'Run time: {run_time}')                    
+        return self.data
+    
+    def figure(self, **kwargs):
+        fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
+                            marker=dict(color=self.data[self.name+'_color'], opacity=self.opacity),
+                            showlegend=self.showlegend,
+                            # hovertemplate='%{y:.2%}',
+                            )        
+        return fig    
+    
+class BasisRateRankColorIndicator(RankColorIndicator):
+    def calculate(self, **kwargs):
+        settle_price = self.variety.get_data('结算价')
+        spot_price = self.variety.get_data('现货价格')
+        self.data = pd.merge(settle_price, spot_price, on='date', how='outer') 
+        self.data[self.name] = (self.data['现货价格'] - self.data['结算价']) / self.data['现货价格']
+        super().calculate()
+        return self.data
+    
+class MapColorIndicator(Indicator):
+    COLOR_MAPPING = {
+            'Short': {-1: 'red', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'green'},
+            'Long': {-1: 'green', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'red'},
         }
-        if yaxis2_title:
-            layout['yaxis2'] = {'title': yaxis2_title, 'overlaying': 'y', 'side': 'right'}
-        self.fig.update_layout(**layout, **layout_kwargs)
+    def calculate(self, **kwargs):
+        self.data = self.variety.get_data(self.name)
+        direction = self.config.get('Direction', 'Long')
+        color_mapping = self.COLOR_MAPPING[direction]
+        self.data[self.name+'_color'] = self.data[self.name].map(color_mapping)
+        return self.data
+    
+    def figure(self, **kwargs):
+        fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
+                            marker=dict(color=self.data[self.name+'_color'], opacity=0.6),
+                            showlegend=self.showlegend,
+                            # hovertemplate='%{y:.2%}',
+                           )        
+        return fig
 
-    def show(self):
-        self.fig.show()
-
+class ProfitRankColorIndicator(RankColorIndicator):
+    def calculate(self, **kwargs):
+        # TODO：实现利润计算指标
+        pass
