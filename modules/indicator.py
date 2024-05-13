@@ -59,19 +59,19 @@ class SimpleIndicator(Indicator):
         color = self.config.get('Color', self.LINE_COLOR)
         fill = self.config.get('Fill', 'none')
         fill = 'tozeroy' if fill=='Area' else fill
-        # fig = go.Scatter(x=self.data['date'], y=self.data[self.name], name=self.name,
-        #                     mode='lines',
-        #                     fill=fill,
-        #                     line=dict(color=color),
-        #                     opacity=self.opacity,
-        #                     showlegend=self.showlegend)
-        fig = px.line(self.data, x='date', y=self.name,
-                    title=self.name,
-                    line_shape='linear',  # 这是默认设置，可以指定为 'spline' 等
-                    render_mode='svg',  # 'svg' 或 'webgl'，webgl 更适合大数据集
-                    labels={'date': 'Date', self.name: 'Value'},
-                    color_discrete_sequence=[color])  # 设定线条颜色
-        fig.update_traces(fill=fill, opacity=self.opacity, showlegend=self.showlegend)
+        fig = go.Scatter(x=self.data['date'], y=self.data[self.name], name=self.name,
+                            mode='lines',
+                            fill=fill,
+                            line=dict(color=color),
+                            opacity=self.opacity,
+                            showlegend=self.showlegend)
+        # fig = px.line(self.data, x='date', y=self.name,
+        #             title=self.name,
+        #             line_shape='linear',  # 这是默认设置，可以指定为 'spline' 等
+        #             render_mode='svg',  # 'svg' 或 'webgl'，webgl 更适合大数据集
+        #             # labels={'date': 'Date', self.name: 'Value'},
+        #             color_discrete_sequence=[color])  # 设定线条颜色
+        # fig.update_traces(fill=fill, opacity=self.opacity, showlegend=self.showlegend)
         return fig
 
 class RankColorIndicator(Indicator): 
@@ -79,7 +79,7 @@ class RankColorIndicator(Indicator):
     OVER_BUY = 0.8
     OVER_SELL = 0.2
     LONG_COLOR = 'red'
-    NO_COLOR = 'grey'
+    NO_COLOR = 'gray'
     SHORT_COLOR = 'green'
 
     def calculate(self, **kwargs):
@@ -96,24 +96,24 @@ class RankColorIndicator(Indicator):
         np_data = self.data[self.name].to_numpy()
         self.data[self.name+'_rank'] = RRP(np_data, roll_window)
         if direction=='Long':
-            self.data[self.name+'_color'] = [self.SHORT_COLOR if x > over_buy else self.LONG_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
-        else:
             self.data[self.name+'_color'] = [self.LONG_COLOR if x > over_buy else self.SHORT_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
+        else:
+            self.data[self.name+'_color'] = [self.SHORT_COLOR if x > over_buy else self.LONG_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
         return self.data
     
     def figure(self, **kwargs):
-        # fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
-        #                     marker=dict(color=self.data[self.name+'_color'], opacity=self.opacity),
-        #                     showlegend=self.showlegend,
-        #                     # hovertemplate='%{y:.2%}',
-        #                     )        
-        fig = px.bar(self.data, x='date', y=self.name,
-                    title=self.name,
-                    labels={'date': 'Date', self.name: 'Value'},
-                    color=self.name+'_color',  # 指定颜色列
-                    opacity=self.opacity,  # 设置透明度
-                    hover_data={self.name: ':.2%'})  # 设置悬浮提示的数据格式
-        fig.update_traces(showlegend=self.showlegend, width=86400000)        
+        fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
+                            marker=dict(color=self.data[self.name+'_color'], opacity=self.opacity),
+                            showlegend=self.showlegend,
+                            # hovertemplate='%{y:.2%}',
+                            )        
+        # fig = px.bar(self.data, x='date', y=self.name,
+        #             title=self.name,
+        #             # labels={'date': 'Date', self.name: 'Value'},
+        #             color=self.name+'_color',  # 指定颜色列
+        #             opacity=self.opacity,  # 设置透明度
+        #             hover_data={self.name: ':.2%'})  # 设置悬浮提示的数据格式
+        # fig.update_traces(showlegend=self.showlegend, width=80000000)        
         return fig    
     
 class BasisRateRankColorIndicator(RankColorIndicator):
@@ -138,18 +138,18 @@ class MapColorIndicator(Indicator):
         return self.data
     
     def figure(self, **kwargs):
-        # fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
-        #                     marker=dict(color=self.data[self.name+'_color'], opacity=0.6),
-        #                     showlegend=self.showlegend,
-        #                     # hovertemplate='%{y:.2%}',
-        #                    )        
-        fig = px.bar(self.data, x='date', y=self.name,
-                    title=self.name,
-                    labels={'date': 'Date', self.name: 'Value'},
-                    color=self.name+'_color',  # 指定颜色列
-                    opacity=self.opacity,  # 设置透明度
-                    hover_data={self.name: ':.2%'})  # 设置悬浮提示的数据格式
-        fig.update_traces(showlegend=self.showlegend, width=86400000)        
+        fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
+                            marker=dict(color=self.data[self.name+'_color'], opacity=0.6),
+                            showlegend=self.showlegend,
+                            # hovertemplate='%{y:.2%}',
+                           )        
+        # fig = px.bar(self.data, x='date', y=self.name,
+        #             title=self.name,
+        #             # labels={'date': 'Date', self.name: 'Value'},
+        #             color=self.name+'_color',  # 指定颜色列
+        #             opacity=self.opacity,  # 设置透明度
+        #             hover_data={self.name: ':.2%'})  # 设置悬浮提示的数据格式
+        # fig.update_traces(showlegend=self.showlegend, width=80000000)        
         return fig
 
 class ProfitRankColorIndicator(RankColorIndicator):

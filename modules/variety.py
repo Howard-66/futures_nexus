@@ -20,6 +20,7 @@ class Variety:
         variety_setting['DataIndex'] = {**symbol_dataindex_setting, **variety_setting['DataIndex']} if 'DataIndex' in variety_setting else symbol_dataindex_setting
         self.symbol_setting = variety_setting   
         self.trade_breaks = None
+        self.data_source = None
 
     def _load_data_from_choice(self, path):
         """
@@ -108,11 +109,11 @@ class Variety:
         dws.close()
         # valid_dates_mask = self.symbol_data['date'].isin(trade_date)
         # self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   
-        self.data_soure = data_cache
+        self.data_source = data_cache
     
     def get_data(self, name):
-        if name in self.data_soure:
-            return self.data_soure[name][['date', name]].copy()
+        if name in self.data_source:
+            return self.data_source[name][['date', name]].copy()
         else:
             return None
         

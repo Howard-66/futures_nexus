@@ -56,7 +56,7 @@
             "Source": "Calculate",
             "Field": "",
             "Class": "BasisRateRankColorIndicator",
-            "Direction": "Short",              
+            "Direction": "Long",              
             "Type": "RateP",
             "Chart": "Sub",            
             "DataFrame": "df_basis"
@@ -67,7 +67,7 @@
             "Path": "term_structure",
             "Field": "flag",
             "Class": "MapColorIndicator",
-            "Direction": "Short",              
+            "Direction": "Long",              
             "Type": "NP1P",
             "Chart": "Sub",            
             "DataFrame": "df_term_structure"
