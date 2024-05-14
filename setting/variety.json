@@ -123,7 +123,7 @@
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Path": "black_metals/data/铁矿石经济数据.csv",
                 "Field": "库存:铁矿石:港口合计",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -133,7 +133,7 @@
             "库存消费比": {
                 "Name": "instock_consumption_ratio",
                 "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Path": "black_metals/data/铁矿石经济数据.csv",
                 "Field": "全国:进口铁矿石:库存消费比",
                 "Type": "RateP",
                 "Chart": "Sub",
@@ -143,7 +143,7 @@
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Path": "black_metals/data/铁矿石经济数据.csv",
                 "Field": "产量:铁矿石原矿:当月值",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -153,7 +153,7 @@
             "产量同比": {
                 "Name": "production_growth",
                 "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.xlsx",
+                "Path": "black_metals/data/铁矿石经济数据.csv",
                 "Field": "产量:铁矿石原矿:当月同比",
                 "Type": "RateN",
                 "Chart": "Sub",
@@ -175,7 +175,7 @@
             "现货价格": {
                 "Name": "spot_price",
                 "Source": "Choice",
-                "Path": "black_metals/data/焦炭经济数据.xlsx",
+                "Path": "black_metals/data/焦炭经济数据.csv",
                 "Field": "现货价格:焦炭",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -184,7 +184,7 @@
             "库存": {
                 "Name": "instock",
                 "Source": "Choice",
-                "Path": "black_metals/data/焦炭经济数据.xlsx",
+                "Path": "black_metals/data/焦炭经济数据.csv",
                 "Field": "焦炭库存:样本钢厂:全国",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -194,7 +194,7 @@
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/焦炭经济数据.xlsx",
+                "Path": "black_metals/data/焦炭经济数据.csv",
                 "Field": "产量:焦炭:当月值",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -204,7 +204,7 @@
             "产量同比": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/焦炭经济数据.xlsx",
+                "Path": "black_metals/data/焦炭经济数据.csv",
                 "Field": "产量:焦炭:当月同比",
                 "Type": "RateN",
                 "Chart": "Sub",
@@ -780,7 +780,7 @@
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Path": "black_metals/data/螺纹钢经济数据.csv",
                 "Field": "137家螺纹钢厂:社会库存 + 137家螺纹钢厂:钢厂库存",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
@@ -792,7 +792,7 @@
             "需求生产比": {
                 "Name": "demand_production",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Path": "black_metals/data/螺纹钢经济数据.csv",
                 "Field": "137家螺纹钢厂:周需求量 - 137家螺纹钢厂:周产量",
                 "Class": "RankColorIndicator",
                 "Direction": "Long",
@@ -804,7 +804,7 @@
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Path": "black_metals/data/螺纹钢经济数据.csv",
                 "Field": "137家螺纹钢厂:开工率",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
@@ -816,7 +816,7 @@
             "产能利用率": {
                 "Name": "capacity_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.xlsx",
+                "Path": "black_metals/data/螺纹钢经济数据.csv",
                 "Field": "137家螺纹钢厂:产能利用率",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
@@ -881,7 +881,7 @@
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Path": "black_metals/data/热卷经济数据.csv",
                 "Field": "库存:热卷(板)",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -891,7 +891,7 @@
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Path": "black_metals/data/热卷经济数据.csv",
                 "Field": "产线开工率:热轧板卷",
                 "Type": "RateN",
                 "Chart": "Sub",
@@ -901,7 +901,7 @@
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Path": "black_metals/data/热卷经济数据.csv",
                 "Field": "日均产量:热轧板卷",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -911,7 +911,7 @@
             "产能利用率": {
                 "Name": "capacity_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.xlsx",
+                "Path": "black_metals/data/热卷经济数据.csv",
                 "Field": "产能利用率:热轧板卷",
                 "Type": "RateN",
                 "Chart": "Sub",
@@ -964,7 +964,7 @@
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/不锈钢经济数据.xlsx",
+                "Path": "black_metals/data/不锈钢经济数据.csv",
                 "Field": "产线开工率:冷轧不锈钢:全国",
                 "Type": "RateN",
                 "Chart": "Sub",
@@ -974,7 +974,7 @@
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/不锈钢经济数据.xlsx",
+                "Path": "black_metals/data/不锈钢经济数据.csv",
                 "Field": "日均产量:冷轧不锈钢:全国",
                 "Type": "AmountN",
                 "Chart": "Sub",
@@ -984,7 +984,7 @@
             "产能利用率": {
                 "Name": "capacity_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/不锈钢经济数据.xlsx",
+                "Path": "black_metals/data/不锈钢经济数据.csv",
                 "Field": "产能利用率:冷轧不锈钢:全国",
                 "Type": "RateN",
                 "Chart": "Sub",

@@ -1,8 +1,10 @@
+# import numpy as np
 import pandas as pd
 import json
 import re
 from asteval import Interpreter
 import dataworks as dw
+import os
 import time
 
 class Variety:
@@ -26,9 +28,38 @@ class Variety:
         """
         从ChoiceExcel文件中加载数据。
         """
+        def __convert_excel_to_csv(file_path, header=1):
+            """
+            处理指定文件：如果是 .xlsx 文件且不存在同名的 .csv 文件，则进行转换并返回内容；
+            如果是 .csv 文件，直接读取并返回内容。
+            """
+            file_dir, file_name = os.path.split(file_path)
+            file_base, file_ext = os.path.splitext(file_name)
+            
+            if file_ext == '.csv':
+                # 读取 csv 文件
+                df = pd.read_csv(file_path, header=header)
+            elif file_ext == '.xlsx':
+                # 构建对应的 csv 文件路径
+                csv_path = os.path.join(file_dir, file_base + '.csv')
+                
+                # 检查同名的 csv 文件是否存在
+                if not os.path.exists(csv_path):
+                    # 读取 xlsx 文件
+                    df = pd.read_excel(file_path, engine='openpyxl')
+                    # 保存为 csv 文件
+                    df.to_csv(csv_path, index=False, header=header)
+                else:
+                    # 读取已存在的 csv 文件
+                    df = pd.read_csv(csv_path, header=header)        
+            else:
+                raise ValueError(f"Unsupported file type: {file_ext}")
+            
+            return df        
+        
         if not path:
             return None
-        df = pd.read_excel(path, header=1)  # 利用header=1使得第2行（即索引1）作为列标题
+        df = __convert_excel_to_csv(path, header=1)  # 利用header=1使得第2行（即索引1）作为列标题
         df = df[5:]  # 从第6行开始保留数据（因为header=1后，第二行已经变成了索引0）
         df.rename(columns={df.columns[0]: 'date'}, inplace=True)
         df = df[df['date'].notna() & (df['date'] != '数据来源：东方财富Choice数据')]
@@ -50,62 +81,78 @@ class Variety:
         data_cache = {}
         data_index = self.symbol_setting['DataIndex']
 
-        # dws = gs.dataworks
-        dws = dw.DataWorks()
-        for key, value_items in data_index.items():
-            # 按照配置文件中的DataFrame键值，将同类内容合并到同一张表中
-            df_name = value_items['DataFrame']            
-            fields = value_items['Field']
-            variables_list = extract_variables(fields)
-            if df_name in locals():        
-                # 键值是独立字段的，列名修改为key
-                if len(variables_list)==1:
-                    locals()[df_name].rename(columns={variables_list[0]:key}, inplace=True)
-            else:
-                # 未加载的数据，整表读取到df_name中
-                data_source = value_items['Source']
-                if data_source=='Choice':
-                    locals()[df_name] = self._load_data_from_choice(value_items['Path'])
-                elif data_source=='SQLite':
-                    locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
-                    locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
-                else:
-                    continue
-                column_dict[df_name] = ['date']
-            df = locals()[df_name]            
-            if len(variables_list)==1:
-                # Field是独立字段的，列名修改为key
-                df.rename(columns={variables_list[0]:key}, inplace=True)
-                column_dict[df_name].append(key)
-            else:                
-                # Field是公式表达的，进行解析计算
-                aeval = Interpreter()       
-                for var in variables_list:                    
-                    safe_var = re.sub(r'[0-9:]', '', var)
-                    df.rename(columns={var:safe_var}, inplace=True)                                     
-                    aeval.symtable[safe_var] = df[safe_var]
-                safe_fields = re.sub(r'[0-9:]', '', fields)
-                df[key] = aeval.eval(safe_fields)
-                column_dict[df_name].append(key)
-            # 根据配置中指定的填充方式填充缺失值
-            if 'Transform' in value_items:
-                fill_na = value_items['Transform']
-                if fill_na=='Fill_Forward':
-                    df[key] = df[key].ffill()
-                elif fill_na=='Fill_Backward':
-                    df[key] = df[key].bfill()
-                    # df[key] = df[key].infer_objects(copy=False)
+        # def numpy_ffill(arr):
+        #     """使用numpy实现向前填充（ffill）"""
+        #     mask = np.isnan(arr)
+        #     idx = np.where(~mask, np.arange(mask.size), 0)
+        #     np.maximum.accumulate(idx, out=idx)
+        #     return arr[idx]
 
-        for df_key in column_dict:
-            df = locals()[df_key]
-            df = df[column_dict[df_key]]
-            # 将column_dict中的各个key（除date外）作为date_cache的key,df作为value
-            data_map = {key:df for key in column_dict[df_key][1:]}
-            data_cache = {**data_cache, **data_map}
-        # self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
-        # self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
-        # 剔除非交易日数据
-        # trade_date = dws.get_trade_date()
+        # def numpy_bfill(arr):
+        #     """使用numpy实现向后填充（bfill）"""
+        #     mask = np.isnan(arr)
+        #     idx = np.where(~mask, np.arange(mask.size), mask.size - 1)
+        #     idx = np.minimum.accumulate(idx[::-1])[::-1]
+        #     return arr[idx]        
+
+        # dws = gs.dataworks
+        with dw.DataWorks() as dws:
+            for key, value_items in data_index.items():
+                # 按照配置文件中的DataFrame键值，将同类内容合并到同一张表中
+                df_name = value_items['DataFrame']            
+                fields = value_items['Field']
+                variables_list = extract_variables(fields)
+                if df_name in locals():        
+                    # 键值是独立字段的，列名修改为key
+                    if len(variables_list)==1:
+                        locals()[df_name].rename(columns={variables_list[0]:key}, inplace=True)
+                else:
+                    # 未加载的数据，整表读取到df_name中
+                    data_source = value_items['Source']
+                    if data_source=='Choice':
+                        locals()[df_name] = self._load_data_from_choice(value_items['Path'])
+                    elif data_source=='SQLite':
+                        locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
+                        locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
+                    else:
+                        continue
+                    column_dict[df_name] = ['date']
+                df = locals()[df_name]            
+                if len(variables_list)==1:
+                    # Field是独立字段的，列名修改为key
+                    df.rename(columns={variables_list[0]:key}, inplace=True)
+                    column_dict[df_name].append(key)
+                else:                
+                    # Field是公式表达的，进行解析计算
+                    aeval = Interpreter()       
+                    for var in variables_list:                    
+                        safe_var = re.sub(r'[0-9:]', '', var)
+                        df.rename(columns={var:safe_var}, inplace=True)                                     
+                        aeval.symtable[safe_var] = df[safe_var]
+                    safe_fields = re.sub(r'[0-9:]', '', fields)
+                    df[key] = aeval.eval(safe_fields)
+                    column_dict[df_name].append(key)
+                # 根据配置中指定的填充方式填充缺失值
+                if 'Transform' in value_items:
+                    fill_na = value_items['Transform']
+                    if fill_na=='Fill_Forward':
+                        df[key] = df[key].ffill()
+                        # df[key] = pd.Series(numpy_ffill(df[key].values))
+                    elif fill_na=='Fill_Backward':
+                        df[key] = df[key].bfill()
+                        # df[key] = pd.Series(numpy_bfill(df[key].values))
+                        # df[key] = df[key].infer_objects(copy=False)
+
+            for df_key in column_dict:
+                df = locals()[df_key]
+                df = df[column_dict[df_key]]
+                # 将column_dict中的各个key（除date外）作为date_cache的key,df作为value
+                data_map = {key:df for key in column_dict[df_key][1:]}
+                data_cache = {**data_cache, **data_map}
+            # self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
+            # self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
+            # 剔除非交易日数据
+            # trade_date = dws.get_trade_date()
         dws.close()
         # valid_dates_mask = self.symbol_data['date'].isin(trade_date)
         # self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   

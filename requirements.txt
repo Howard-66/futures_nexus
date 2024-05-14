@@ -10,3 +10,4 @@ dash-iconify
 polars
 duckdb
 xlsx2csv
+sqlalchemy
