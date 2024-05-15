@@ -51,7 +51,7 @@ class DataWorks:
         return df
 
     def load_from_dataframe(self, df, to_table, mode='replace'):
-        df.to_sql(to_table, self.conn, if_exists=mode, index=False)
+        df.to_sql(to_table, self.engine, if_exists=mode, index=False)
 
     @lru_cache(maxsize=128)  # 缓存常用查询
     def get_last_date(self, table, symbol_id='', date_field='date'):

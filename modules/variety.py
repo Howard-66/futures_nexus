@@ -114,7 +114,7 @@ class Variety:
                     elif data_source=='SQLite':                        
                         variety = value_items.get('Variety', self.id)
                         locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], variety, '*')
-                        locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
+                        locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'], format='mixed')
                     else:
                         continue
                     column_dict[df_name] = ['date']

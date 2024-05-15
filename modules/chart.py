@@ -39,6 +39,21 @@ class ChartManager:
         for name, indicator in self.indicators.items():
             indicator.calculate()
 
+    def _intersection(self, lst1, lst2):
+        return [item for item in lst1 if item in lst2]
+    def get_indicator_data(self, on_date, name_list, col_name):
+        result = []
+        name_list = self._intersection(name_list, self.sub_list)
+        for name in name_list:
+            indicator_data = self.indicators[name].data
+            data_name = f'{name}_{col_name}'
+            if 'date' not in indicator_data.index.names:
+                indicator_data.set_index('date', inplace=True)
+            if data_name in indicator_data.columns:
+                col_data = indicator_data.loc[on_date][data_name]
+                result.append(col_data)
+        return result
+
     def plot(self):
         def _add_trace(names, secondary_y=False, row=1, calculate_range=True):
             if calculate_range:

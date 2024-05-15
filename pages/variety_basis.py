@@ -15,7 +15,6 @@ dash.register_page(__name__, path="/variety/basis")
 
 variety_page_maps = {}
 active_variety_page = None
-SHOW_CHART_NUMBERS = 300
 
 quant_tags = html.Div([
     dmc.Text('量化分析标签', c='darkblue'),
@@ -82,8 +81,8 @@ class VarietyPage:
         symbol = Variety(name)
         symbol.load_data()        
         # symbol.get_spot_months() # TODO
-        dws = DataWorks()
-        symbol.variety_data = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], symbol.id)
+        with DataWorks() as dws:
+            symbol.variety_data = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], symbol.id)
         symbol.variety_data['date'] = pd.to_datetime(symbol.variety_data['date'])
         self.symbol = symbol
         self.chart_manager = ChartManager(symbol)
@@ -209,14 +208,13 @@ class VarietyPage:
         self.on_layout = True
         return layout
     
-    def create_figure(self, show_index, look_forward_months):                
+    def create_figure(self, indicator_list, look_forward_months):                
         symbol = self.symbol
-        if show_index != self.show_indexs:
-            self.user_setting[symbol.id]['ShowIndexs'] = show_index
-            dws = DataWorks()
-            dws.save_json_setting(self.user_json, self.user_setting)    
-            dws.close()
-            self.show_indexs = show_index
+        if indicator_list != self.show_indexs:
+            self.user_setting[symbol.id]['ShowIndexs'] = indicator_list
+            with DataWorks() as dws:
+                dws.save_json_setting(self.user_json, self.user_setting)    
+            self.show_indexs = indicator_list
         if look_forward_months != self.look_forward_months:
             self.chart_manager.calculate_indicators()
         self.look_forward_months = look_forward_months
@@ -440,7 +438,7 @@ def layout(variety_id=None, **other_unknown_query_strings):
     Input('trace-back-months', 'value'),
     # allow_duplicate=True
 )
-def update_graph(select_index_value, look_forward_months_value):   
+def update_graph(indicator_list, look_forward_months_value):   
     if 'active_variety' not in variety_page_maps:
         return dash.no_update
     variety_page = variety_page_maps['active_variety']
@@ -451,7 +449,7 @@ def update_graph(select_index_value, look_forward_months_value):
         symbol = variety_page.symbol
         # symbol_chain = variety_page.symbol_chain
         # df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
-        figure = variety_page.create_figure(select_index_value, look_forward_months_value)
+        figure = variety_page.create_figure(indicator_list, look_forward_months_value)
     return figure
     
 @callback(
@@ -482,15 +480,18 @@ def display_click_data(clickData):
         # trade_type = {'Long': '单边/跨期做多', 'Short': '单边/跨期做空'}
         # basis = clickData['points'][2]['y']
         # basis_flag = 'Long' if basis>0 else 'Short'
-        show_data_rank = symbol.data_rank.iloc[-SHOW_CHART_NUMBERS:]
-        click_data = show_data_rank[show_data_rank['date']==click_date]
+
+        # show_data_rank = symbol.data_rank.iloc[-SHOW_CHART_NUMBERS:]
+        # click_data = show_data_rank[show_data_rank['date']==click_date]
         flag_list = variety_page.show_indexs        
-        color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
+        # color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
+
+        color_list = variety_page.chart_manager.get_indicator_data(click_date, flag_list, 'color')
         # html_analyzing_tags =[
         #     #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
         #         dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
         #         html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]        
-        html_analyzing_tags =[dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]           
+        html_analyzing_tags =[dmc.Badge(flag, color=color_list[index]) for index, flag in enumerate(flag_list)]           
         strategy = []
         direction = []
         point_diff =[]
