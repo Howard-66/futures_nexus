@@ -82,7 +82,7 @@ class RankColorIndicator(Indicator):
     NO_COLOR = 'gray'
     SHORT_COLOR = 'green'
 
-    def calculate(self, **kwargs):
+    def calculate_pandas(self, **kwargs):
         if self.data is None:
             self.data = self.variety.get_data(self.name)
         direction = self.config.get('Direction', 'Long')
@@ -100,13 +100,61 @@ class RankColorIndicator(Indicator):
         else:
             self.data[self.name+'_color'] = [self.SHORT_COLOR if x > over_buy else self.LONG_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
         return self.data
+    def calculate(self, **kwargs):
+        if self.data is None:
+            self.data = self.variety.get_data(self.name)
+        
+        # 提取变量，避免多次访问字典
+        config = self.config
+        direction = config.get('Direction', 'Long')
+        roll_window = kwargs.get('window', self.DEFAULT_WINDOW)
+        over_buy = kwargs.get('over_buy', self.OVER_BUY)
+        over_sell = kwargs.get('over_sell', self.OVER_SELL)
+        
+        # 使用 NumPy 进行滚动排名计算
+        np_data = self.data[self.name].to_numpy()
+        rank_data = RRP(np_data, roll_window)
+        self.data[self.name+'_rank'] = rank_data
+        
+        # 提取颜色变量
+        long_color = self.LONG_COLOR
+        short_color = self.SHORT_COLOR
+        no_color = self.NO_COLOR
+        
+        # 根据方向设置颜色，优化循环
+        if direction == 'Long':
+            color_array = np.where(rank_data > over_buy, long_color,
+                                np.where(rank_data < over_sell, short_color, no_color))
+        else:
+            color_array = np.where(rank_data > over_buy, short_color,
+                                np.where(rank_data < over_sell, long_color, no_color))
+        
+        # 将结果转换回 DataFrame
+        self.data[self.name+'_color'] = color_array
+        
+        return self.data
     
     def figure(self, **kwargs):
-        fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
-                            marker=dict(color=self.data[self.name+'_color'], opacity=self.opacity),
-                            showlegend=self.showlegend,
-                            # hovertemplate='%{y:.2%}',
-                            )        
+        # 提取常用变量
+        data = self.data
+        name = self.name
+        color = data[f'{name}_color']
+        opacity = self.opacity
+        showlegend = self.showlegend
+
+        # 创建条形图
+        fig = go.Bar(
+            x=data['date'], 
+            y=data[name], 
+            name=name, 
+            marker=dict(color=color, opacity=opacity),
+            showlegend=showlegend,
+        )
+        # fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
+        #                     marker=dict(color=self.data[self.name+'_color'], opacity=self.opacity),
+        #                     showlegend=self.showlegend,
+        #                     # hovertemplate='%{y:.2%}',
+        #                     )        
         # fig = px.bar(self.data, x='date', y=self.name,
         #             title=self.name,
         #             # labels={'date': 'Date', self.name: 'Value'},

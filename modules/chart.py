@@ -39,7 +39,7 @@ class ChartManager:
         for name, indicator in self.indicators.items():
             indicator.calculate()
 
-    def plot(self):
+    def plot_old(self):
         if self.main_figure is None:
             self.main_figure = self._create_main_figure()
         # 设置主图
@@ -80,10 +80,47 @@ class ChartManager:
             #     self.main_figure.add_trace(trace, row=i+2, col=1)                  
             self.main_figure.add_trace(figure, row=i+2, col=1)
 
+    def plot(self):
+        def _add_trace(names, secondary_y=False, row=1, calculate_range=True):
+            if calculate_range:
+                first_indicator_name = names[0]
+                indicator_data = self.indicators[first_indicator_name].data
+                filtered_data = indicator_data[(indicator_data['date'] >= self.start_date) & (indicator_data['date'] <= self.end_date)]
+                min_y = filtered_data[first_indicator_name].min() * 0.99
+                max_y = filtered_data[first_indicator_name].max() * 1.01
+            else:
+                min_y = max_y = None
+
+            for name in names:
+                figure = self.indicators[name].figure()
+                self.main_figure.add_trace(figure, row=row, col=1, secondary_y=secondary_y)
+            
+            return min_y, max_y
+
+        # 检查并创建主图
+        if self.main_figure is None:
+            self.main_figure = self._create_main_figure()
+            
+        # 更新主图第一个坐标轴
+        min_y, max_y = _add_trace(self.main_list, calculate_range=True)
+        self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=1, col=1)
+        self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
+
+        # 更新主图第二坐标轴
+        min_y, max_y = _add_trace(self.main_y2_list, secondary_y=True, calculate_range=True)
+        self.main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=True)
+
+        # 设置副图
+        for i, name in enumerate(self.sub_list, start=2):
+            min_y, max_y = _add_trace([name], row=i, calculate_range=True)
+            self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=i, col=1)
+            self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=i, col=1)
+
 
     def _create_main_figure(self):
-        one_year_ago = datetime.now() - timedelta(days=365)
-        self.end_date = datetime.now().strftime('%Y-%m-%d')
+        now = datetime.now()
+        one_year_ago = now - timedelta(days=365)
+        self.end_date = now.strftime('%Y-%m-%d')
         self.start_date = one_year_ago.strftime('%Y-%m-%d')
 
         rows = len(self.sub_list) + 1
@@ -92,7 +129,7 @@ class ChartManager:
         subtitles = ['期货价格/跨月价差'] + self.sub_list
         main_figure = make_subplots(rows=rows, cols=1, 
                                     specs=specs, row_heights=row_heights, subplot_titles=subtitles, 
-                                    shared_xaxes=True, shared_yaxes=True, vertical_spacing=0.02)    
+                                    shared_xaxes=True, vertical_spacing=0.02)    
         return main_figure
     
     def update_figure(self):
