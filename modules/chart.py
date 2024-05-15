@@ -85,7 +85,7 @@ class ChartManager:
         rows = len(self.sub_list) + 1
         specs = [[{"secondary_y": True}] for _ in range(rows)]
         row_heights = [0.5] + [0.1] * (rows - 1) 
-        subtitles = ['期货价格/跨月价差'] + self.sub_list
+        subtitles = [''] + self.sub_list
         main_figure = make_subplots(rows=rows, cols=1, 
                                     specs=specs, row_heights=row_heights, subplot_titles=subtitles, 
                                     shared_xaxes=True, vertical_spacing=0.02)    

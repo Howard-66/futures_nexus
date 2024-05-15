@@ -4,13 +4,21 @@ import json
 import akshare as ak
 import polars as pl
 import duckdb
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
+from sqlalchemy.pool import StaticPool
 from functools import lru_cache
 
 class DataWorks:
     def __init__(self, db_uri='sqlite:///data/futures.db') -> None:
-        self.engine = create_engine(db_uri)
+        # self.engine = create_engine(db_uri)
+        # self.conn = self.engine.connect()
+        self.engine = create_engine(
+            db_uri,
+            connect_args={'check_same_thread': False},
+            poolclass=StaticPool
+        )
         self.conn = self.engine.connect()
+        # self.conn = sqlite3.connect('data/futures.db')
         self.variety_setting = None
         self.variety_json = 'setting/variety.json'
         self.variety_id_name_map = None
@@ -21,7 +29,7 @@ class DataWorks:
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.close()
-        self.engine.dispose()
+        # self.engine.dispose()
     
     @lru_cache(maxsize=128)  # 缓存常用查询
     def get_data(self, table, condition, fields='*'):
@@ -29,7 +37,7 @@ class DataWorks:
         sql = f"SELECT {fields_str} FROM {table} WHERE {condition}"
         df = pd.read_sql_query(sql, self.conn)
         return df
-    
+        
     @lru_cache(maxsize=128)  # 缓存常用查询
     def get_data_by_sql(self, sql):
         return pd.read_sql_query(sql, self.conn)
@@ -70,10 +78,11 @@ class DataWorks:
         start_date, end_date = pd.read_sql_query(sql, self.conn).iloc[0]
         return start_date, end_date
     
+    @lru_cache(maxsize=128)
     def get_variety_map(self):
         if self.variety_id_name_map is None or self.variety_name_id_map is None:
             sql = f"SELECT code, name FROM symbols"
-            df = pd.read_sql_query(sql, self.conn)
+            df = self.get_data_by_sql(sql)
             self.variety_id_name_map = df.set_index('code')['name'].to_dict()
             self.variety_name_id_map = df.set_index('name')['code'].to_dict()
         return self.variety_id_name_map, self.variety_name_id_map

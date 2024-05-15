@@ -126,6 +126,7 @@ sidebar_tabs =dmc.Tabs(
 # 侧边栏
 sidebar = dmc.Paper(
     [
+        dmc.Space(h=313),
         sidebar_tabs
     ],
     shadow="sm",
@@ -372,7 +373,8 @@ def update_stepper(pathname, search):
 def variety_search_callback(value, data):
     if data is None:
         dws = DataWorks()
-        variety_id_name_map, variety_name_id_map = dws.get_variety_map()        
+        variety_id_name_map, variety_name_id_map = dws.get_variety_map()
+        dws.close()
         vareity_search_list = []
         for variety_id, variety_name in variety_id_name_map.items():
             vareity_search_list.append({"value": variety_id, "label": f'{variety_name}({variety_id})'})
@@ -419,6 +421,7 @@ def update_variety(to_active_tab, tab_list):
             sidebar_analysis_tab= create_analysis_stepper(to_active_tab)
         dws = DataWorks()
         variety_id_name_map, variety_name_id_map = dws.get_variety_map()
+        dws.close()
         tab_list.append({"value": to_active_tab, "label": variety_id_name_map[to_active_tab]})
     global_var["pre_active_tab"] = to_active_tab
     return pathname, search, sidebar_analysis_tab, tab_list
