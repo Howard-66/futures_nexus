@@ -51,16 +51,17 @@
             "Chart": "None",            
             "DataFrame": "df_basis"
         },       
-        "基差率": {
+        "基差率":{
             "Name": "basis_rate",
             "Source": "Calculate",
-            "Field": "",
-            "Class": "BasisRateRankColorIndicator",
-            "Direction": "Long",              
+            "Field": "基差率",
+            "Class": "CalculateRankColorIndicator",
+            "Direction": "Long",
+            "Formula": "(现货价格-结算价)/现货价格",
             "Type": "RateP",
-            "Chart": "Sub",            
-            "DataFrame": "df_basis"
-        },
+            "Chart": "Sub",
+            "DataFrame": "df_basis_rate"
+        },        
         "期限结构": {
             "Name": "term_structure",
             "Source": "SQLite",

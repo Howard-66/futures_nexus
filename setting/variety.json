@@ -838,37 +838,38 @@
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
-            }
-        },
-        "RelatedData": {
-            "现货价格": {
+            },
+            "现货价格_I": {
                 "Name": "spot_price",
                 "Source": "SQLite",
                 "Path": "basis",
                 "Field": "spot_price",
-                "Variety": ["I", "J"],
-                "DataFrame": "df_basis"
-            },
-            "主力合约结算价": {
-                "Name": "dominant_settle_price",
-                "Source": "SQLite",
-                "Path": "dominant",
-                "Field": "动态结算价",
-                "Variety": ["I", "J"],
-                "DataFrame": "df_dominant"
-            }        
-        },
-        "利润": {
-            "现货利润": "现货价格 - I_spot_price * 1.6 - J_spot_price * 0.6 - 1200",
-            "盘面利润": "主力合约结算价 - I_dominant_settle_price * 1.6 - J_dominant_settle_price * 0.6 - 1200"
-        },
-        "ProfitFormula": {
-            "Name": "profit_formula",
-            "Factor": {
-                "I": 1.6,
-                "J": 0.6
-            },
-            "其他成本": 1200
+                "Variety": "I",
+                "Type": "Amount",
+                "Chart": "None",            
+                "DataFrame": "df_factor_i"
+            },                 
+            "现货价格_J": {
+                "Name": "spot_price",
+                "Source": "Choice",
+                "Path": "black_metals/data/焦炭经济数据.csv",
+                "Field": "现货价格:焦炭",
+                "Variety": "J",
+                "Type": "Amount",
+                "Chart": "None",            
+                "DataFrame": "df_factor_j"
+            },                   
+            "利润":{
+                "Name": "profit",
+                "Source": "Calculate",
+                "Field": "利润",
+                "Class": "CalculateRankColorIndicator",
+                "Direction": "Long",
+                "Formula": "现货价格-现货价格_I*1.6-现货价格_J*0.5-1200",
+                "Type": "AmountN",
+                "Chart": "Sub",
+                "DataFrame": "df_profit"
+            }
         },
         "Name": "螺纹钢"
     },

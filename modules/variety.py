@@ -111,8 +111,9 @@ class Variety:
                     data_source = value_items['Source']
                     if data_source=='Choice':
                         locals()[df_name] = self._load_data_from_choice(value_items['Path'])
-                    elif data_source=='SQLite':
-                        locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], self.id, '*')
+                    elif data_source=='SQLite':                        
+                        variety = value_items.get('Variety', self.id)
+                        locals()[df_name] = dws.get_data_by_symbol(value_items['Path'], variety, '*')
                         locals()[df_name]['date'] = pd.to_datetime(locals()[df_name]['date'])
                     else:
                         continue

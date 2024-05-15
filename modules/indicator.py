@@ -5,6 +5,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 from abc import ABC, abstractmethod
+from asteval import Interpreter
+import re
+from functools import reduce
 
 # @jit(nopython=True)
 def RRP(data, window_size):
@@ -82,24 +85,25 @@ class RankColorIndicator(Indicator):
     NO_COLOR = 'gray'
     SHORT_COLOR = 'green'
 
-    def calculate_pandas(self, **kwargs):
-        if self.data is None:
-            self.data = self.variety.get_data(self.name)
-        direction = self.config.get('Direction', 'Long')
-        roll_window = kwargs.get('window', self.DEFAULT_WINDOW)
-        over_buy = kwargs.get('over_buy', self.OVER_BUY)
-        over_sell = kwargs.get('over_sell', self.OVER_SELL)
-        # color_map = self.params.get('color_map', [self.LONG_COLOR, self.NO_COLOR, self.SHORT_COLOR])
-        # Pandas版本
-        # self.data[self.name+'_rank'] = self.data[self.name].rolling(window=roll_window, min_periods=1).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
-        # Numpy版本（速度更快）
-        np_data = self.data[self.name].to_numpy()
-        self.data[self.name+'_rank'] = RRP(np_data, roll_window)
-        if direction=='Long':
-            self.data[self.name+'_color'] = [self.LONG_COLOR if x > over_buy else self.SHORT_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
-        else:
-            self.data[self.name+'_color'] = [self.SHORT_COLOR if x > over_buy else self.LONG_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
-        return self.data
+    # def calculate_pandas(self, **kwargs):
+    #     if self.data is None:
+    #         self.data = self.variety.get_data(self.name)
+    #     direction = self.config.get('Direction', 'Long')
+    #     roll_window = kwargs.get('window', self.DEFAULT_WINDOW)
+    #     over_buy = kwargs.get('over_buy', self.OVER_BUY)
+    #     over_sell = kwargs.get('over_sell', self.OVER_SELL)
+    #     # color_map = self.params.get('color_map', [self.LONG_COLOR, self.NO_COLOR, self.SHORT_COLOR])
+    #     # Pandas版本
+    #     # self.data[self.name+'_rank'] = self.data[self.name].rolling(window=roll_window, min_periods=1).apply(lambda x: pd.Series(x).rank(pct=True).iloc[-1])
+    #     # Numpy版本（速度更快）
+    #     np_data = self.data[self.name].to_numpy()
+    #     self.data[self.name+'_rank'] = RRP(np_data, roll_window)
+    #     if direction=='Long':
+    #         self.data[self.name+'_color'] = [self.LONG_COLOR if x > over_buy else self.SHORT_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
+    #     else:
+    #         self.data[self.name+'_color'] = [self.SHORT_COLOR if x > over_buy else self.LONG_COLOR if x < over_sell else self.NO_COLOR for x in self.data[self.name+'_rank']]
+    #     return self.data
+
     def calculate(self, **kwargs):
         if self.data is None:
             self.data = self.variety.get_data(self.name)
@@ -164,15 +168,6 @@ class RankColorIndicator(Indicator):
         # fig.update_traces(showlegend=self.showlegend, width=80000000)        
         return fig    
     
-class BasisRateRankColorIndicator(RankColorIndicator):
-    def calculate(self, **kwargs):
-        settle_price = self.variety.get_data('结算价')
-        spot_price = self.variety.get_data('现货价格')
-        self.data = pd.merge(settle_price, spot_price, on='date', how='outer') 
-        self.data[self.name] = (self.data['现货价格'] - self.data['结算价']) / self.data['现货价格']
-        super().calculate()
-        return self.data
-    
 class MapColorIndicator(Indicator):
     COLOR_MAPPING = {
             'Short': {-1: 'red', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'green'},
@@ -200,7 +195,26 @@ class MapColorIndicator(Indicator):
         # fig.update_traces(showlegend=self.showlegend, width=80000000)        
         return fig
 
-class ProfitRankColorIndicator(RankColorIndicator):
+class CalculateRankColorIndicator(RankColorIndicator):
     def calculate(self, **kwargs):
-        # TODO：实现利润计算指标
-        pass
+        def extract_variables(format_str):
+            """从格式字符串中提取变量名"""
+            # 正则表达式模式，匹配中文字符、英文字符和下划线组成的变量名
+            variable_pattern = r'[a-zA-Z_\u4e00-\u9fa5]+'
+            variables = re.findall(variable_pattern, format_str)
+            unique_variables = list(set(variables))
+            return unique_variables
+        formula = self.config.get('Formula', None)
+        factor_list = extract_variables(formula)
+        factor_data = []
+        aeval = Interpreter()       
+        for factor in factor_list:                                                
+             data = self.variety.get_data(factor)
+             factor_data.append(data)
+        self.data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), factor_data)
+        for factor in factor_list:                                                
+            aeval.symtable[factor] = self.data[factor]
+        self.data[self.name] = aeval.eval(formula)        
+        self.data.dropna(subset=[self.name], inplace=True)
+        super().calculate()
+        return self.data

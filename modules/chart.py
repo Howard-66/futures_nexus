@@ -15,7 +15,7 @@ class ChartManager:
 
     def load_indicators(self):
         for key, item in self.data_index.items():
-            class_name = item.get('Class', None)
+            class_name = item.get('Class', None)            
             if class_name and hasattr(indicator, class_name):
                 indicator_class = getattr(indicator, class_name)
                 indicator_instance = indicator_class(key, self.variety, item)
@@ -100,7 +100,7 @@ class ChartManager:
         # 检查并创建主图
         if self.main_figure is None:
             self.main_figure = self._create_main_figure()
-            
+
         # 更新主图第一个坐标轴
         min_y, max_y = _add_trace(self.main_list, calculate_range=True)
         self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=1, col=1)
