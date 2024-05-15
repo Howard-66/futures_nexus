@@ -26,6 +26,7 @@ def RRP(data, window_size):
     return rank_pct
 
 class Indicator(ABC):
+    MaxBars = 500
     def __init__(self, name, variety, config, **params):
         self.name = name
         self.variety = variety
@@ -55,7 +56,8 @@ class Indicator(ABC):
 class SimpleIndicator(Indicator): 
     LINE_COLOR = 'lightblue'
     def calculate(self, **kwargs):
-        self.data = self.variety.get_data(self.name)
+        max_bars = kwargs.get('max_bars', self.MaxBars)
+        self.data = self.variety.get_data(self.name).iloc[-max_bars:] if max_bars > 0 else self.variety.get_data(self.name)
         return
     
     def figure(self, **kwargs):
@@ -106,8 +108,9 @@ class RankColorIndicator(Indicator):
 
     def calculate(self, **kwargs):
         if self.data is None:
-            self.data = self.variety.get_data(self.name)
-        
+            max_bars = kwargs.get('max_bars', self.MaxBars)
+            self.data = self.variety.get_data(self.name).iloc[-max_bars:] if max_bars > 0 else self.variety.get_data(self.name)
+
         # 提取变量，避免多次访问字典
         config = self.config
         direction = config.get('Direction', 'Long')
@@ -174,7 +177,8 @@ class MapColorIndicator(Indicator):
             'Long': {-1: 'green', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'red'},
         }
     def calculate(self, **kwargs):
-        self.data = self.variety.get_data(self.name)
+        max_bars = kwargs.get('max_bars', self.MaxBars)        
+        self.data = self.variety.get_data(self.name).iloc[-max_bars:] if max_bars > 0 else self.variety.get_data(self.name)
         direction = self.config.get('Direction', 'Long')
         color_mapping = self.COLOR_MAPPING[direction]
         self.data[self.name+'_color'] = self.data[self.name].map(color_mapping)
@@ -205,16 +209,17 @@ class CalculateRankColorIndicator(RankColorIndicator):
             unique_variables = list(set(variables))
             return unique_variables
         formula = self.config.get('Formula', None)
+        max_bars = kwargs.get('max_bars', self.MaxBars)        
         factor_list = extract_variables(formula)
         factor_data = []
-        aeval = Interpreter()       
-        for factor in factor_list:                                                
-             data = self.variety.get_data(factor)
-             factor_data.append(data)
+        aeval = Interpreter()
+        for factor in factor_list:
+            data = self.variety.get_data(factor).iloc[-max_bars:] if max_bars > 0 else self.variety.get_data(factor)
+            factor_data.append(data)
         self.data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), factor_data)
-        for factor in factor_list:                                                
+        for factor in factor_list:
             aeval.symtable[factor] = self.data[factor]
-        self.data[self.name] = aeval.eval(formula)        
+        self.data[self.name] = aeval.eval(formula)
         self.data.dropna(subset=[self.name], inplace=True)
         super().calculate()
         return self.data

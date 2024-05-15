@@ -39,47 +39,6 @@ class ChartManager:
         for name, indicator in self.indicators.items():
             indicator.calculate()
 
-    def plot_old(self):
-        if self.main_figure is None:
-            self.main_figure = self._create_main_figure()
-        # 设置主图
-        first_indicator_name = self.main_list[0]
-        indicator_data = self.indicators[first_indicator_name].data
-        filtered_data = indicator_data[(indicator_data['date'] >= self.start_date) & (indicator_data['date'] <= self.end_date)]
-        min_y = filtered_data[first_indicator_name].min() * 0.99
-        max_y = filtered_data[first_indicator_name].max() * 1.01    
-        self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=1, col=1)
-        self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
-        for name in self.main_list:
-            figure = self.indicators[name].figure()
-            # for trace in figure.data:
-            #     self.main_figure.add_trace(trace, row=1, col=1)            
-            self.main_figure.add_trace(figure, row=1, col=1)
-        # 设置主图第二坐标轴
-        first_indicator_name = self.main_y2_list[0]
-        indicator_data = self.indicators[first_indicator_name].data
-        filtered_data = indicator_data[(indicator_data['date'] >= self.start_date) & (indicator_data['date'] <= self.end_date)]
-        min_y = filtered_data[first_indicator_name].min() * 0.99
-        max_y = filtered_data[first_indicator_name].max() * 1.01         
-        self.main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=True)   
-        for name in self.main_y2_list:   
-            figure = self.indicators[name].figure()
-            # for trace in figure.data:
-            #     self.main_figure.add_trace(trace, row=1, col=1, secondary_y=True)                      
-            self.main_figure.add_trace(figure, row=1, col=1, secondary_y=True)
-        # 设置副图
-        for i, name in enumerate(self.sub_list):
-            indicator_instance = self.indicators[name]
-            filtered_data = indicator_instance.data[(indicator_instance.data['date'] >= self.start_date) & (indicator_instance.data['date'] <= self.end_date)]
-            min_y = filtered_data[name].min() * 0.99
-            max_y = filtered_data[name].max() * 1.01
-            figure = indicator_instance.figure()
-            self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=i+2, col=1)
-            self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=i+2, col=1)
-            # for trace in figure.data:
-            #     self.main_figure.add_trace(trace, row=i+2, col=1)                  
-            self.main_figure.add_trace(figure, row=i+2, col=1)
-
     def plot(self):
         def _add_trace(names, secondary_y=False, row=1, calculate_range=True):
             if calculate_range:
