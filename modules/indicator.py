@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 from asteval import Interpreter
 import re
 from functools import reduce
+from statsmodels.tsa.seasonal import seasonal_decompose
+from pykalman import KalmanFilter
 
 # @jit(nopython=True)
 def RRP(data, window_size):
@@ -27,6 +29,9 @@ def RRP(data, window_size):
 
 class Indicator(ABC):
     MaxBars = 500
+    LineColor = 'lightblue'
+    SeasonalLineColor = 'Blue'
+
     def __init__(self, name, variety, config, **params):
         self.name = name
         self.variety = variety
@@ -35,6 +40,7 @@ class Indicator(ABC):
         self.order = config.get('Order', -1)
         self.opacity = config.get('Opacity', 0.5)
         self.showlegend = config.get('ShowLegend', False)
+        self.seasonal = config.get('Seasonal', False)
         self.params = params
         self.data = None
 
@@ -52,16 +58,63 @@ class Indicator(ABC):
         """
         pass
 
+    def get_data_range(self, name, start_date, end_date):
+        filtered_data = self.data[(self.data['date'] >= start_date) & (self.data['date'] <= end_date)]
+        min_y = filtered_data[name].min()
+        max_y = filtered_data[name].max()
+        return min_y, max_y
+    
+    def plot_on(self, main_figure, row, col, secondary_y=False, **kwargs):
+        fig_data = self.figure()
+        main_figure.add_trace(fig_data, row=row, col=col, secondary_y=secondary_y)
+        color = kwargs.get('color', self.SeasonalLineColor)
+        if self.seasonal:
+            # fig_trend= go.Scatter(x=self.data['date'], y=self.data[f'{self.name}_trend'], mode='lines', name='趋势')
+            # main_figure.add_trace(fig_trend, row=row, col=col)
+            fig_seasonal = go.Scatter(x=self.data['date'], y=self.data[f'{self.name}_seasonal'], 
+                                      mode='lines', name='季节性', line=dict(color=color, width=1.5),
+                                      opacity=self.opacity,
+                                      showlegend=self.showlegend)  
+            main_figure.add_trace(fig_seasonal, row=row, col=col, secondary_y=True)
+
+    def _seasonal_calculate(self):
+        # data = rb.get_data(name)
+        data = self.data
+        # 将date列设为索引
+        # data.set_index('date', inplace=True)
+        # 确保数据按照日期排序
+        # data = data.sort_index()        
+        # 设置数据频率为每日，并处理非交易日的缺失值
+        # data = data.asfreq('D')
+        # data[name] = data[name].interpolate(method='time')
+        result = seasonal_decompose(data[self.name].dropna(), model='additive', period=240, two_sided=True, extrapolate_trend='freq')
+        # 季节性曲线平滑-卡尔曼滤波器
+        kf = KalmanFilter(
+            initial_state_mean=0,
+            n_dim_obs=1,
+            transition_matrices=[1],
+            observation_matrices=[1],
+            transition_covariance=0.1 * np.eye(1),  # 过程噪声协方差矩阵Q
+            observation_covariance=1 * np.eye(1)   # 测量噪声协方差矩阵R
+        )# 调整平滑程度：增大Q会减少平滑程度，增大R会增加平滑程度
+        kf.transition_covariance *= 1  # 例如，减小Q来增加平滑
+        kf.observation_covariance *= 20  # 例如，增大R来增加平滑
+        state_means, _ = kf.filter(result.seasonal)
+        # self.data[f'{self.name}_trend'] = result.trend
+        self.data[f'{self.name}_seasonal'] = pd.Series(state_means.flatten(), index=data.index)
+
+
 ### SimpleIndicator Class
 class SimpleIndicator(Indicator): 
-    LINE_COLOR = 'lightblue'
     def calculate(self, **kwargs):
         max_bars = kwargs.get('max_bars', self.MaxBars)
         self.data = self.variety.get_data(self.name).iloc[-max_bars:] if max_bars > 0 else self.variety.get_data(self.name)
+        if self.seasonal:
+            self._seasonal_calculate()
         return
     
     def figure(self, **kwargs):
-        color = self.config.get('Color', self.LINE_COLOR)
+        color = self.config.get('Color', self.LineColor)
         fill = self.config.get('Fill', 'none')
         fill = 'tozeroy' if fill=='Area' else fill
         fig = go.Scatter(x=self.data['date'], y=self.data[self.name], name=self.name,
@@ -138,8 +191,9 @@ class RankColorIndicator(Indicator):
         
         # 将结果转换回 DataFrame
         self.data[self.name+'_color'] = color_array
-        
-        return self.data
+        if self.seasonal:
+            self._seasonal_calculate()        
+        return
     
     def figure(self, **kwargs):
         # 提取常用变量
@@ -182,7 +236,9 @@ class MapColorIndicator(Indicator):
         direction = self.config.get('Direction', 'Long')
         color_mapping = self.COLOR_MAPPING[direction]
         self.data[self.name+'_color'] = self.data[self.name].map(color_mapping)
-        return self.data
+        if self.seasonal:
+            self._seasonal_calculate()        
+        return
     
     def figure(self, **kwargs):
         fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
@@ -222,4 +278,6 @@ class CalculateRankColorIndicator(RankColorIndicator):
         self.data[self.name] = aeval.eval(formula)
         self.data.dropna(subset=[self.name], inplace=True)
         super().calculate()
-        return self.data
+        if self.seasonal:
+            self._seasonal_calculate()
+        return

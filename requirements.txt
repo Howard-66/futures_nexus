@@ -2,12 +2,10 @@ sqlite3
 json
 plotly
 dash
-dash_bootstrap_components
 dash_mantine_components
 akshare
 asteval
 dash-iconify
-polars
-duckdb
 xlsx2csv
 sqlalchemy
+pykalman

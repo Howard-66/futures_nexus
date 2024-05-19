@@ -83,7 +83,7 @@ class VarietyPage:
         # symbol.get_spot_months() # TODO
         with DataWorks() as dws:
             symbol.variety_data = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], symbol.id)
-        symbol.variety_data['date'] = pd.to_datetime(symbol.variety_data['date'])
+        symbol.variety_data['date'] = pd.to_datetime(symbol.variety_data['date'], format='ISO8601')
         self.symbol = symbol
         self.chart_manager = ChartManager(symbol)
         self.chart_manager.load_indicators()

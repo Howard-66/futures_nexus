@@ -55,19 +55,15 @@ class ChartManager:
         return result
 
     def plot(self):
-        def _add_trace(names, secondary_y=False, row=1, calculate_range=True):
-            if calculate_range:
-                first_indicator_name = names[0]
-                indicator_data = self.indicators[first_indicator_name].data
-                filtered_data = indicator_data[(indicator_data['date'] >= self.start_date) & (indicator_data['date'] <= self.end_date)]
-                min_y = filtered_data[first_indicator_name].min() * 0.99
-                max_y = filtered_data[first_indicator_name].max() * 1.01
-            else:
-                min_y = max_y = None
-
+        def _get_data_range(name, trace=None):
+            trace = trace if trace else name
+            min_y, max_y = self.indicators[name].get_data_range(trace, self.start_date, self.end_date)
+            min_y *= 0.99
+            max_y *= 1.01
+            return min_y, max_y
+        def _add_trace(names, row, secondary_y=False):
             for name in names:
-                figure = self.indicators[name].figure()
-                self.main_figure.add_trace(figure, row=row, col=1, secondary_y=secondary_y)
+                self.indicators[name].plot_on(self.main_figure, row, 1, secondary_y)
             
             return min_y, max_y
 
@@ -76,24 +72,34 @@ class ChartManager:
             self.main_figure = self._create_main_figure()
 
         # 更新主图第一个坐标轴
-        min_y, max_y = _add_trace(self.main_list, calculate_range=True)
+        first_indicator_name = self.main_list[0]
+        min_y, max_y = _get_data_range(first_indicator_name)
+        _add_trace(self.main_list, row=1)
         self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=1, col=1)
         self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
 
         # 更新主图第二坐标轴
-        min_y, max_y = _add_trace(self.main_y2_list, secondary_y=True, calculate_range=True)
+        first_indicator_name = self.main_y2_list[0]
+        min_y, max_y = _get_data_range(first_indicator_name)
+        _add_trace(self.main_y2_list, row=1, secondary_y=True)
         self.main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=True)
 
         # 设置副图
         for i, name in enumerate(self.sub_list, start=2):
-            min_y, max_y = _add_trace([name], row=i, calculate_range=True)
+            min_y, max_y = _get_data_range(name)
+            _add_trace([name], row=i)
             self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=i, col=1)
-            self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=i, col=1)
+            self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=i, col=1, secondary_y=False)
+            show_seasonal = self.indicators[name].config.get('Seasonal', False)
+            if show_seasonal:
+                trace_name = f'{name}_seasonal'
+                min_y, max_y = _get_data_range(name, trace_name)
+                self.main_figure.update_yaxes(range=[min_y, max_y], row=i, col=1, secondary_y=True)
 
 
     def _create_main_figure(self):
         now = datetime.now()
-        one_year_ago = now - timedelta(days=365)
+        one_year_ago = now - timedelta(days=730)
         self.end_date = now.strftime('%Y-%m-%d')
         self.start_date = one_year_ago.strftime('%Y-%m-%d')
 

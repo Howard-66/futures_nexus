@@ -60,6 +60,7 @@
             "Formula": "(现货价格-结算价)/现货价格",
             "Type": "RateP",
             "Chart": "Sub",
+            "Seasonal": true,
             "DataFrame": "df_basis_rate"
         },        
         "期限结构": {
@@ -71,6 +72,7 @@
             "Direction": "Long",              
             "Type": "NP1P",
             "Chart": "Sub",            
+            "Seasonal": false,
             "DataFrame": "df_term_structure"
         },        
         "持仓量": {
@@ -82,6 +84,7 @@
             "Direction": "Short",            
             "Type": "AmountN",
             "Chart": "Sub",            
+            "Seasonal": true,
             "DataFrame": "df_dominant"
         },
         "近月合约收盘价": {
@@ -120,6 +123,7 @@
             "Direction": "Short",              
             "Type": "AmountN",
             "Chart": "Sub",            
+            "Seasonal": true,
             "DataFrame": "df_receipt"
         }
     }

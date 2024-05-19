@@ -819,6 +819,7 @@
                 "Direction": "Short",
                 "Type": "AmountN",
                 "Chart": "Sub",
+                "Seasonal": true,
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },            
@@ -887,6 +888,7 @@
                 "Formula": "现货价格-现货价格_I*1.6-现货价格_J*0.5-1200",
                 "Type": "AmountN",
                 "Chart": "Sub",
+                "Seasonal": false,
                 "DataFrame": "df_profit"
             }
         },
