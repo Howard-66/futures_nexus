@@ -2,8 +2,6 @@ import pandas as pd
 import sqlite3
 import json
 import akshare as ak
-import polars as pl
-import duckdb
 from sqlalchemy import create_engine, event
 from sqlalchemy.pool import StaticPool
 from functools import lru_cache
@@ -113,74 +111,3 @@ class DataWorks:
     def close(self):
         self.conn.close()
         self.engine.dispose()
-
-class DataWorksDD:
-    def __init__(self):
-        self.conn = duckdb.connect('data/futures.db')
-        self.variety_setting = None
-        self.variety_json = 'setting/variety.json'
-        self.trade_date = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.conn.close()
-
-    def get_data_by_sql(self, sql):
-        df = self.conn.execute(sql).fetchdf()
-        return pl.from_pandas(df)
-
-    def get_data(self, table, condition, fields='*'):
-        sql = f"SELECT {fields} FROM {table} WHERE {condition}"
-        df = self.conn.execute(sql).fetchdf()
-        return pl.from_pandas(df)
-    def get_data_by_symbol(self, table, symbol_id, fields='*'):
-        condition = f"variety='{symbol_id}'"
-        return self.get_data(table, condition, fields)
-
-    def load_from_dataframe(self, df, to_table, mode='replace'):
-        self.conn.register('df_view', df)
-        if mode == 'replace':
-            self.conn.execute(f"DROP TABLE IF EXISTS {to_table}")
-        self.conn.execute(f"CREATE TABLE {to_table} AS SELECT * FROM df_view")
-
-    def get_last_date(self, table, symbol_id='', date_field='date'):
-        condition = f"variety='{symbol_id}'" if symbol_id else ""
-        sql = f"SELECT MAX({date_field}) FROM {table} {condition}"
-        last_date = self.conn.execute(sql).fetchone()[0]
-        return last_date
-
-    def get_trade_date(self):
-        if self.trade_date is None:
-            trade_date = ak.tool_trade_date_hist_sina()['trade_date']
-            trade_date = pl.from_pandas(trade_date).cast(pl.Datetime('us'))         
-        else:
-            trade_date = self.trade_date
-        return trade_date
-
-    def get_variety_map(self):
-        sql = "SELECT code, name FROM symbols"
-        df = self.conn.execute(sql).fetchdf()
-        self.variety_id_name_map = df.with_columns(pl.col('code')).to_dict()
-        self.variety_name_id_map = df.with_columns(pl.col('name')).to_dict()
-        return self.variety_id_name_map, self.variety_name_id_map
-
-    def load_json_setting(self, json_file):
-        try:
-            with open(json_file, 'r', encoding='utf-8') as setting_file:
-                setting = json.load(setting_file)
-        except IOError as e:
-            setting = None
-            print(f"Error reading configuration: {e}")
-        return setting
-
-    def save_json_setting(self, json_file, setting):
-        try:
-            with open(json_file, 'w', encoding='utf-8') as setting_file:
-                json.dump(setting, setting_file, indent=4, ensure_ascii=False)
-        except IOError as e:
-            print(f"Error saving configuration: {e}")
-
-    def close(self):
-        self.conn.close()

@@ -1,6 +1,35 @@
 {
-    "black_metal": {
-        "chain_overview": {},
-        "variety_list": ["RB", "I", "J", "SS", "HC"]
+    "黑色金属": {
+        "variety_list": ["RB", "I", "SM", "HC", "SF", "SS"],
+        "Path": "black_metals"
+    },
+    "贵金属":{
+        "variety_list": ["AU", "AG"],
+        "Path": "gold_metals"
+    },
+    "有色金属":{
+        "variety_list": ["CU", "AL", "AO", "ZN", "NI", "PB", "SN", "BC"],
+        "Path": "metals"
+    },
+    "化工":{
+        "variety_list": ["SA", "PVC", "PP", "L", "RU", "MA", "TA", "LC", "UR", "EC", "EB", "PG", "SH", "BU", "PX", "NR", "PT", "BR"]
+    },
+    "油脂油料":{
+        "variety_list": ["OI", "P", "Y", "M", "RM", "A", "B"]
+    },
+    "原油":{
+        "variety_list": ["SC", "FU", "LU"]
+    },
+    "轻工":{
+        "variety_list": ["FG", "SP"]
+    },
+    "农产品":{
+        "variety_list": ["CF", "SR", "C"]
+    },
+    "煤炭":{
+        "variety_list": ["JM", "J", "ZC"]
+    },
+    "农副产品":{
+        "variety_list": ["LH", "JD", "AP", "CJ", "PK"]
     }
 }
