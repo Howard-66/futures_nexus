@@ -11,7 +11,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from modules.variety import Variety
 from modules.chart import ChartManager
-dash.register_page(__name__, path="/variety/basis")
+dash.register_page(__name__, path="/variety/basis", title='Futures Nexus: 基本面分析')
 
 variety_page_maps = {}
 active_variety_page = None
