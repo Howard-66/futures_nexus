@@ -429,6 +429,7 @@ def layout(variety_id=None, **other_unknown_query_strings):
 # - 使用memoization机制处理无参数变化的输入
 # - 使用Store存储/传递共享数据
 # Add controls to build the interaction
+    
 @callback(
     Output('main-figure-placeholder', 'figure'),
     Input('show-indexs', 'value'),

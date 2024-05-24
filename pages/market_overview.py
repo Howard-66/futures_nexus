@@ -8,7 +8,7 @@ import plotly.express as px
 
 dash.register_page(__name__, path='/', title='Futures Nexus: 市场全景')
 
-main_content = html.Div('This is our Home page content.')
+UserData = {}
 
 heat_map_switch = dmc.ChipGroup(
     [dmc.Chip(x, value=x) for x in ["持仓量", "成交量"]],
@@ -20,7 +20,7 @@ heat_map_panel = dmc.Paper(
     dmc.Stack(
         [
             dmc.Group([
-                dmc.Text("市场热力图", size="lg"),
+                dmc.Text("市场热力图", id='current-path', w=180),
                 heat_map_switch,
             ]),            
             dmc.LoadingOverlay(dcc.Graph(id='market-heatmap-placeholder', config={'displayModeBar': False}),),
@@ -39,10 +39,11 @@ class MarketOverviewPage:
 
     def get_layout(self):
         if self.main_content is None:
-            layout = heat_map_panel
-        else:
-            layout = self.main_content
-        return layout
+            self.main_content = html.Div(
+                [heat_map_panel,]
+            )
+
+        return self.main_content
     
     def create_heat_map(self, type):
         if self.heatmap_data is None:
@@ -59,8 +60,18 @@ class MarketOverviewPage:
         return fig
 
 OverviewPages = {}
-
-def layout():
+blank_content = html.Div([
+    dmc.NavLink(id="open-chain-page"),
+    dmc.NavLink(id="open-variety-page"),
+    dmc.NavLink(id="open-all-variety"),
+    dmc.ChipGroup(id='heat-map-switch'),
+    dcc.Graph(id='market-heatmap-placeholder'),
+])
+def layout(step=None, **other_unknown_query_strings):
+    # if step is None:
+    #     return html.Div([
+    #         blank_content
+    #     ])
     if 'MarketOverview' not in OverviewPages:
         market_overview = MarketOverviewPage()
         OverviewPages['MarketOverview'] = market_overview
@@ -79,7 +90,7 @@ def update_heat_map(type):
 
 
 @callback(
-    Output('output', 'children', allow_duplicate=True),
+    Output('current-path', 'children'),
     Input('market-heatmap-placeholder', 'clickData'),
     prevent_initial_call=True
 )
@@ -87,20 +98,27 @@ def heatmap_callback(click_data):
     if click_data is None:
         return dash.no_update
     clicked_path = click_data['points'][0]['id']
-    print(clicked_path)
+    UserData['HeatmapClickedPath'] = clicked_path
+    return clicked_path
 
 @callback(
-    Output('output', 'children', allow_duplicate=True),
+    Output("segmented-variety-switcher", "value", allow_duplicate=True),
     Input('open-variety-page', 'n_clicks'),
-    State('market-heatmap-placeholder', 'clickData'),
+    # State('market-heatmap-placeholder', 'clickData'),
+    State('current-path', 'children'),
     prevent_initial_call=True
 )
-def open_variety_page(n_clicks, heatmap_data):
-    if heatmap_data is None:
+def open_variety_page(n_clicks, clicked_path):
+    if clicked_path is None:
         return dash.no_update
-    clicked_path = heatmap_data['points'][0]['id']
+    with dw.DataWorks() as dws:
+        variety_id_name_map, variety_name_id_map = dws.get_variety_map()    
     path_level = clicked_path.split('/')
     levels = len(path_level)
     chain_name = path_level[1] if levels>1 else None
     vareity_name = path_level[2] if levels>2 else None
-    print(chain_name, vareity_name)
+    if vareity_name is None:
+        return dash.no_update
+    return variety_name_id_map[vareity_name]
+
+

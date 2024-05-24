@@ -5,8 +5,18 @@ import akshare as ak
 from sqlalchemy import create_engine, event
 from sqlalchemy.pool import StaticPool
 from functools import lru_cache
+import threading
 
 class DataWorks:
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        with cls._lock:
+            if not cls._instance:
+                cls._instance = super(DataWorks, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+    
     def __init__(self, db_uri='sqlite:///data/futures.db') -> None:
         # self.engine = create_engine(db_uri)
         # self.conn = self.engine.connect()
@@ -22,7 +32,9 @@ class DataWorks:
         self.variety_id_name_map = None
         self.variety_name_id_map = None
         self.trade_date = None
+        
     def __enter__(self):
+        self.conn = self.engine.connect()
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
