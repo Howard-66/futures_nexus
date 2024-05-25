@@ -79,10 +79,11 @@ class ChartManager:
         self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
 
         # 更新主图第二坐标轴
-        first_indicator_name = self.main_y2_list[0]
-        min_y, max_y = _get_data_range(first_indicator_name)
-        _add_trace(self.main_y2_list, row=1, secondary_y=True)
-        self.main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=True)
+        if len(self.main_y2_list)>0:
+            first_indicator_name = self.main_y2_list[0]
+            min_y, max_y = _get_data_range(first_indicator_name)
+            _add_trace(self.main_y2_list, row=1, secondary_y=True)
+            self.main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=True)
 
         # 设置副图
         for i, name in enumerate(self.sub_list, start=2):

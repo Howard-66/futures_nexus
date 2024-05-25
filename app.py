@@ -4,25 +4,27 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from dataworks import DataWorks
 import platform
+import re
 
 CurrentSystem = platform.system()
-SideBarTop = 0 if CurrentSystem == 'Darwin' else 326
-SIDEBAR_WIDTH = 200
-PAGE_BACKGROUND_COLOR = "#f5f5f5"
+SideBarTop = 88 if CurrentSystem == 'Darwin' else 326
+SideBarWidth = 200
+PageBackgroundColor = "#f5f5f5"
+MainContextHeight = 1400
 
 app = Dash(__name__, 
            use_pages=True,       
            prevent_initial_callbacks='initial_duplicate')
 
 quick_access = html.Div(
-    style={"width": SIDEBAR_WIDTH, "height": "auto"},
+    style={"width": SideBarWidth, "height": "auto"},
     children=[
         dmc.NavLink(
-            label="板块品种",
+            label="活跃商品",
             icon=DashIconify(icon="akar-icons:link-chain", width=24),
             childrenOffset=28,
             children=[
-                dmc.NavLink(label="First child link"),
+                dmc.NavLink(label="螺纹钢", href='/variety/basis?variety_id=RB'),
                 dmc.NavLink(label="Second child link"),
             ],
             variant="subtle",
@@ -44,6 +46,28 @@ quick_access = html.Div(
         ),
     ],
 )
+
+# 创建NavLink子项的函数
+def create_nav_links(labels):
+    return [dmc.NavLink(label=label, variant="subtle") for label in labels]
+
+# 创建一级NavLink的函数
+def create_primary_nav_links(data):
+    nav_links = []
+    for category, items in data["Favorites"].items():
+        icon = DashIconify(icon="akar-icons:link-chain", width=24) if category == "活跃商品" else DashIconify(icon="fluent-mdl2:favorite-list", width=24)
+        nav_links.append(
+            dmc.NavLink(
+                label=category,
+                icon=icon,
+                childrenOffset=28,
+                children=create_nav_links(items),
+                variant="subtle",
+                opened=True,
+                active=True,
+            )
+        )
+    return nav_links
 
 def create_variety_stepper(variety_id):
     analysis_stepper = dmc.Stepper(
@@ -172,7 +196,7 @@ sidebar = dmc.Paper(
     ],
     shadow="sm",
     # p="xl",
-    h=1300,
+    h=MainContextHeight,
     withBorder=False,
 )
 
@@ -181,11 +205,11 @@ navbar = dmc.Navbar(
         sidebar
     ],
     # p="sm",
-    width={"base": SIDEBAR_WIDTH+50},
-    height=1300,
+    width={"base": SideBarWidth+50},
+    height=MainContextHeight,
     withBorder=False,
     fixed=True,
-    style={"backgroundColor": PAGE_BACKGROUND_COLOR},
+    style={"backgroundColor": PageBackgroundColor},
 )
 
 # 头部菜单
@@ -315,7 +339,7 @@ seg_variety = dmc.SegmentedControl(
     ],
     # mt=10,
     color="#E0E0E0",
-    style={"backgroundColor": PAGE_BACKGROUND_COLOR}
+    style={"backgroundColor": PageBackgroundColor}
 ),
 
 # 品种工具栏
@@ -329,7 +353,7 @@ tab_bar = dmc.Grid(
             dmc.ActionIcon(DashIconify(icon="tabler:settings"), id="button-methond-config", variant="subtle", color="blue", size=36, radius="xs"),
             xs=0.35),           
     ],
-    # style={"backgroundColor": PAGE_BACKGROUND_COLOR},
+    # style={"backgroundColor": PageBackgroundColor},
 )
 
 # 主内容框架
@@ -351,11 +375,13 @@ main_context = dmc.Grid(
         span="auto"),
     ],
     gutter="5",
-    style={"backgroundColor": PAGE_BACKGROUND_COLOR},
+    h=MainContextHeight,
+    style={"backgroundColor": PageBackgroundColor},
 )
 
 app.layout = html.Div(
     [
+        dcc.Location(id='url', refresh=False),
         dmc.MantineProvider(
             dmc.Stack(
                 children=[
@@ -452,6 +478,19 @@ def variety_search_callback(value, data):
         return dash.no_update, dash.no_update
     # 当data和value不为None时，更新value，不更新选项列表
     return value, dash.no_update
+
+@app.callback(
+    Output("segmented-variety-switcher", "value", allow_duplicate=True),
+    Input("url", "pathname"),
+    Input("url", "search"),
+    prevent_initial_call=True
+)
+def redir_update_variety(pathname, search):
+    match = re.search(r'variety_id=([A-Za-z]+)', search)
+    print(search, match)
+    if match:
+        return match.group(1)
+    return dash.no_update
 
 @app.callback(
     Output("_pages_location", "pathname"),

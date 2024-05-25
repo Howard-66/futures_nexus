@@ -154,7 +154,7 @@ class Variety:
             # self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
             # 剔除非交易日数据
             # trade_date = dws.get_trade_date()
-        dws.close()
+            
         # valid_dates_mask = self.symbol_data['date'].isin(trade_date)
         # self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   
         self.data_source = data_cache

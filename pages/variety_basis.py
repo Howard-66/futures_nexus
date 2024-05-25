@@ -96,8 +96,8 @@ class VarietyPage:
         # 获取用户设置
         self.user_json='setting/user.json'
         user_setting = dws.load_json_setting(self.user_json)
-        if symbol.id not in user_setting:
-            user_setting[symbol.id] = {}
+        if symbol.id not in user_setting['Variety']:
+            user_setting['Variety'][symbol.id] = {}
             # dws.save_json_setting(self.user_json, user_setting)        
         self.user_setting = user_setting  
         self.main_figure = None
@@ -105,8 +105,8 @@ class VarietyPage:
  
     def create_analyzing_layout(self):
         all_fields = self.chart_manager.sub_list
-        if 'ShowIndexs' in self.user_setting[self.symbol.id]:
-            show_fields = self.user_setting[self.symbol.id]['ShowIndexs']
+        if 'ShowIndexs' in self.user_setting['Variety'][self.symbol.id]:
+            show_fields = self.user_setting['Variety'][self.symbol.id]['ShowIndexs']
         else:
             show_fields = all_fields           
         left_panel = dmc.Stack(
@@ -211,7 +211,7 @@ class VarietyPage:
     def create_figure(self, indicator_list, look_forward_months):                
         symbol = self.symbol
         if indicator_list != self.show_indexs:
-            self.user_setting[symbol.id]['ShowIndexs'] = indicator_list
+            self.user_setting['Variety'][symbol.id]['ShowIndexs'] = indicator_list
             with DataWorks() as dws:
                 dws.save_json_setting(self.user_json, self.user_setting)    
             self.show_indexs = indicator_list
