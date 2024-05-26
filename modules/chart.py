@@ -132,7 +132,7 @@ class ChartManager:
         self.main_figure.update_layout(
             autosize=True,
             # width=3000,
-            height=1200,
+            # height=1200,
             margin=dict(l=0, r=0, t=0, b=0),
             plot_bgcolor='#f5f5f5',  
             paper_bgcolor='#f5f5f5',

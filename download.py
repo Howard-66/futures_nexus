@@ -463,7 +463,7 @@ download_config = {
     'get_dce_contract': '获取DCE合约',
     'get_czce_contract': '获取CZCE合约',
     'get_shfe_contract': '获取SHFE合约',
-    'get_contract_info': '获取合约信息',
+    # 'get_contract_info': '获取合约信息',
     'get_main_contract': '获取主力合约',
     'get_near_contract': '获取次主力合约',
     'get_receipt': '获取注册仓单',

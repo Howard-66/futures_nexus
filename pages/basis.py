@@ -1,78 +1,26 @@
-import numpy as np
 import pandas as pd
+
 import dash
-from dash import html, dcc, callback, Input, Output, State
 import dash_mantine_components as dmc
 from dataworks import DataWorks
-import akshare as ak
+from dash import Dash, dcc, html, Input, Output, callback
 from datetime import datetime, timedelta
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
-from plotly.subplots import make_subplots
 from modules.variety import Variety
 from modules.chart import ChartManager
-dash.register_page(__name__, path="/variety/basis-old", title='Futures Nexus: 基本面分析')
 
+dash.register_page(__name__, path="/variety/basis", title='Futures Nexus: 基本面分析')
+
+HeaderHeight = 70
+NavbarWidth = 240
+AsideWidth = 300
+MainContentHeight = 1250
+MainContentPaddingTop = 70
 variety_page_maps = {}
 active_variety_page = None
 
-quant_tags = html.Div([
-    dmc.Text('量化分析标签', c='darkblue'),
-    html.Div(
-        html.Span(
-            id='html-analyzing-tags'
-        ),    
-    ),
-])
-
-analyzing_log = html.Div([
-    dmc.Text('盈利-风险测算', c='darkblue'),
-    html.Div(id='html-profit-loss'),
-    # html.Hr(),
-    # dmc.Text('综合分析', color='darkblue'),
-    # dmc.Textarea(placeholder="分析结论", id='txt-log-conclusion'),
-    # html.Div([
-    #     dmc.Button("删除", color="red", id='bt-log-delete'),
-    #     dmc.Button("保存", color="blue", id='bt-log-save'),
-    # ])
-])
-
-right_panel = dmc.Stack(
-    [
-        # 量化标签
-        dmc.Paper(
-            quant_tags,
-            shadow="sm",
-            radius="xs",
-            p="xs",
-            withBorder=True,                           
-        ),          
-        # 期限结构分析图表
-        dmc.Paper(
-            dcc.Graph(figure={}, id='term-figure-placeholder', config={'displayModeBar': False}),
-            shadow="sm",
-            radius="xs",
-            p="xs",
-            withBorder=True,                           
-        ),
-        # 跨期分析图表
-        dmc.Paper(
-            dcc.Graph(figure={}, id='intertemporal-figure-placeholder', config={'displayModeBar': False}),
-            shadow="sm",
-            radius="xs",
-            p="xs",
-            withBorder=True,                           
-        ),         
-        dmc.Paper(
-            analyzing_log,
-            shadow="sm",
-            radius="xs",
-            p="xs",
-            withBorder=True,                           
-        ),     
-    ],  
-    p=10,
-)
 
 class VarietyPage:
     def __init__(self, name) -> None:
@@ -119,13 +67,12 @@ class VarietyPage:
                         dmc.MultiSelect(
                             # label="分析指标:",
                             # placeholder="Select all you like!",
-                            id="show-indexs",
+                            id="show-indicators",
                             hidePickedOptions=True,
-                            value=all_fields,
+                            value=show_fields,
                             data=all_fields,
-                            w=400,
-                            mb=140,
-                            dropdownOpened=True,
+                            # w=400,
+                            # mb=140,
                         ),
                         # dmc.Divider(orientation='vertical'),
                         # dmc.Text("价格类型:", size='xs'),
@@ -145,14 +92,14 @@ class VarietyPage:
                         dmc.Select(
                             size='xs',
                             data=[
-                                {'label': '6个月', 'value': 6},
-                                {'label': '1年', 'value': 12},
-                                {'label': '2年', 'value': 24},
-                                {'label': '3年', 'value': 36},
-                                {'label':'5年', 'value': 60},
-                                {'label':'全部', 'value': 0}],
-                            value=12,
-                            id='trace-back-months',
+                                {'label': '6个月', 'value': "120"},
+                                {'label': '1年', 'value': "240"},
+                                {'label': '2年', 'value': "480"},
+                                {'label': '3年', 'value': "720"},
+                                {'label':'5年', 'value': "1200"},
+                                {'label':'全部', 'value': "0"}],
+                            value="240",
+                            id='traceback-window',
                             style={'width': 80}
                         ),
                         dmc.Divider(orientation='vertical'),
@@ -183,23 +130,25 @@ class VarietyPage:
                     ],
                 ),
                 # 图表面板
-                dmc.LoadingOverlay(
-                    [
-                        dcc.Graph(id='main-figure-placeholder', config={'displayModeBar': False}),
-                    ],
-                    visible=False,
-                    overlayProps={"radius": "sm", "blur": 2},
-                )
+                # dmc.LoadingOverlay(
+                #     [
+                #         dcc.Graph(id='basis-figure', config={'displayModeBar': False}),
+                #     ],
+                #     visible=False,
+                #     overlayProps={"radius": "sm", "blur": 2},
+                # ),
+                dcc.Graph(id='basis-figure', config={'displayModeBar': False}, style={'height': '100%'}),
             ],
             gap="xs",
+            style={'height': 1250}
         )              
-        layout = dmc.Grid([
-                    # 左侧面板
-                    dmc.GridCol(left_panel, span=9),
-                    # 右侧面板
-                    dmc.GridCol(right_panel, span=3)
-        ])        
-        return layout
+        # layout = dmc.Grid([
+        #             # 左侧面板
+        #             dmc.GridCol(left_panel, span=9),
+        #             # 右侧面板
+        #             # dmc.GridCol(right_panel, span=3)
+        # ])        
+        return left_panel
 
     def get_layout(self):
         if self.main_content is None:
@@ -213,7 +162,7 @@ class VarietyPage:
         else:
             # print(self.main_content.children[0].children[0].children)
             # print(self.main_content.children[0].children[0].children.children[1].children[1])
-            self.main_content.children[0].children[0].children.children[1].children[1].value=self.show_indexs
+            # self.main_content.children[0].children[0].children.children[1].children[1].value=self.show_indexs
             layout = self.main_content
         self.on_layout = True
         return layout
@@ -395,12 +344,12 @@ blank_content = html.Div([
     dmc.Modal(id='modal-chart-config'),
     html.I(id='config-button'),
     dmc.Button(id='close-button'),
-    dcc.Graph(id='main-figure-placeholder'),
-    dmc.CheckboxGroup([], id='show-indexs'),
+    dcc.Graph(id='basis-figure'),
+    dmc.CheckboxGroup([], id='show-indicators'),
     # dmc.RadioGroup([], id="price-type"),
     dmc.CheckboxGroup([],id='mark-spot-months'),
     # dmc.CheckboxGroup(id='select-synchronize-index'),
-    dmc.Slider(id='trace-back-months'),
+    dmc.Slider(id='traceback-window'),
     html.Span(id='html-analyzing-tags'),
     html.Div(id='html-profit-loss'),
     dmc.Textarea(id='txt-log-conclusion'),
@@ -408,7 +357,7 @@ blank_content = html.Div([
     dmc.Button(id='bt-log-save'),
     dcc.Graph(id='term-figure-placeholder'),
     dcc.Graph(id='intertemporal-figure-placeholder')
-])
+])    
 
 def layout(variety_id=None, **other_unknown_query_strings):
     if variety_id is None:
@@ -432,6 +381,7 @@ def layout(variety_id=None, **other_unknown_query_strings):
     # print("Layout: ", layout)
     return layout
 
+
 # TODO:
 # - 使用 prevent_initial_call避免以input的初始值调用回调函数
 # - 使用PreventUpdate和dash.no_update明确不需要更新的内容
@@ -441,15 +391,15 @@ def layout(variety_id=None, **other_unknown_query_strings):
 # Add controls to build the interaction
     
 @callback(
-    Output('main-figure-placeholder', 'figure'),
-    Input('show-indexs', 'value'),
+    Output('basis-figure', 'figure'),
+    Input('show-indicators', 'value'),
     # Input('price-type', 'value'),
     # Input('mark-spot-months', 'checked'),
     # Input('select-synchronize-index', 'value'),
-    Input('trace-back-months', 'value'),
+    Input('traceback-window', 'value'),
     # allow_duplicate=True
 )
-def update_graph(indicator_list, look_forward_months_value):   
+def update_graph(indicator_list, traceback_window):   
     if 'active_variety' not in variety_page_maps:
         return dash.no_update
     variety_page = variety_page_maps['active_variety']
@@ -460,92 +410,5 @@ def update_graph(indicator_list, look_forward_months_value):
         symbol = variety_page.symbol
         # symbol_chain = variety_page.symbol_chain
         # df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
-        figure = variety_page.create_figure(indicator_list, look_forward_months_value)
+        figure = variety_page.create_figure(indicator_list, int(traceback_window))
     return figure
-    
-@callback(
-    Output('term-figure-placeholder', 'figure'),
-    Output('intertemporal-figure-placeholder', 'figure'),
-    # Output('radio_trade_type', 'value'),
-    Output('html-analyzing-tags', 'children'),
-    Output('html-profit-loss', 'children'),
-    Input('main-figure-placeholder', 'clickData'),
-    allow_duplicate=True)
-def display_click_data(clickData):
-    if clickData is not None:
-        variety_page = variety_page_maps['active_variety']
-        symbol = variety_page.symbol
-        # 获取第一个被点击的点的信息
-        point_data = clickData['points'][0]
-        # 获取x轴坐标
-        display_date = point_data['x']
-        click_date = datetime.strptime(display_date, '%Y-%m-%d')
-        spot_price = point_data['y']
-        # 绘制期限结构视图
-        term_fig, df_dominant_contract, term_flag = variety_page.display_term_structure_figure(click_date, spot_price)
-        # 绘制跨期套利分析视图
-        cross_term_figure, profit_loss = variety_page.display_cross_term_figure(click_date, df_dominant_contract)
-        # 准备分析日志数据
-        flag_color ={'Long': 'red', 'Short': 'lime', 'X': 'gray'}
-        flag_color2 ={'red': 'red', 'green': 'lime', 'gray': 'gray'}        
-        # trade_type = {'Long': '单边/跨期做多', 'Short': '单边/跨期做空'}
-        # basis = clickData['points'][2]['y']
-        # basis_flag = 'Long' if basis>0 else 'Short'
-
-        # show_data_rank = symbol.data_rank.iloc[-SHOW_CHART_NUMBERS:]
-        # click_data = show_data_rank[show_data_rank['date']==click_date]
-        flag_list = variety_page.show_indexs        
-        # color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
-
-        color_list = variety_page.chart_manager.get_indicator_data(click_date, flag_list, 'color')
-        # html_analyzing_tags =[
-        #     #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
-        #         dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
-        #         html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]        
-        html_analyzing_tags =[dmc.Badge(flag, color=color_list[index]) for index, flag in enumerate(flag_list)]           
-        strategy = []
-        direction = []
-        point_diff =[]
-        percent = []
-        duration = []
-        for key, value in profit_loss.items():
-            strategy.append(key)
-            strategy.append('')
-            for key2, value2 in value.items():
-                direction.append(key2)
-                point_diff.append(value2['点差'])
-                percent.append(format(value2['%']*100, '.2f'))
-                duration.append(value2['持续时间'])
-            
-        df = pd.DataFrame(
-            {
-                "策略": strategy,
-                "方向": direction,
-                "点差": point_diff,
-                "%": percent,
-                "周期": duration,
-            }
-        )        
-        columns, values = df.columns, df.values
-        header = [html.Tr([html.Th(col) for col in columns])]
-        rows = [html.Tr([html.Td(cell) for cell in row]) for row in values]      
-        html_profit_loss = dmc.Table([html.Thead(header), html.Tbody(rows)], striped=True, highlightOnHover=True, withBorder=False, withColumnBorders=False)
-        return term_fig, cross_term_figure, html_analyzing_tags, html_profit_loss
-    else:
-        return {}, {}, {}, {}
-
-@callback(
-    Output(component_id='main-figure-placeholder', component_property='figure', allow_duplicate=True),
-    Input('main-figure-placeholder', 'relayoutData'),
-    prevent_initial_call=True
-)
-def display_relayout_data(relayoutData):
-    # if 'symbol_figure' not in page_property:
-    #     return dash.no_update
-    if relayoutData and 'xaxis.range[0]' in relayoutData and 'xaxis.range[1]' in relayoutData:
-        variety_page = variety_page_maps['active_variety']
-        xaxis_range = [relayoutData['xaxis.range[0]'], relayoutData['xaxis.range[1]']]
-        main_figure = variety_page.update_yaxes(xaxis_range)
-        return main_figure
-    else:
-        return dash.no_update
