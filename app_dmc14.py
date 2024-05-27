@@ -343,6 +343,26 @@ seg_variety = dmc.SegmentedControl(
     # style={"backgroundColor": PageBackgroundColor}
 ),
 
+favorite_toggle = dmc.ActionIcon(
+    [
+        DashIconify(
+            icon="clarity:favorite-line",
+            width=25,
+            id="add-favorite-icon",
+        ),
+        DashIconify(
+            icon="clarity:favorite-solid",
+            width=25,
+            id="remove-favorite-icon",
+        ),
+    ],
+    variant="transparent",
+    color="yellow",
+    id="favorite-toggle",
+    size="lg",
+    ms="auto"
+)
+
 # 品种工具栏
 tab_bar = dmc.Grid(
     [
@@ -350,7 +370,18 @@ tab_bar = dmc.Grid(
         dmc.GridCol(
             dmc.ActionIcon(DashIconify(icon="carbon:close-outline"), id="button-remove-tab", variant="subtle", color="blue", size=36, radius="xs"), span="content"),
         dmc.GridCol(                  
-            dmc.ActionIcon(DashIconify(icon="tabler:settings"), id="button-methond-config", variant="subtle", color="blue", size=36, radius="xs"), span="content"),           
+            dmc.ActionIcon(
+                [
+                    DashIconify(icon="clarity:favorite-line", id="add-favorite-icon",),
+                    # DashIconify(icon="clarity:favorite-solid", id="remove-favorite-icon",),
+                ],
+                variant="transparent",
+                color="yellow",
+                id="favorite-toggle",
+                size=36,
+                ms="auto"
+            ),
+        span="content"),           
     ],
     # style={"backgroundColor": PageBackgroundColor},
 )

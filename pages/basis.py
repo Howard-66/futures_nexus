@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from modules.variety import Variety
 from modules.chart import ChartManager
+from dash_iconify import DashIconify
 
 dash.register_page(__name__, path="/variety/basis", title='Futures Nexus: 基本面分析')
 
@@ -63,17 +64,44 @@ class VarietyPage:
                 dmc.Space(h=2),
                 dmc.Group(
                     [
-                        dmc.Text("分析指标:", size='xs'),
-                        dmc.MultiSelect(
-                            # label="分析指标:",
-                            # placeholder="Select all you like!",
-                            id="show-indicators",
-                            hidePickedOptions=True,
-                            value=show_fields,
-                            data=all_fields,
-                            # w=400,
-                            # mb=140,
+                        dmc.Popover(
+                            [
+                                dmc.PopoverTarget(
+                                    dmc.Button("分析指标", variant='outline', size='xs')),
+                                dmc.PopoverDropdown(
+                                    [
+                                        dmc.CheckboxGroup(
+                                            id="show-indicators",
+                                            label="选择要显示的指标",
+                                            # description="This is anonymous",
+                                            # withAsterisk=True,
+                                            mb=10,
+                                            children=dmc.Stack(
+                                                [dmc.Checkbox(label=l, value=l) for l in all_fields],
+                                                mt=10,
+                                            ),
+                                            value=show_fields,
+                                        ),
+                                    ]
+                                )
+                            ],
+                            width=300,
+                            position="bottom-start",
+                            withArrow=True,
+                            trapFocus=True,
+                            shadow="sm",                            
                         ),
+                        # dmc.Text("分析指标:", size='xs'),
+                        # dmc.MultiSelect(
+                        #     # label="分析指标:",
+                        #     # placeholder="Select all you like!",
+                        #     id="show-indicators",
+                        #     hidePickedOptions=True,
+                        #     value=show_fields,
+                        #     data=all_fields,
+                        #     # w=400,
+                        #     # mb=140,
+                        # ),
                         # dmc.Divider(orientation='vertical'),
                         # dmc.Text("价格类型:", size='xs'),
                         # dmc.Select(
@@ -86,7 +114,7 @@ class VarietyPage:
                         #     style={'width': 100}
                         # ),
                         dmc.Divider(orientation='vertical'),
-                        dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, radius="lg", size='xs'),                        
+                        dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, labelPosition="left", radius="lg", size='xs'),                        
                         dmc.Divider(orientation='vertical'),
                         dmc.Text("回溯周期:", size='xs'),
                         dmc.Select(
@@ -102,31 +130,6 @@ class VarietyPage:
                             id='traceback-window',
                             style={'width': 80}
                         ),
-                        dmc.Divider(orientation='vertical'),
-                        dmc.Popover(
-                            [
-                                dmc.PopoverTarget(dmc.Button("分析日志", variant='outline', size='xs')),
-                                dmc.PopoverDropdown(
-                                    [
-                                        dmc.Textarea(
-                                                label="分析结论：",
-                                                placeholder="综合基本面量化模型进行分析……",
-                                                style={"width": 270},
-                                                autosize=True,
-                                                minRows=2,
-                                        ),        
-                                        dmc.Space(h=10),
-                                        dmc.Button('保存', id='save-log', color='Indigo', variant='outline', size='xs'),                                        
-                                        dmc.Button('删除', id='remove-log', color='Orange', variant='outline', size='xs'),                     
-                                    ]
-                                )
-                            ],
-                            width=300,
-                            position="bottom",
-                            withArrow=True,
-                            trapFocus=True,
-                            shadow="sm",                            
-                        )                        
                     ],
                 ),
                 # 图表面板
