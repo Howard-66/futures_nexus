@@ -29,6 +29,11 @@ class MarketOverviewPage:
                                 ),
                             ]
                         ),
+                        dmc.LoadingOverlay(
+                            id='market-heatmap-loading',
+                            visible=True,
+                            overlayProps={"radius": "sm", "blur": 2},
+                        ),
                         dcc.Graph(id='market-heatmap', config={'displayModeBar': False}),
                     ]
                 ),
@@ -84,11 +89,15 @@ def layout():
         
     return OverviewPages['MarketOverview'].get_layout()
 
-@callback(Output("market-heatmap", "figure"), Input("heat-map-update", "value"))
+@callback(
+        Output("market-heatmap", "figure"), 
+        Output("market-heatmap-loading", "visible"),
+        Input("heat-map-update", "value")
+)
 def update_heatmap(type):
     market = OverviewPages['MarketOverview']
     fig = market.create_heat_map(type)
-    return fig
+    return fig, False
 
 
 @callback(

@@ -440,112 +440,112 @@ def layout(variety_id=None, **other_unknown_query_strings):
 # - 使用Store存储/传递共享数据
 # Add controls to build the interaction
     
-@callback(
-    Output('main-figure-placeholder', 'figure'),
-    Input('show-indexs', 'value'),
-    # Input('price-type', 'value'),
-    # Input('mark-spot-months', 'checked'),
-    # Input('select-synchronize-index', 'value'),
-    Input('trace-back-months', 'value'),
-    # allow_duplicate=True
-)
-def update_graph(indicator_list, look_forward_months_value):   
-    if 'active_variety' not in variety_page_maps:
-        return dash.no_update
-    variety_page = variety_page_maps['active_variety']
-    if variety_page.on_layout and variety_page.main_figure is not None:
-        figure = variety_page.main_figure
-        variety_page.on_layout = False
-    else:
-        symbol = variety_page.symbol
-        # symbol_chain = variety_page.symbol_chain
-        # df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
-        figure = variety_page.create_figure(indicator_list, look_forward_months_value)
-    return figure
+# @callback(
+#     Output('main-figure-placeholder', 'figure'),
+#     Input('show-indexs', 'value'),
+#     # Input('price-type', 'value'),
+#     # Input('mark-spot-months', 'checked'),
+#     # Input('select-synchronize-index', 'value'),
+#     Input('trace-back-months', 'value'),
+#     # allow_duplicate=True
+# )
+# def update_graph(indicator_list, look_forward_months_value):   
+#     if 'active_variety' not in variety_page_maps:
+#         return dash.no_update
+#     variety_page = variety_page_maps['active_variety']
+#     if variety_page.on_layout and variety_page.main_figure is not None:
+#         figure = variety_page.main_figure
+#         variety_page.on_layout = False
+#     else:
+#         symbol = variety_page.symbol
+#         # symbol_chain = variety_page.symbol_chain
+#         # df_profit = symbol.get_profits(radio_future_value, symbol_chain)    
+#         figure = variety_page.create_figure(indicator_list, look_forward_months_value)
+#     return figure
     
-@callback(
-    Output('term-figure-placeholder', 'figure'),
-    Output('intertemporal-figure-placeholder', 'figure'),
-    # Output('radio_trade_type', 'value'),
-    Output('html-analyzing-tags', 'children'),
-    Output('html-profit-loss', 'children'),
-    Input('main-figure-placeholder', 'clickData'),
-    allow_duplicate=True)
-def display_click_data(clickData):
-    if clickData is not None:
-        variety_page = variety_page_maps['active_variety']
-        symbol = variety_page.symbol
-        # 获取第一个被点击的点的信息
-        point_data = clickData['points'][0]
-        # 获取x轴坐标
-        display_date = point_data['x']
-        click_date = datetime.strptime(display_date, '%Y-%m-%d')
-        spot_price = point_data['y']
-        # 绘制期限结构视图
-        term_fig, df_dominant_contract, term_flag = variety_page.display_term_structure_figure(click_date, spot_price)
-        # 绘制跨期套利分析视图
-        cross_term_figure, profit_loss = variety_page.display_cross_term_figure(click_date, df_dominant_contract)
-        # 准备分析日志数据
-        flag_color ={'Long': 'red', 'Short': 'lime', 'X': 'gray'}
-        flag_color2 ={'red': 'red', 'green': 'lime', 'gray': 'gray'}        
-        # trade_type = {'Long': '单边/跨期做多', 'Short': '单边/跨期做空'}
-        # basis = clickData['points'][2]['y']
-        # basis_flag = 'Long' if basis>0 else 'Short'
+# @callback(
+#     Output('term-figure-placeholder', 'figure'),
+#     Output('intertemporal-figure-placeholder', 'figure'),
+#     # Output('radio_trade_type', 'value'),
+#     Output('html-analyzing-tags', 'children'),
+#     Output('html-profit-loss', 'children'),
+#     Input('main-figure-placeholder', 'clickData'),
+#     allow_duplicate=True)
+# def display_click_data(clickData):
+#     if clickData is not None:
+#         variety_page = variety_page_maps['active_variety']
+#         symbol = variety_page.symbol
+#         # 获取第一个被点击的点的信息
+#         point_data = clickData['points'][0]
+#         # 获取x轴坐标
+#         display_date = point_data['x']
+#         click_date = datetime.strptime(display_date, '%Y-%m-%d')
+#         spot_price = point_data['y']
+#         # 绘制期限结构视图
+#         term_fig, df_dominant_contract, term_flag = variety_page.display_term_structure_figure(click_date, spot_price)
+#         # 绘制跨期套利分析视图
+#         cross_term_figure, profit_loss = variety_page.display_cross_term_figure(click_date, df_dominant_contract)
+#         # 准备分析日志数据
+#         flag_color ={'Long': 'red', 'Short': 'lime', 'X': 'gray'}
+#         flag_color2 ={'red': 'red', 'green': 'lime', 'gray': 'gray'}        
+#         # trade_type = {'Long': '单边/跨期做多', 'Short': '单边/跨期做空'}
+#         # basis = clickData['points'][2]['y']
+#         # basis_flag = 'Long' if basis>0 else 'Short'
 
-        # show_data_rank = symbol.data_rank.iloc[-SHOW_CHART_NUMBERS:]
-        # click_data = show_data_rank[show_data_rank['date']==click_date]
-        flag_list = variety_page.show_indexs        
-        # color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
+#         # show_data_rank = symbol.data_rank.iloc[-SHOW_CHART_NUMBERS:]
+#         # click_data = show_data_rank[show_data_rank['date']==click_date]
+#         flag_list = variety_page.show_indexs        
+#         # color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
 
-        color_list = variety_page.chart_manager.get_indicator_data(click_date, flag_list, 'color')
-        # html_analyzing_tags =[
-        #     #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
-        #         dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
-        #         html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]        
-        html_analyzing_tags =[dmc.Badge(flag, color=color_list[index]) for index, flag in enumerate(flag_list)]           
-        strategy = []
-        direction = []
-        point_diff =[]
-        percent = []
-        duration = []
-        for key, value in profit_loss.items():
-            strategy.append(key)
-            strategy.append('')
-            for key2, value2 in value.items():
-                direction.append(key2)
-                point_diff.append(value2['点差'])
-                percent.append(format(value2['%']*100, '.2f'))
-                duration.append(value2['持续时间'])
+#         color_list = variety_page.chart_manager.get_indicator_data(click_date, flag_list, 'color')
+#         # html_analyzing_tags =[
+#         #     #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
+#         #         dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),
+#         #         html.Span(" | ")] + [dmc.Badge(flag, color=flag_color2[color_list[index]]) for index, flag in enumerate(flag_list)]        
+#         html_analyzing_tags =[dmc.Badge(flag, color=color_list[index]) for index, flag in enumerate(flag_list)]           
+#         strategy = []
+#         direction = []
+#         point_diff =[]
+#         percent = []
+#         duration = []
+#         for key, value in profit_loss.items():
+#             strategy.append(key)
+#             strategy.append('')
+#             for key2, value2 in value.items():
+#                 direction.append(key2)
+#                 point_diff.append(value2['点差'])
+#                 percent.append(format(value2['%']*100, '.2f'))
+#                 duration.append(value2['持续时间'])
             
-        df = pd.DataFrame(
-            {
-                "策略": strategy,
-                "方向": direction,
-                "点差": point_diff,
-                "%": percent,
-                "周期": duration,
-            }
-        )        
-        columns, values = df.columns, df.values
-        header = [html.Tr([html.Th(col) for col in columns])]
-        rows = [html.Tr([html.Td(cell) for cell in row]) for row in values]      
-        html_profit_loss = dmc.Table([html.Thead(header), html.Tbody(rows)], striped=True, highlightOnHover=True, withBorder=False, withColumnBorders=False)
-        return term_fig, cross_term_figure, html_analyzing_tags, html_profit_loss
-    else:
-        return {}, {}, {}, {}
+#         df = pd.DataFrame(
+#             {
+#                 "策略": strategy,
+#                 "方向": direction,
+#                 "点差": point_diff,
+#                 "%": percent,
+#                 "周期": duration,
+#             }
+#         )        
+#         columns, values = df.columns, df.values
+#         header = [html.Tr([html.Th(col) for col in columns])]
+#         rows = [html.Tr([html.Td(cell) for cell in row]) for row in values]      
+#         html_profit_loss = dmc.Table([html.Thead(header), html.Tbody(rows)], striped=True, highlightOnHover=True, withBorder=False, withColumnBorders=False)
+#         return term_fig, cross_term_figure, html_analyzing_tags, html_profit_loss
+#     else:
+#         return {}, {}, {}, {}
 
-@callback(
-    Output(component_id='main-figure-placeholder', component_property='figure', allow_duplicate=True),
-    Input('main-figure-placeholder', 'relayoutData'),
-    prevent_initial_call=True
-)
-def display_relayout_data(relayoutData):
-    # if 'symbol_figure' not in page_property:
-    #     return dash.no_update
-    if relayoutData and 'xaxis.range[0]' in relayoutData and 'xaxis.range[1]' in relayoutData:
-        variety_page = variety_page_maps['active_variety']
-        xaxis_range = [relayoutData['xaxis.range[0]'], relayoutData['xaxis.range[1]']]
-        main_figure = variety_page.update_yaxes(xaxis_range)
-        return main_figure
-    else:
-        return dash.no_update
+# @callback(
+#     Output(component_id='main-figure-placeholder', component_property='figure', allow_duplicate=True),
+#     Input('main-figure-placeholder', 'relayoutData'),
+#     prevent_initial_call=True
+# )
+# def display_relayout_data(relayoutData):
+#     # if 'symbol_figure' not in page_property:
+#     #     return dash.no_update
+#     if relayoutData and 'xaxis.range[0]' in relayoutData and 'xaxis.range[1]' in relayoutData:
+#         variety_page = variety_page_maps['active_variety']
+#         xaxis_range = [relayoutData['xaxis.range[0]'], relayoutData['xaxis.range[1]']]
+#         main_figure = variety_page.update_yaxes(xaxis_range)
+#         return main_figure
+#     else:
+#         return dash.no_update

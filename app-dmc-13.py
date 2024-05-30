@@ -1,170 +1,27 @@
 import dash
-from dash import Dash, _dash_renderer, dcc, html, callback, Input, Output, State, clientside_callback
+from dash import Dash, html, dcc, Input, Output, State
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from dataworks import DataWorks
+import platform
 import re
 
-_dash_renderer._set_react_version("18.2.0")
+CurrentSystem = platform.system()
+SideBarTop = 88 if CurrentSystem == 'Darwin' else 326
+SideBarWidth = 200
+PageBackgroundColor = "#f5f5f5"
+MainContextHeight = 1400
 
-HeaderHeight = 70
-NavbarWidth = 240
-AsideWidth = 300
-MainContentHeight = 1250
-MainContentPaddingTop = 70
-MainContentBGColor = "#f5f5f5"
-
-main_menu = dmc.Group(
-    [
-        dmc.Menu(                    
-            [
-                dmc.MenuTarget(dmc.Button("市场全景", variant="subtle", leftSection=DashIconify(icon="uiw:global", width=20))),               
-            ],
-        ),                             
-        dmc.Menu(                    
-            [
-                dmc.MenuTarget(dmc.Button("金属", variant="subtle", leftSection=DashIconify(icon="icon-park-outline:heavy-metal", width=24))),
-                dmc.MenuDropdown(
-                    children=[                                    
-                        dmc.MenuItem("钢铁产业链", href="/chain/overview?chain_id=black_metal", leftSection=DashIconify(icon="tabler:ironing-steam", width=20)),
-                        dmc.MenuItem("贵金属产业链", leftSection=DashIconify(icon="ant-design:gold-outlined", width=20)),
-                        dmc.MenuItem("铜产业链", leftSection=DashIconify(icon="mingcute:copper-coin-line", width=20)),
-                        dmc.MenuItem("铝产业链", leftSection=DashIconify(icon="file-icons:silverstripe", width=20)),
-                    ],
-                ),                       
-            ],
-        ),
-        dmc.Menu(                    
-            [
-                dmc.MenuTarget(dmc.Button("能源", variant="subtle", leftSection=DashIconify(icon="material-symbols:energy-savings-leaf-outline", width=24))),
-                dmc.MenuDropdown(
-                    children=[                                    
-                        dmc.MenuItem("动力煤产业链", leftSection=DashIconify(icon="mdi:charcoal-outline", width=20)),
-                        dmc.MenuItem("石油产业链", leftSection=DashIconify(icon="lets-icons:oil", width=20)),
-                        dmc.MenuItem("原油产业链", leftSection=DashIconify(icon="mdi:boil-point-outline", width=20)),
-                    ],
-                ),                       
-            ],
-        ),                    
-        dmc.Menu(                    
-            [
-                dmc.MenuTarget(dmc.Button("化工", variant="subtle", leftSection=DashIconify(icon="mdi:chemical-weapon", width=24))),
-                dmc.MenuDropdown(
-                    children=[                                    
-                        dmc.MenuItem("化工产业链", leftSection=DashIconify(icon="healthicons:chemical-burn-outline", width=20)),
-                        dmc.MenuItem("沥青产业链", leftSection=DashIconify(icon="arcticons:asphalt-8", width=20)),
-                        dmc.MenuItem("橡胶产业链", leftSection=DashIconify(icon="tabler:rubber-stamp", width=20)),
-                    ],
-                ),                       
-            ],
-        ),          
-        dmc.Menu(                    
-            [
-                dmc.MenuTarget(dmc.Button("农产品", variant="subtle", leftSection=DashIconify(icon="ic:outline-agriculture", width=24))),
-                dmc.MenuDropdown(
-                    children=[                                    
-                        dmc.MenuItem("菜籽油产业链", leftSection=DashIconify(icon="mdi:seedling-outline", width=20)),
-                        dmc.MenuItem("大豆产业链", leftSection=DashIconify(icon="ph:coffee-bean-bold", width=20)),
-                        dmc.MenuItem("糖产业链", leftSection=DashIconify(icon="ep:sugar", width=20)),
-                        dmc.MenuItem("小麦产业链", leftSection=DashIconify(icon="lucide:wheat", width=20)),
-                        dmc.MenuItem("玉米产业链", leftSection=DashIconify(icon="tdesign:corn", width=20)),
-                        dmc.MenuItem("棕榈油产业链", leftSection=DashIconify(icon="ph:tree-palm", width=20)),
-                        dmc.MenuItem("生猪产业链", leftSection=DashIconify(icon="clarity:piggy-bank-line", width=20)),
-                    ],
-                ),                       
-            ],
-        ),                                   
-        dmc.Menu(                    
-            [
-                dmc.MenuTarget(dmc.Button("自选", variant="subtle", leftSection=DashIconify(icon="mdi:favorite-settings-outline", width=24))),               
-            ],
-        ),                       
-        dmc.Menu(                    
-            [
-                dmc.MenuTarget(dmc.Button("设置", variant="subtle", leftSection=DashIconify(icon="icon-park-outline:config", width=24))),
-                dmc.MenuDropdown(
-                    children=[                                    
-                        dmc.MenuItem("数据管理", leftSection=DashIconify(icon="icon-park-outline:data-switching", width=20)),
-                        dmc.MenuItem("品种管理", leftSection=DashIconify(icon="carbon:data-class", width=20)),
-                        dmc.MenuItem("通用设置", leftSection=DashIconify(icon="grommet-icons:configure", width=20)),
-                    ],
-                ),                       
-            ],
-        ),
-    ],
-    justify="flex-end",
-)
-
-theme_toggle = dmc.ActionIcon(
-    [
-        DashIconify(
-            icon="radix-icons:sun",
-            width=25,
-            id="light-theme-icon",
-        ),
-        DashIconify(
-            icon="radix-icons:moon",
-            width=25,
-            id="dark-theme-icon",
-        ),
-    ],
-    variant="transparent",
-    color="yellow",
-    id="color-scheme-toggle",
-    size="lg",
-    ms="auto"
-)
-
-# 头部菜单
-header = dmc.Paper(
-    dmc.Grid(
-        [
-            dmc.GridCol(
-                dmc.Group(
-                    [
-                        dmc.Burger(id="burger-button", opened=True, size="xs", color="blue"),
-                        DashIconify(icon="simple-icons:bitcoincash", width=24, color="blue"),
-                        dmc.Text("Futures Nexus", c="blue",size="xl"),
-                    ],
-                    justify="flex-start",
-                ),
-                span="content",
-            ),
-            dmc.GridCol(
-                main_menu,
-                span="auto",
-            ),
-            dmc.GridCol(
-                dmc.Group(
-                    [
-                        dmc.Space(w=30),
-                        dmc.Select(searchable=True, clearable=True, id="variety-search",
-                                    placeholder="搜索品种名称/代号", nothingFoundMessage="未找到品种",),
-                        dmc.Space(w=30),
-                        theme_toggle,
-                    ],
-                    justify="flex-end",
-                    gap="xs",
-                ),
-                span="content",
-            )
-        ],
-        gutter="xs",
-        align="center",
-    ),
-    shadow="sm",
-    radius="xs",
-    p="sm",
-    withBorder=False,
-    # style={"backgroundColor": "#f5f5f5"}
-)
+app = Dash(__name__, 
+           use_pages=True,       
+           prevent_initial_callbacks='initial_duplicate')
 
 quick_access = html.Div(
-    style={"width": NavbarWidth, "height": "auto"},
+    style={"width": SideBarWidth, "height": "auto"},
     children=[
         dmc.NavLink(
             label="活跃商品",
-            leftSection=DashIconify(icon="akar-icons:link-chain", width=24),
+            icon=DashIconify(icon="akar-icons:link-chain", width=24),
             childrenOffset=28,
             children=[
                 dmc.NavLink(label="螺纹钢", href='/variety/basis?variety_id=RB'),
@@ -176,7 +33,7 @@ quick_access = html.Div(
         ),
         dmc.NavLink(
             label="自选品种",
-            leftSection=DashIconify(icon="fluent-mdl2:favorite-list", width=24),
+            icon=DashIconify(icon="fluent-mdl2:favorite-list", width=24),
             childrenOffset=28,            
             children=[
                 dmc.NavLink(label="First child link", variant="subtle"),
@@ -189,6 +46,28 @@ quick_access = html.Div(
         ),
     ],
 )
+
+# 创建NavLink子项的函数
+def create_nav_links(labels):
+    return [dmc.NavLink(label=label, variant="subtle") for label in labels]
+
+# 创建一级NavLink的函数
+def create_primary_nav_links(data):
+    nav_links = []
+    for category, items in data["Favorites"].items():
+        icon = DashIconify(icon="akar-icons:link-chain", width=24) if category == "活跃商品" else DashIconify(icon="fluent-mdl2:favorite-list", width=24)
+        nav_links.append(
+            dmc.NavLink(
+                label=category,
+                icon=icon,
+                childrenOffset=28,
+                children=create_nav_links(items),
+                variant="subtle",
+                opened=True,
+                active=True,
+            )
+        )
+    return nav_links
 
 def create_variety_stepper(variety_id):
     analysis_stepper = dmc.Stepper(
@@ -203,9 +82,9 @@ def create_variety_stepper(variety_id):
                 children=[
                     dmc.Divider(variant="solid", label="快速功能", labelPosition="center"),
                     dmc.Space(h=10),
-                    dmc.NavLink(label="图表设置", id="chart-config", leftSection=DashIconify(icon="tabler:settings")),
-                    dmc.NavLink(label="主成分分析", variant="subtle", id="pca-analysis", leftSection=DashIconify(icon="ri:pie-chart-2-line")),
-                    dmc.NavLink(label="AI交易建议", variant="subtle", id="drl-analysis", leftSection=DashIconify(icon="prime:microchip-ai")),
+                    dmc.NavLink(label="图表设置", id="chart-config", icon=DashIconify(icon="tabler:settings")),
+                    dmc.NavLink(label="主成分分析", variant="subtle", id="pca-analysis", icon=DashIconify(icon="ri:pie-chart-2-line")),
+                    dmc.NavLink(label="AI交易建议", variant="subtle", id="drl-analysis", icon=DashIconify(icon="prime:microchip-ai")),
                 ],
             ),
             dmc.StepperStep(
@@ -264,9 +143,9 @@ market_stepper_placeholder = dmc.Stepper(
             children=[
                 dmc.Divider(variant="solid", label="快速功能", labelPosition="center"),
                 dmc.Space(h=10),
-                dmc.NavLink(label="进入品种页面", id="open-variety-page", leftSection=DashIconify(icon="fluent:open-24-regular")),
-                dmc.NavLink(label="进入板块页面", id="open-chain-page", leftSection=DashIconify(icon="akar-icons:link-chain")),
-                dmc.NavLink(label="打开板块全部品种", variant="subtle", id="open-all-variety", leftSection=DashIconify(icon="carbon:collapse-all")),
+                dmc.NavLink(label="进入品种页面", id="open-variety-page", icon=DashIconify(icon="fluent:open-24-regular")),
+                dmc.NavLink(label="进入板块页面", id="open-chain-page", icon=DashIconify(icon="akar-icons:link-chain")),
+                dmc.NavLink(label="打开板块全部品种", variant="subtle", id="open-all-variety", icon=DashIconify(icon="carbon:collapse-all")),
             ],
         ),
         dmc.StepperStep(
@@ -292,15 +171,14 @@ market_stepper_placeholder = dmc.Stepper(
     active=0,
 )
 
-
 # 侧边栏-标签切换
 sidebar_tabs =dmc.Tabs(
     [
         dmc.TabsList(
             [
-                dmc.TabsTab("分析", value="analysis"),
-                dmc.TabsTab("板块", value="chain"),
-                dmc.TabsTab("自选", value="favorite"),
+                dmc.Tab("分析", value="analysis"),
+                dmc.Tab("板块", value="chain"),
+                dmc.Tab("自选", value="favorite"),
             ]
         ),
         dmc.TabsPanel([market_stepper_placeholder,variety_stepper_placeholder], value="analysis", p="md", id="sidebar-analysis-tab"),
@@ -310,25 +188,147 @@ sidebar_tabs =dmc.Tabs(
     value="analysis",
 )
 
-navbar = dcc.Loading(    
-    dmc.ScrollArea(
-        # dmc.Paper(
-        [
-            sidebar_tabs
-        ],
-        #     shadow="md",
-        #     radius="xs",
-        #     p="xs",
-        #     style={"height": MainContentHeight},
-        #     withBorder=False,        
-        # ),
-        offsetScrollbars=True,
-        type="scroll",
-        p="xs",
-        style={"height": "100%"},
-    ),
+# 侧边栏
+sidebar = dmc.Paper(
+    [
+        dmc.Space(h=SideBarTop), # Windows系统需要增加占位空间
+        sidebar_tabs
+    ],
+    shadow="sm",
+    # p="xl",
+    h=MainContextHeight,
+    withBorder=False,
 )
 
+navbar = dmc.Navbar(
+    [
+        sidebar
+    ],
+    # p="sm",
+    width={"base": SideBarWidth+50},
+    height=MainContextHeight,
+    withBorder=False,
+    fixed=True,
+    style={"backgroundColor": PageBackgroundColor},
+)
+
+# 头部菜单
+header = dmc.Header(
+    [        
+        dmc.Paper(
+            dmc.Container(
+                children=[
+                    dmc.Group(
+                        children=[
+                            DashIconify(icon="simple-icons:bitcoincash", width=24, color="gray"),
+                            dmc.Text("Futures Nexus", color="gray"),
+                            dmc.Space(w=60),
+                            dmc.Select(searchable=True, clearable=True, id="variety-search",
+                                       placeholder="输入品种代号", nothingFound="未找到品种",),
+                            # dmc.Button("Search", variant="outline", leftIcon=DashIconify(icon="wpf:search", width=20)),
+                            # dmc.NavLink(variant="subtle", icon=DashIconify(icon="wpf:search", width=20)),
+                            dmc.Space(w=60),
+                            dmc.Menu(                    
+                                [
+                                    dmc.MenuTarget(dmc.Button("市场全景", variant="subtle", leftIcon=DashIconify(icon="uiw:global", width=20))),               
+                                ],
+                            ),                             
+                            dmc.Menu(                    
+                                [
+                                    dmc.MenuTarget(dmc.Button("金属", variant="subtle", leftIcon=DashIconify(icon="icon-park-outline:heavy-metal", width=24))),
+                                    dmc.MenuDropdown(
+                                        children=[                                    
+                                            dmc.MenuItem("钢铁产业链", href="/chain/overview?chain_id=black_metal", icon=DashIconify(icon="tabler:ironing-steam", width=20)),
+                                            dmc.MenuItem("贵金属产业链", icon=DashIconify(icon="ant-design:gold-outlined", width=20)),
+                                            dmc.MenuItem("铜产业链", icon=DashIconify(icon="mingcute:copper-coin-line", width=20)),
+                                            dmc.MenuItem("铝产业链", icon=DashIconify(icon="file-icons:silverstripe", width=20)),
+                                        ],
+                                    ),                       
+                                ],
+                            ),
+                            dmc.Menu(                    
+                                [
+                                    dmc.MenuTarget(dmc.Button("能源", variant="subtle", leftIcon=DashIconify(icon="material-symbols:energy-savings-leaf-outline", width=24))),
+                                    dmc.MenuDropdown(
+                                        children=[                                    
+                                            dmc.MenuItem("动力煤产业链", icon=DashIconify(icon="mdi:charcoal-outline", width=20)),
+                                            dmc.MenuItem("石油产业链", icon=DashIconify(icon="lets-icons:oil", width=20)),
+                                            dmc.MenuItem("原油产业链", icon=DashIconify(icon="mdi:boil-point-outline", width=20)),
+                                        ],
+                                    ),                       
+                                ],
+                            ),                    
+                            dmc.Menu(                    
+                                [
+                                    dmc.MenuTarget(dmc.Button("化工", variant="subtle", leftIcon=DashIconify(icon="mdi:chemical-weapon", width=24))),
+                                    dmc.MenuDropdown(
+                                        children=[                                    
+                                            dmc.MenuItem("化工产业链", icon=DashIconify(icon="healthicons:chemical-burn-outline", width=20)),
+                                            dmc.MenuItem("沥青产业链", icon=DashIconify(icon="arcticons:asphalt-8", width=20)),
+                                            dmc.MenuItem("橡胶产业链", icon=DashIconify(icon="tabler:rubber-stamp", width=20)),
+                                        ],
+                                    ),                       
+                                ],
+                            ),          
+                            dmc.Menu(                    
+                                [
+                                    dmc.MenuTarget(dmc.Button("农产品", variant="subtle", leftIcon=DashIconify(icon="ic:outline-agriculture", width=24))),
+                                    dmc.MenuDropdown(
+                                        children=[                                    
+                                            dmc.MenuItem("菜籽油产业链", icon=DashIconify(icon="mdi:seedling-outline", width=20)),
+                                            dmc.MenuItem("大豆产业链", icon=DashIconify(icon="ph:coffee-bean-bold", width=20)),
+                                            dmc.MenuItem("糖产业链", icon=DashIconify(icon="ep:sugar", width=20)),
+                                            dmc.MenuItem("小麦产业链", icon=DashIconify(icon="lucide:wheat", width=20)),
+                                            dmc.MenuItem("玉米产业链", icon=DashIconify(icon="tdesign:corn", width=20)),
+                                            dmc.MenuItem("棕榈油产业链", icon=DashIconify(icon="ph:tree-palm", width=20)),
+                                            dmc.MenuItem("生猪产业链", icon=DashIconify(icon="clarity:piggy-bank-line", width=20)),
+                                        ],
+                                    ),                       
+                                ],
+                            ),                                   
+                            dmc.Menu(                    
+                                [
+                                    dmc.MenuTarget(dmc.Button("自选", variant="subtle", leftIcon=DashIconify(icon="mdi:favorite-settings-outline", width=24))),               
+                                ],
+                            ),                       
+                            dmc.Menu(                    
+                                [
+                                    dmc.MenuTarget(dmc.Button("设置", variant="subtle", leftIcon=DashIconify(icon="icon-park-outline:config", width=24))),
+                                    dmc.MenuDropdown(
+                                        children=[                                    
+                                            dmc.MenuItem("数据管理", icon=DashIconify(icon="icon-park-outline:data-switching", width=20)),
+                                            dmc.MenuItem("品种管理", icon=DashIconify(icon="carbon:data-class", width=20)),
+                                            dmc.MenuItem("通用设置", icon=DashIconify(icon="grommet-icons:configure", width=20)),
+                                        ],
+                                    ),                       
+                                ],
+                            ),                                                       
+                        ],
+                        # position="apart",
+                    ),
+                ],
+                fluid=True,
+                # style={"height": "100px"},
+            ),
+            shadow="sm",
+            radius="xs",
+            p="xs",
+            withBorder=True,
+        )        
+    ], 
+    height="auto", 
+    fixed=True,
+    # style={"backgroundColor": "#9c86e2"}
+)
+
+footer = dmc.Footer(
+    height=30, children=[dmc.Text("Company Logo")], style={"backgroundColor": "#9c86e2"}
+)
+
+style = {
+    "border": f"1px solid {dmc.theme.DEFAULT_COLORS['indigo'][4]}",
+    "textAlign": "center",
+}
 
 # 品种标签栏
 seg_variety = dmc.SegmentedControl(
@@ -338,154 +338,64 @@ seg_variety = dmc.SegmentedControl(
         {"value": "market_overview", "label": "市场全景"},
     ],
     # mt=10,
-    # color="#E0E0E0",
-    color="blue"
-    # style={"backgroundColor": PageBackgroundColor}
+    color="#E0E0E0",
+    style={"backgroundColor": PageBackgroundColor}
 ),
-
-favorite_toggle = dmc.ActionIcon(
-    [
-        DashIconify(
-            icon="clarity:favorite-line",
-            width=25,
-            id="add-favorite-icon",
-        ),
-        DashIconify(
-            icon="clarity:favorite-solid",
-            width=25,
-            id="remove-favorite-icon",
-        ),
-    ],
-    variant="transparent",
-    color="yellow",
-    id="favorite-toggle",
-    size="lg",
-    ms="auto"
-)
 
 # 品种工具栏
 tab_bar = dmc.Grid(
     [
-        dmc.GridCol(seg_variety, span="auto"),
-        dmc.GridCol(
-            dmc.ActionIcon(DashIconify(icon="carbon:close-outline"), id="button-remove-tab", variant="subtle", color="blue", size=36, radius="xs"), span="content"),
-        dmc.GridCol(                  
-            dmc.ActionIcon(
-                [
-                    DashIconify(icon="clarity:favorite-line", id="add-favorite-icon",),
-                    # DashIconify(icon="clarity:favorite-solid", id="remove-favorite-icon",),
-                ],
-                variant="transparent",
-                color="yellow",
-                id="favorite-toggle",
-                size=36,
-                ms="auto"
-            ),
-        span="content"),           
+        dmc.Col(seg_variety, span="auto"),
+        dmc.Col(
+            dmc.ActionIcon(DashIconify(icon="carbon:close-outline"), id="button-remove-tab", variant="subtle", color="blue", size=36, radius="xs"),                    
+            xs=0.35),
+        dmc.Col(                  
+            dmc.ActionIcon(DashIconify(icon="tabler:settings"), id="button-methond-config", variant="subtle", color="blue", size=36, radius="xs"),
+            xs=0.35),           
     ],
     # style={"backgroundColor": PageBackgroundColor},
 )
 
-
-page_content = dmc.Stack(
-    children=[
-        tab_bar,
-        dmc.Divider(variant="solid"),                    
-        dash.page_container,
+# 主内容框架
+main_context = dmc.Grid(
+    children=[        
+        dmc.Col(navbar, span=1),
+        dmc.Col(
+            dmc.Stack(
+                children=[
+                    dmc.Space(h=50),                    
+                    tab_bar,
+                    dmc.Divider(variant="solid"),                    
+                    dash.page_container,
+                ],
+                spacing=0,
+                p=5
+            ),
+        offset=0.45,
+        span="auto"),
     ],
-    gap=0,
-    justify="flex-start",
-    align="stretch",
-    # p=5
+    gutter="5",
+    h=MainContextHeight,
+    style={"backgroundColor": PageBackgroundColor},
 )
 
-stylesheets = [
-    "https://unpkg.com/@mantine/dates@7/styles.css",
-    "https://unpkg.com/@mantine/code-highlight@7/styles.css",
-    "https://unpkg.com/@mantine/charts@7/styles.css",
-    "https://unpkg.com/@mantine/carousel@7/styles.css",
-    "https://unpkg.com/@mantine/notifications@7/styles.css",
-    "https://unpkg.com/@mantine/nprogress@7/styles.css",
-]
-
-app = Dash(
-    __name__, 
-    use_pages=True,       
-    prevent_initial_callbacks='initial_duplicate',
-    external_stylesheets=stylesheets,
-    suppress_callback_exceptions=True,
-)
-
-
-app_shell = dmc.AppShell(
-    [
-        dmc.AppShellHeader(header, withBorder=False, style={"backgroundColor": MainContentBGColor}),
-        dmc.AppShellNavbar(navbar, withBorder=True),
-        dmc.AppShellAside("Aside", withBorder=True),
-        dmc.AppShellMain(page_content, pt=MainContentPaddingTop),
-        # dmc.AppShellFooter("Footer")
-    ],
-    header={"height": HeaderHeight},
-    padding="xl",
-    navbar={
-        "width": NavbarWidth,
-        "breakpoint": "md",
-        "collapsed": {"desktop": False, "mobile": True},
-        "opened": True,
-    },
-    aside={
-        "width": AsideWidth,
-        "breakpoint": "xl",
-        "collapsed": {"desktop": False, "mobile": True},
-    },
-    id="app-shell",
-)
-
-app.layout = dmc.MantineProvider(
+app.layout = html.Div(
     [
         dcc.Location(id='url', refresh=False),
-        dcc.Store(id="theme-store", storage_type="local", data="light"),
-        app_shell
+        dmc.MantineProvider(
+            dmc.Stack(
+                children=[
+                    header,
+                    main_context,
+                    # footer,
+                ],
+                spacing=4,
+            ),            
+            # theme={"colorScheme": "dark"},
+            withGlobalStyles=True,
+        ),
     ],
-    id="mantine-provider",
-    forceColorScheme="light",
 )
-
-
-@callback(
-    Output("app-shell", "navbar"),
-    Input("burger-button", "opened"),
-    State("app-shell", "navbar"),
-)
-def navbar_is_open(opened, navbar):
-    navbar["collapsed"] = {"desktop": not opened}
-    return navbar
-
-
-
-clientside_callback(
-    """
-    function(data) {
-        return data
-    }
-    """,
-    Output("mantine-provider", "forceColorScheme"),
-    Input("theme-store", "data"),
-)
-
-
-clientside_callback(
-    """
-    function(n_clicks, data) {
-        return data === "dark" ? "light" : "dark";
-    }
-    """,
-    Output("theme-store", "data"),
-    Input("color-scheme-toggle", "n_clicks"),
-    State("theme-store", "data"),
-    prevent_initial_call=True,
-)
-
 
 from urllib.parse import urlparse, parse_qs
 # 特殊转义页面
@@ -533,7 +443,7 @@ def update_stepper(pathname, search):
 
 # 品种搜索框回调函数
 @app.callback(
-    Output("segmented-variety-switcher", "value", allow_duplicate=True),
+    Output("segmented-variety-switcher", "value"),
     Output("variety-search", "data"),
     Input("variety-search", "value"),
     State("variety-search", "data")
@@ -586,7 +496,7 @@ def redir_update_variety(pathname, search):
     Output("_pages_location", "pathname"),
     Output("_pages_location", "search"),
     Output("sidebar-analysis-tab", "children"),
-    Output("segmented-variety-switcher", "data", allow_duplicate=True),
+    Output("segmented-variety-switcher", "data"),
     Input("segmented-variety-switcher", "value"),
     State("segmented-variety-switcher", "data"),
     prevent_initial_call=True
@@ -667,5 +577,5 @@ def remove_tab(n_clicks, value, data):
     active_value = data[0]['value']
     return data, active_value
 
-if __name__ == "__main__":
-    app.run_server(debug=True, port=8051)
+if __name__ == '__main__':
+    app.run(debug=True)
