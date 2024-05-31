@@ -813,8 +813,8 @@
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.csv",
-                "Field": "137家螺纹钢厂:社会库存 + 137家螺纹钢厂:钢厂库存",
+                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Field": "中国:螺纹钢:社会库存 + 中国:螺纹钢:钢厂库存",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
                 "Type": "AmountN",
@@ -826,8 +826,8 @@
             "需求生产比": {
                 "Name": "demand_production",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.csv",
-                "Field": "137家螺纹钢厂:周需求量 - 137家螺纹钢厂:周产量",
+                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Field": "中国:螺纹钢:表观需求 - 中国:螺纹钢:当周产量",
                 "Class": "RankColorIndicator",
                 "Direction": "Long",
                 "Type": "AmountP",
@@ -838,8 +838,8 @@
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.csv",
-                "Field": "137家螺纹钢厂:开工率",
+                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Field": "螺纹钢厂:开工率",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
                 "Type": "RateN",
@@ -850,8 +850,8 @@
             "产能利用率": {
                 "Name": "capacity_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据.csv",
-                "Field": "137家螺纹钢厂:产能利用率",
+                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Field": "螺纹钢厂:产能利用率",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
                 "Type": "RateN",
