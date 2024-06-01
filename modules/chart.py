@@ -58,8 +58,8 @@ class ChartManager:
         def _get_data_range(name, trace=None):
             trace = trace if trace else name
             min_y, max_y = self.indicators[name].get_data_range(trace, self.start_date, self.end_date)
-            min_y *= 0.99
-            max_y *= 1.01
+            min_y *= 1.05
+            max_y *= 1.05
             return min_y, max_y
         def _add_trace(names, row, secondary_y=False):
             for name in names:

@@ -241,8 +241,9 @@ class MapColorIndicator(Indicator):
         return
     
     def figure(self, **kwargs):
-        fig = go.Bar(x=self.data['date'], y=self.data[self.name], name=self.name, 
-                            marker=dict(color=self.data[self.name+'_color'], opacity=0.6),
+        # zero_array = np.zeros(len(self.data['date']))
+        fig = go.Scatter(x=self.data['date'], y=self.data[self.name], name=self.name, mode="markers",
+                            marker=dict(size=3, color=self.data[self.name+'_color'], opacity=0.6),
                             showlegend=self.showlegend,
                             # hovertemplate='%{y:.2%}',
                            )        

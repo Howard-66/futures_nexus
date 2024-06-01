@@ -278,7 +278,7 @@ class VarietyPage:
         # spot_figure =go.Scatter(x=spot_row['symbol'], y=spot_row['settle'], stackgroup='one',mode='markers',
                                 # fill='tozeroy', fillcolor='rgba(0, 123, 255, 0.2)',
                                 # marker=dict(color='rgb(0, 123, 255)', opacity=1))
-        future_figure = go.Scatter(x=df_dominant_contract['symbol'], y=df_dominant_contract['settle'], stackgroup='one', mode='markers',
+        future_figure = go.Scatter(x=df_term['symbol'], y=df_term['settle'], stackgroup='one', mode='markers',
                                              fill='tozeroy', fillcolor=color_flag,
                                              marker=dict(color=color_flag, opacity=0.6))
         term_fig = go.Figure()
@@ -286,8 +286,8 @@ class VarietyPage:
         term_fig.update_xaxes(linecolor='gray', tickfont=dict(color='gray'))
         term_fig.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1)              
         term_fig.add_trace(future_figure)
-        max_y = df_dominant_contract['settle'].max() * 1.01
-        min_y = df_dominant_contract['settle'].min() * 0.99        
+        max_y = df_term['settle'].max() * 1.01
+        min_y = df_term['settle'].min() * 0.99        
         current_date = click_date.strftime('%Y-%m-%d')
         # term_fig.add_hline(y=spot_price)
         term_fig.update_layout(yaxis_range=[min_y,max_y],
@@ -309,23 +309,27 @@ class VarietyPage:
         end_date = end_date.strftime('%Y-%m-%d')    
         df_term = symbol.variety_data   
         fig_rows = len(domain_contract)
-        specs = [[{"secondary_y": True}] for _ in range(fig_rows)]
+        specs = [[{"secondary_y": False}] for _ in range(fig_rows)]
         row_widths = [0.1] * (fig_rows - 1) + [0.5]
-        subtitles = ['跨期分析'] + list(domain_contract['symbol'][1:])
+        subtitles = [''] + list(domain_contract['symbol'][1:])
         # colors = ['rgba(239,181,59,1.0)', 'rgba(84,134,240,0.5)', 'rgba(105,206,159,0.5)']
         colors = px.colors.qualitative.Pastel
         cross_term_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, subplot_titles=subtitles, shared_xaxes=True, vertical_spacing=0.05)
-        # cross_term_figure = make_subplots(rows=fig_rows, cols=1, specs=specs, row_width=row_widths, shared_xaxes=True, vertical_spacing=0.02)
         row = 1
         df_multi_term = pd.DataFrame()
         profit_loss = {}
+        filter_data = df_term[(df_term['date'] >= start_date) & (df_term['date'] <= end_date)]
         for symbol_name in domain_contract['symbol']:
-            df = df_term[df_term['symbol']==symbol_name][['date', 'close']]
+            # df = df_term[df_term['symbol']==symbol_name][['date', 'close']]
+            df = filter_data[filter_data['symbol']==symbol_name][['date', 'close']]
+            if row==1:
+                max_y = df['close'].max()*1.01
+                min_y = df['close'].min()*0.99
             delivery_date = df['date'].max()    
             last_trading_day = delivery_date.replace(day=1)
             if last_trading_day <= click_date:
                 last_trading_day = delivery_date #TODO: 替换为交割月的前一个有效交易日
-            symbol_figure = go.Scatter(x=df['date'], y=df['close'], name=symbol_name, marker_color=colors[row-1])
+            symbol_figure = go.Scatter(x=df['date'], y=df['close'], name=symbol_name, mode='lines', line=dict(color=colors[row-1]))
             cross_term_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=row, col=1)
             cross_term_figure.update_yaxes(linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=row, col=1)            
             cross_term_figure.add_trace(symbol_figure, row=1, col=1)
@@ -369,10 +373,10 @@ class VarietyPage:
                                                     '空头':{'点差': min_diff, '%': min_diff/entry_price/2, '持续时间': (min_date - click_date).days}}              
             row = row+1        
         # df_multi_term = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
-        filtered_data = df_term[(df_term['date'] >= start_date) & (df_term['date'] <= end_date)]
-        # 计算 y 轴的最大值和最小值
-        max_y = filtered_data['close'].max()*1.01
-        min_y = filtered_data['close'].min()*0.99
+        # filtered_data = df_term[(df_term['date'] >= start_date) & (df_term['date'] <= end_date)]
+        # # 计算 y 轴的最大值和最小值
+        # max_y = filtered_data['close'].max()*1.01
+        # min_y = filtered_data['close'].min()*0.99
         cross_term_figure.update_layout(
                                         height=400,
                                         margin=dict(l=0, r=0, t=20, b=0),

@@ -332,7 +332,7 @@ navbar = dcc.Loading(
 
 # 品种标签栏
 seg_variety = dmc.SegmentedControl(
-    id="segmented-variety-switcher",
+    id="page-switch-tabs",
     value="market_overview",    
     data=[
         {"value": "market_overview", "label": "市场全景"},
@@ -534,7 +534,7 @@ def update_stepper(pathname, search):
 
 # 品种搜索框回调函数
 @app.callback(
-    Output("segmented-variety-switcher", "value", allow_duplicate=True),
+    Output("page-switch-tabs", "value", allow_duplicate=True),
     Output("variety-search", "data"),
     Input("variety-search", "value"),
     State("variety-search", "data")
@@ -571,7 +571,7 @@ def variety_search_callback(value, data):
     return value, dash.no_update
 
 @app.callback(
-    Output("segmented-variety-switcher", "value", allow_duplicate=True),
+    Output("page-switch-tabs", "value", allow_duplicate=True),
     Input("url", "pathname"),
     Input("url", "search"),
     prevent_initial_call=True
@@ -587,9 +587,9 @@ def redir_update_variety(pathname, search):
     Output("_pages_location", "pathname"),
     Output("_pages_location", "search"),
     Output("sidebar-analysis-tab", "children"),
-    Output("segmented-variety-switcher", "data", allow_duplicate=True),
-    Input("segmented-variety-switcher", "value"),
-    State("segmented-variety-switcher", "data"),
+    Output("page-switch-tabs", "data", allow_duplicate=True),
+    Input("page-switch-tabs", "value"),
+    State("page-switch-tabs", "data"),
     prevent_initial_call=True
 )
 def update_variety(to_active_tab, tab_list):  
@@ -653,11 +653,11 @@ def update_variety(to_active_tab, tab_list):
     return pathname, search, sidebar_analysis_tab, tab_list
 
 @app.callback(
-    Output("segmented-variety-switcher", "data", allow_duplicate=True),
-    Output("segmented-variety-switcher", "value", allow_duplicate=True),
+    Output("page-switch-tabs", "data", allow_duplicate=True),
+    Output("page-switch-tabs", "value", allow_duplicate=True),
     Input("button-remove-tab", "n_clicks"),
-    State("segmented-variety-switcher", "value"),
-    State("segmented-variety-switcher", "data"),
+    State("page-switch-tabs", "value"),
+    State("page-switch-tabs", "data"),
     prevent_initial_call=True,
 )
 def remove_tab(n_clicks, value, data):

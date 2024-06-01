@@ -884,7 +884,7 @@
                 "Source": "Calculate",
                 "Field": "利润",
                 "Class": "CalculateRankColorIndicator",
-                "Direction": "Long",
+                "Direction": "Short",
                 "Formula": "现货价格-现货价格_I*1.6-现货价格_J*0.5-1200",
                 "Type": "AmountN",
                 "Chart": "Sub",

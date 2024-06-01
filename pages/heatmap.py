@@ -125,7 +125,7 @@ def heatmap_callback(click_data):
     return clicked_path  # 返回点击的路径
 
 @callback(
-    Output("segmented-variety-switcher", "value", allow_duplicate=True),
+    Output("page-switch-tabs", "value", allow_duplicate=True),
     Input('open-variety-page', 'n_clicks'),
     # State('market-heatmap-placeholder', 'clickData'),
     # State('current-path', 'children'),

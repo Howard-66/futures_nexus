@@ -46,6 +46,7 @@ def get_shfe_contract():
     print('Current Period: ', start_date, end_date)
     df_futures_daily_shfe_append = ak.get_futures_daily(start_date=start_date, end_date=end_date, market="SHFE")
     df_futures_daily_shfe_append['date'] = pd.to_datetime(df_futures_daily_shfe_append['date'], format='%Y%m%d')
+    df_futures_daily_shfe_append = df_futures_daily_shfe_append.drop('index', axis=1)
     dws.load_from_dataframe(df_futures_daily_shfe_append, 'shfe', 'append')
 
 # 获取合约信息
