@@ -8,7 +8,7 @@ import re
 _dash_renderer._set_react_version("18.2.0")
 
 HeaderHeight = 70
-NavbarWidth = 240
+NavbarWidth = 230
 AsideWidth = 300
 MainContentHeight = 1250
 MainContentPaddingTop = 70
@@ -18,12 +18,12 @@ main_menu = dmc.Group(
     [
         dmc.Menu(                    
             [
-                dmc.MenuTarget(dmc.Button("市场全景", variant="subtle", leftSection=DashIconify(icon="uiw:global", width=20))),               
+                dmc.MenuTarget(dmc.Button("市场全景", variant="subtle", className="primary_content", leftSection=DashIconify(icon="uiw:global", width=20))),               
             ],
         ),                             
         dmc.Menu(                    
             [
-                dmc.MenuTarget(dmc.Button("金属", variant="subtle", leftSection=DashIconify(icon="icon-park-outline:heavy-metal", width=24))),
+                dmc.MenuTarget(dmc.Button("金属", variant="subtle", className="primary_content", leftSection=DashIconify(icon="icon-park-outline:heavy-metal", width=24))),
                 dmc.MenuDropdown(
                     children=[                                    
                         dmc.MenuItem("钢铁产业链", href="/chain/overview?chain_id=black_metal", leftSection=DashIconify(icon="tabler:ironing-steam", width=20)),
@@ -36,7 +36,7 @@ main_menu = dmc.Group(
         ),
         dmc.Menu(                    
             [
-                dmc.MenuTarget(dmc.Button("能源", variant="subtle", leftSection=DashIconify(icon="material-symbols:energy-savings-leaf-outline", width=24))),
+                dmc.MenuTarget(dmc.Button("能源", variant="subtle", className="primary_content", leftSection=DashIconify(icon="material-symbols:energy-savings-leaf-outline", width=24))),
                 dmc.MenuDropdown(
                     children=[                                    
                         dmc.MenuItem("动力煤产业链", leftSection=DashIconify(icon="mdi:charcoal-outline", width=20)),
@@ -48,7 +48,7 @@ main_menu = dmc.Group(
         ),                    
         dmc.Menu(                    
             [
-                dmc.MenuTarget(dmc.Button("化工", variant="subtle", leftSection=DashIconify(icon="mdi:chemical-weapon", width=24))),
+                dmc.MenuTarget(dmc.Button("化工", variant="subtle", className="primary_content", leftSection=DashIconify(icon="mdi:chemical-weapon", width=24))),
                 dmc.MenuDropdown(
                     children=[                                    
                         dmc.MenuItem("化工产业链", leftSection=DashIconify(icon="healthicons:chemical-burn-outline", width=20)),
@@ -60,7 +60,7 @@ main_menu = dmc.Group(
         ),          
         dmc.Menu(                    
             [
-                dmc.MenuTarget(dmc.Button("农产品", variant="subtle", leftSection=DashIconify(icon="ic:outline-agriculture", width=24))),
+                dmc.MenuTarget(dmc.Button("农产品", variant="subtle", className="primary_content", leftSection=DashIconify(icon="ic:outline-agriculture", width=24))),
                 dmc.MenuDropdown(
                     children=[                                    
                         dmc.MenuItem("菜籽油产业链", leftSection=DashIconify(icon="mdi:seedling-outline", width=20)),
@@ -76,12 +76,12 @@ main_menu = dmc.Group(
         ),                                   
         dmc.Menu(                    
             [
-                dmc.MenuTarget(dmc.Button("自选", variant="subtle", leftSection=DashIconify(icon="mdi:favorite-settings-outline", width=24))),               
+                dmc.MenuTarget(dmc.Button("自选", variant="subtle", className="primary_content", leftSection=DashIconify(icon="mdi:favorite-settings-outline", width=24))),               
             ],
         ),                       
         dmc.Menu(                    
             [
-                dmc.MenuTarget(dmc.Button("设置", variant="subtle", leftSection=DashIconify(icon="icon-park-outline:config", width=24))),
+                dmc.MenuTarget(dmc.Button("设置", variant="subtle", className="primary_content", leftSection=DashIconify(icon="icon-park-outline:config", width=24))),
                 dmc.MenuDropdown(
                     children=[                                    
                         dmc.MenuItem("数据管理", leftSection=DashIconify(icon="icon-park-outline:data-switching", width=20)),
@@ -122,9 +122,9 @@ header = dmc.Paper(
             dmc.GridCol(
                 dmc.Group(
                     [
-                        dmc.Burger(id="burger-button", opened=True, size="xs", color="blue"),
-                        DashIconify(icon="simple-icons:bitcoincash", width=24, color="blue"),
-                        dmc.Text("Futures Nexus", c="blue",size="xl"),
+                        dmc.Burger(id="burger-button", opened=True, size="xs", className="primary_content"),
+                        DashIconify(icon="simple-icons:bitcoincash", width=24, className="primary_content"),
+                        dmc.Text("Futures Nexus", className="primary_content", size="xl"),
                     ],
                     justify="flex-start",
                 ),
@@ -157,37 +157,35 @@ header = dmc.Paper(
     p="sm",
     withBorder=False,
     # style={"backgroundColor": "#f5f5f5"}
+    className="panel_container",
 )
+
+# 创建一级NavLink的函数
+def create_primary_nav_links():
+    nav_links = []
+    with DataWorks() as dws:
+        variety_id_name_map, variety_name_id_map = dws.get_variety_map()
+        user_json='setting/user.json'
+        user_setting = dws.load_json_setting(user_json)
+        for category, items in user_setting["Favorites"].items():
+            icon = DashIconify(icon="fluent-mdl2:favorite-list", width=24)
+            nav_links.append(
+                dmc.NavLink(
+                    label=category,
+                    leftSection=icon,
+                    childrenOffset=28,
+                    children=[dmc.NavLink(label=variety_id_name_map[label], variant="subtle", href=f"/variety/basis?variety_id={label}") for label in items],
+                    variant="subtle",
+                    opened=True,
+                    active=True,
+                )
+            )
+    return nav_links
 
 quick_access = html.Div(
     style={"width": NavbarWidth, "height": "auto"},
-    children=[
-        dmc.NavLink(
-            label="活跃商品",
-            leftSection=DashIconify(icon="akar-icons:link-chain", width=24),
-            childrenOffset=28,
-            children=[
-                dmc.NavLink(label="螺纹钢", href='/variety/basis?variety_id=RB'),
-                dmc.NavLink(label="Second child link"),
-            ],
-            variant="subtle",
-            opened=True,
-            active=True,
-        ),
-        dmc.NavLink(
-            label="自选品种",
-            leftSection=DashIconify(icon="fluent-mdl2:favorite-list", width=24),
-            childrenOffset=28,            
-            children=[
-                dmc.NavLink(label="First child link", variant="subtle"),
-                dmc.NavLink(label="Second child link"),
-                dmc.NavLink(label="Third child link"),
-            ],
-            variant="subtle",
-            opened=True,
-            active=True,
-        ),
-    ],
+    id="favorite-container",
+    children=create_primary_nav_links()
 )
 
 def create_variety_stepper(variety_id):
@@ -299,7 +297,7 @@ sidebar_tabs =dmc.Tabs(
         dmc.TabsList(
             [
                 dmc.TabsTab("分析", value="analysis"),
-                dmc.TabsTab("板块", value="chain"),
+                dmc.TabsTab("笔记", value="chain"),
                 dmc.TabsTab("自选", value="favorite"),
             ]
         ),
@@ -419,10 +417,10 @@ app = Dash(
 
 app_shell = dmc.AppShell(
     [
-        dmc.AppShellHeader(header, withBorder=False, style={"backgroundColor": MainContentBGColor}),
-        dmc.AppShellNavbar(navbar, withBorder=True),
+        dmc.AppShellHeader(header, withBorder=False, className="background_container"),
+        dmc.AppShellNavbar(navbar, withBorder=True, className="panel_container"),
         dmc.AppShellAside("Aside", withBorder=True),
-        dmc.AppShellMain(page_content, pt=MainContentPaddingTop),
+        dmc.AppShellMain(page_content, pt=MainContentPaddingTop, className="background_container"),
         # dmc.AppShellFooter("Footer")
     ],
     header={"height": HeaderHeight},

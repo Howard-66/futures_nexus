@@ -23,7 +23,7 @@ variety_page_maps = {}
 active_variety_page = None
 
 quant_tags = html.Div([
-    dmc.Text('量化分析标签', c='darkblue'),
+    dmc.Text('量化分析标签', className="primary_content",),
     html.Div(
         html.Span(
             id='html-analyzing-tags'
@@ -31,8 +31,20 @@ quant_tags = html.Div([
     ),
 ])
 
+term_sturcture_panel = html.Div([
+    dmc.Text('期限结构', className="primary_content",),
+    dcc.Graph(figure={}, id='term-figure-placeholder', config={'displayModeBar': False}),
+])
+
+cross_term_panel = html.Div(
+    [
+        dmc.Text('跨期价差分析', className="primary_content",),
+        dcc.Graph(figure={}, id='intertemporal-figure-placeholder', config={'displayModeBar': False}),
+    ]
+)
+
 analyzing_log = html.Div([
-    dmc.Text('盈利-风险测算', c='darkblue'),
+    dmc.Text('盈利-风险测算', className="primary_content",),
     html.Div(id='html-profit-loss'),
     # html.Hr(),
     # dmc.Text('综合分析', color='darkblue'),
@@ -55,7 +67,7 @@ right_panel = dmc.Stack(
         ),          
         # 期限结构分析图表
         dmc.Paper(
-            dcc.Graph(figure={}, id='term-figure-placeholder', config={'displayModeBar': False}),
+            term_sturcture_panel,
             shadow="sm",
             radius="xs",
             p="xs",
@@ -63,7 +75,7 @@ right_panel = dmc.Stack(
         ),
         # 跨期分析图表
         dmc.Paper(
-            dcc.Graph(figure={}, id='intertemporal-figure-placeholder', config={'displayModeBar': False}),
+            cross_term_panel,
             shadow="sm",
             radius="xs",
             p="xs",
@@ -89,19 +101,19 @@ class VarietyPage:
         # symbol.get_spot_months() # TODO
         with DataWorks() as dws:
             symbol.variety_data = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], symbol.id)
-        symbol.variety_data['date'] = pd.to_datetime(symbol.variety_data['date'], format='ISO8601')
-        self.symbol = symbol
-        self.chart_manager = ChartManager(symbol)
-        self.chart_manager.load_indicators()
+            symbol.variety_data['date'] = pd.to_datetime(symbol.variety_data['date'], format='ISO8601')
+            self.symbol = symbol
+            self.chart_manager = ChartManager(symbol)
+            self.chart_manager.load_indicators()
 
-        self.look_forward_months = 0
-        # self.main_figure = None
-        self.on_layout = False
-        self.show_indexs = None
-        # self.future_type = ''
-        # 获取用户设置
-        self.user_json='setting/user.json'
-        user_setting = dws.load_json_setting(self.user_json)
+            self.look_forward_months = 0
+            # self.main_figure = None
+            self.on_layout = False
+            self.show_indexs = None
+            # self.future_type = ''
+            # 获取用户设置
+            self.user_json='setting/user.json'
+            user_setting = dws.load_json_setting(self.user_json)
         if symbol.id not in user_setting['Variety']:
             user_setting['Variety'][symbol.id] = {}
             # dws.save_json_setting(self.user_json, user_setting)        
@@ -291,7 +303,7 @@ class VarietyPage:
         current_date = click_date.strftime('%Y-%m-%d')
         # term_fig.add_hline(y=spot_price)
         term_fig.update_layout(yaxis_range=[min_y,max_y],
-                               title='期限结构:'+current_date,
+                            #    title='期限结构:'+current_date,
                                height=120,
                                margin=dict(l=0, r=0, t=30, b=0),
                                plot_bgcolor='White',                   

@@ -55,7 +55,7 @@ def create_nav_links(labels):
 def create_primary_nav_links(data):
     nav_links = []
     for category, items in data["Favorites"].items():
-        icon = DashIconify(icon="akar-icons:link-chain", width=24) if category == "活跃商品" else DashIconify(icon="fluent-mdl2:favorite-list", width=24)
+        icon = DashIconify(icon="fluent-mdl2:favorite-list", width=24)
         nav_links.append(
             dmc.NavLink(
                 label=category,
