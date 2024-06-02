@@ -4,15 +4,17 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from dataworks import DataWorks
 import re
+import datetime
 
 _dash_renderer._set_react_version("18.2.0")
 
 HeaderHeight = 70
-NavbarWidth = 230
+NavbarWidth = 260
 AsideWidth = 300
 MainContentHeight = 1250
 MainContentPaddingTop = 70
 MainContentBGColor = "#f5f5f5"
+NoteEditHeight = 450
 
 main_menu = dmc.Group(
     [
@@ -290,6 +292,426 @@ market_stepper_placeholder = dmc.Stepper(
     active=0,
 )
 
+note_cards = dmc.Stack(
+    [
+        dmc.Space(h=5),
+        dmc.Group(
+            [
+                dmc.ActionIcon(
+                    DashIconify(icon="carbon:new-tab", width=24),
+                    size="sm",
+                    radius="sm",
+                    variant="subtle",
+                ),
+                dmc.ActionIcon(
+                    DashIconify(icon="carbon:list", width=24),
+                    size="sm",
+                    radius="sm",
+                    variant="subtle",
+                ),
+            ],
+            justify="flex-end",
+            gap="xs",
+        ),
+        dmc.ScrollArea(
+            [
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("螺纹钢", size="sm"),
+                                dmc.Text("2024-5-20", size="xs"),
+                                dmc.Badge("止赢跟踪", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,日线斐波那契F3止盈,日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("PTA", size="sm"),
+                                dmc.Text("2024-5-8", size="xs"),
+                                dmc.Badge("进场关注", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("PTA", size="sm"),
+                                dmc.Text("2024-5-8", size="xs"),
+                                dmc.Badge("进场关注", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("PTA", size="sm"),
+                                dmc.Text("2024-5-8", size="xs"),
+                                dmc.Badge("进场关注", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("PTA", size="sm"),
+                                dmc.Text("2024-5-8", size="xs"),
+                                dmc.Badge("进场关注", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("PTA", size="sm"),
+                                dmc.Text("2024-5-8", size="xs"),
+                                dmc.Badge("进场关注", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("PTA", size="sm"),
+                                dmc.Text("2024-5-8", size="xs"),
+                                dmc.Badge("进场关注", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+                dmc.Card(
+                    children=[
+                        dmc.Group(
+                            [
+                                dmc.Text("PTA", size="sm"),
+                                dmc.Text("2024-5-8", size="xs"),
+                                dmc.Badge("进场关注", color="green", size="sm"),
+                            ],
+                            justify="space-between",
+                            mb="xs",
+                        ),
+                        dmc.Spoiler(
+                            showLabel="...",
+                            hideLabel="...",
+                            maxHeight=30,
+                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
+                            className="spoiler_label"
+                        ),
+                        dmc.Group(
+                            [
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="codicon:trash", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                            ],
+                            justify="flex-end",
+                            gap="xs"
+                        ),
+                    ],
+                    withBorder=True,
+                    shadow="sm",
+                    radius="sm",
+                    mb=5,
+                    p="xs",
+                ),
+            ],
+            h=MainContentHeight-NoteEditHeight,
+            scrollbarSize=5,
+            type="hover",
+            offsetScrollbars=True,
+        ),
+        dmc.Divider(size="sm", label="交易笔记", labelPosition="center"),
+        dmc.Select(
+            placeholder="类型",
+            data=[
+                {"value": "1", "label": "进场关注"},
+                {"value": "2", "label": "加仓关注"},
+                {"value": "4", "label": "止盈/减仓监控"},
+                {"value": "5", "label": "止损/减仓监控"},
+            ],
+            clearable=True,
+            size="xs",
+            radius="sm",
+        ),
+        dmc.Textarea(
+            id="analysis-textarea",
+            # label="多空分析",
+            placeholder="多头:\n\n空头:\n\n交易计划:\n\n",
+            autosize=True,
+            minRows=6,
+            maxRows=12,
+            # variant="filled",
+            radius="sm",
+            size="sm",
+        ),
+        dmc.Group(
+            [
+                dmc.Button(
+                    "取消",
+                    id="cancel-button",
+                    variant="outline",
+                    color="gray",
+                    size="xs",
+                ),
+                dmc.Button(
+                    "添加",
+                    id="new-note-button",
+                    variant="outline",
+                    color="blue",
+                    size="xs",
+                ),
+            ],
+            justify="flex-end",            
+        ),
+    ],
+    gap="xs",
+    justify="center",
+)
 
 # 侧边栏-标签切换
 sidebar_tabs =dmc.Tabs(
@@ -302,7 +724,7 @@ sidebar_tabs =dmc.Tabs(
             ]
         ),
         dmc.TabsPanel([market_stepper_placeholder,variety_stepper_placeholder], value="analysis", p="md", id="sidebar-analysis-tab"),
-        dmc.TabsPanel("", value="chain", id="sidebar-chain-tab"),
+        dmc.TabsPanel(note_cards, value="chain", id="sidebar-chain-tab"),
         dmc.TabsPanel(quick_access, value="favorite" ,p="md", id="sidebar-favorite-tab"),
     ],
     value="analysis",
