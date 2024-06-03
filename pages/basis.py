@@ -1,5 +1,4 @@
 import pandas as pd
-
 import dash
 import dash_mantine_components as dmc
 from dataworks import DataWorks
@@ -11,14 +10,10 @@ import plotly.express as px
 from modules.variety import Variety
 from modules.chart import ChartManager
 from dash_iconify import DashIconify
+import global_env as ge
 
 dash.register_page(__name__, path="/variety/basis", title='Futures Nexus: 基本面分析')
 
-HeaderHeight = 70
-NavbarWidth = 240
-AsideWidth = 300
-MainContentHeight = 1250
-MainContentPaddingTop = 70
 variety_page_maps = {}
 active_variety_page = None
 
@@ -211,7 +206,7 @@ class VarietyPage:
                 dcc.Graph(id='basis-figure', config={'displayModeBar': False}, style={'height': '100%'}),
             ],
             gap="xs",
-            style={'height': 1250}
+            style={'height': ge.MainContentHeight},
         )              
         layout = dmc.Grid([
                     # 左侧面板
@@ -278,13 +273,13 @@ class VarietyPage:
         # df_dominant_contract = pd.concat([spot_row, df_term])        
         diff = df_dominant_contract['settle'].head(len(dominant_months)+1).diff().dropna()
         if all(diff>0):
-            color_flag = 'rgba(0,255,0,0.5)'
+            color_flag = ge.SecondaryShortColor
             trade_flag = 'Short'
         elif all(diff<0):
-             color_flag = 'rgba(255,0,0,0.5)'
+             color_flag = ge.SecondaryLongColor
              trade_flag = 'Long'
         else:
-            color_flag = 'rgba(128,128,128,0.5)'
+            color_flag = ge.PrimaryNeutralColor
             trade_flag = 'X'
         # print(click_date, type(click_date),  df_term)
         # spot_figure =go.Scatter(x=spot_row['symbol'], y=spot_row['settle'], stackgroup='one',mode='markers',
@@ -304,7 +299,7 @@ class VarietyPage:
         # term_fig.add_hline(y=spot_price)
         term_fig.update_layout(yaxis_range=[min_y,max_y],
                             #    title='期限结构:'+current_date,
-                               height=120,
+                               height=ge.TermStrctureFigureHeight,
                                margin=dict(l=0, r=0, t=30, b=0),
                                plot_bgcolor='White',                   
                                showlegend=False)
@@ -390,7 +385,7 @@ class VarietyPage:
         # max_y = filtered_data['close'].max()*1.01
         # min_y = filtered_data['close'].min()*0.99
         cross_term_figure.update_layout(
-                                        height=400,
+                                        height=ge.CrossTermFigureHeight,
                                         margin=dict(l=0, r=0, t=20, b=0),
                                         plot_bgcolor='White',     
                                         hovermode='x unified',              

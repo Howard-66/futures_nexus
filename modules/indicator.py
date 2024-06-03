@@ -10,6 +10,7 @@ import re
 from functools import reduce
 from statsmodels.tsa.seasonal import seasonal_decompose
 from pykalman import KalmanFilter
+import global_env as ge
 
 # @jit(nopython=True)
 def RRP(data, window_size):
@@ -29,8 +30,8 @@ def RRP(data, window_size):
 
 class Indicator(ABC):
     MaxBars = 500
-    LineColor = 'lightblue'
-    SeasonalLineColor = 'Blue'
+    LineColor = ge.PrimaryLineColor
+    SeasonalLineColor = ge.SecondaryLineColor
 
     def __init__(self, name, variety, config, **params):
         self.name = name
@@ -136,9 +137,9 @@ class RankColorIndicator(Indicator):
     DEFAULT_WINDOW = 240
     OVER_BUY = 0.8
     OVER_SELL = 0.2
-    LONG_COLOR = 'red'
-    NO_COLOR = 'gray'
-    SHORT_COLOR = 'green'
+    LONG_COLOR = ge.PrimaryLongColor
+    NO_COLOR = ge.PrimaryNeutralColor
+    SHORT_COLOR = ge.PrimaryShortColor
 
     # def calculate_pandas(self, **kwargs):
     #     if self.data is None:
@@ -227,8 +228,8 @@ class RankColorIndicator(Indicator):
     
 class MapColorIndicator(Indicator):
     COLOR_MAPPING = {
-            'Short': {-1: 'red', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'green'},
-            'Long': {-1: 'green', -0.5:'gray', 0:'gray', 0.5:'gray', 1:'red'},
+            'Short': {-1: ge.PrimaryLongColor, -0.5:ge.PrimaryNeutralColor, 0:ge.PrimaryNeutralColor, 0.5:ge.PrimaryNeutralColor, 1:ge.PrimaryShortColor},
+            'Long': {-1: ge.PrimaryShortColor, -0.5:ge.PrimaryNeutralColor, 0:ge.PrimaryNeutralColor, 0.5:ge.PrimaryNeutralColor, 1:ge.PrimaryLongColor},
         }
     def calculate(self, **kwargs):
         max_bars = kwargs.get('max_bars', self.MaxBars)        

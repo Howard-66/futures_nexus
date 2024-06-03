@@ -5,16 +5,9 @@ from dash_iconify import DashIconify
 from dataworks import DataWorks
 import re
 import datetime
+import global_env as ge
 
 _dash_renderer._set_react_version("18.2.0")
-
-HeaderHeight = 70
-NavbarWidth = 260
-AsideWidth = 300
-MainContentHeight = 1250
-MainContentPaddingTop = 70
-MainContentBGColor = "#f5f5f5"
-NoteEditHeight = 450
 
 main_menu = dmc.Group(
     [
@@ -124,7 +117,6 @@ header = dmc.Paper(
             dmc.GridCol(
                 dmc.Group(
                     [
-                        dmc.Burger(id="burger-button", opened=True, size="xs", className="primary_content"),
                         DashIconify(icon="simple-icons:bitcoincash", width=24, className="primary_content"),
                         dmc.Text("Futures Nexus", className="primary_content", size="xl"),
                     ],
@@ -140,7 +132,7 @@ header = dmc.Paper(
                 dmc.Group(
                     [
                         dmc.Space(w=30),
-                        dmc.Select(searchable=True, clearable=True, id="variety-search",
+                        dmc.Select(searchable=True, clearable=True, id="variety-search", size="xs",
                                     placeholder="搜索品种名称/代号", nothingFoundMessage="未找到品种",),
                         dmc.Space(w=30),
                         theme_toggle,
@@ -156,7 +148,7 @@ header = dmc.Paper(
     ),
     shadow="sm",
     radius="xs",
-    p="sm",
+    p=5,
     withBorder=False,
     # style={"backgroundColor": "#f5f5f5"}
     className="panel_container",
@@ -185,7 +177,7 @@ def create_primary_nav_links():
     return nav_links
 
 quick_access = html.Div(
-    style={"width": NavbarWidth, "height": "auto"},
+    style={"width": ge.NavbarWidth, "height": "auto"},
     id="favorite-container",
     children=create_primary_nav_links()
 )
@@ -313,6 +305,7 @@ note_cards = dmc.Stack(
             justify="flex-end",
             gap="xs",
         ),
+        dmc.Divider(size="sm"),
         dmc.ScrollArea(
             [
                 dmc.Card(
@@ -660,7 +653,7 @@ note_cards = dmc.Stack(
                     p="xs",
                 ),
             ],
-            h=MainContentHeight-NoteEditHeight,
+            h=ge.MainContentHeight-ge.NoteEditHeight,
             scrollbarSize=5,
             type="hover",
             offsetScrollbars=True,
@@ -786,6 +779,7 @@ favorite_toggle = dmc.ActionIcon(
 # 品种工具栏
 tab_bar = dmc.Grid(
     [
+        dmc.GridCol(dmc.Burger(id="burger-button", opened=True, size="xs", className="primary_content"), span="content"),
         dmc.GridCol(seg_variety, span="auto"),
         dmc.GridCol(
             dmc.ActionIcon(DashIconify(icon="carbon:close-outline"), id="button-remove-tab", variant="subtle", color="blue", size=36, radius="xs"), span="content"),
@@ -842,19 +836,19 @@ app_shell = dmc.AppShell(
         dmc.AppShellHeader(header, withBorder=False, className="background_container"),
         dmc.AppShellNavbar(navbar, withBorder=True, className="panel_container"),
         dmc.AppShellAside("Aside", withBorder=True),
-        dmc.AppShellMain(page_content, pt=MainContentPaddingTop, className="background_container"),
+        dmc.AppShellMain(page_content, pt=ge.MainContentPaddingTop, className="background_container"),
         # dmc.AppShellFooter("Footer")
     ],
-    header={"height": HeaderHeight},
+    header={"height": ge.HeaderHeight},
     padding="xl",
     navbar={
-        "width": NavbarWidth,
+        "width": ge.NavbarWidth,
         "breakpoint": "md",
         "collapsed": {"desktop": False, "mobile": True},
         "opened": True,
     },
     aside={
-        "width": AsideWidth,
+        "width": ge.AsideWidth,
         "breakpoint": "xl",
         "collapsed": {"desktop": True, "mobile": True},
         "opened": False,
