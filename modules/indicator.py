@@ -29,7 +29,7 @@ def RRP(data, window_size):
     return rank_pct
 
 class Indicator(ABC):
-    MaxBars = 500
+    MaxBars = ge.MaxLoadingBars
     LineColor = ge.PrimaryLineColor
     SeasonalLineColor = ge.SecondaryLineColor
 
@@ -134,9 +134,9 @@ class SimpleIndicator(Indicator):
         return fig
 
 class RankColorIndicator(Indicator): 
-    DEFAULT_WINDOW = 240
-    OVER_BUY = 0.8
-    OVER_SELL = 0.2
+    DEFAULT_WINDOW = ge.TraceBackWindow
+    OVER_BUY = ge.OverBuy
+    OVER_SELL = ge.OverSell
     LONG_COLOR = ge.PrimaryLongColor
     NO_COLOR = ge.PrimaryNeutralColor
     SHORT_COLOR = ge.PrimaryShortColor

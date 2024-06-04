@@ -1,6 +1,7 @@
 import modules.indicator as indicator
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
+import global_env as ge
 
 # 实现 IndicatorManager 类
 class ChartManager:
@@ -101,7 +102,7 @@ class ChartManager:
 
     def _create_main_figure(self):
         now = datetime.now()
-        one_year_ago = now - timedelta(days=730)
+        one_year_ago = now - timedelta(days=ge.DisplayLastBars)
         self.end_date = now.strftime('%Y-%m-%d')
         self.start_date = one_year_ago.strftime('%Y-%m-%d')
 
@@ -135,8 +136,8 @@ class ChartManager:
             # width=3000,
             # height=1200,
             margin=dict(l=0, r=0, t=0, b=0),
-            plot_bgcolor='#f5f5f5',  
-            paper_bgcolor='#f5f5f5',
+            plot_bgcolor=ge.MainContentBGColor,  
+            paper_bgcolor=ge.MainContentBGColor,
             hovermode='x unified',
             modebar={},
             legend=dict(

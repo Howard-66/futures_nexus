@@ -8,23 +8,42 @@ NavbarWidth = 240
 # 右侧侧边栏宽度
 AsideWidth = 300
 # 主内容区域高度
-MainContentHeight = 1250 if CurrentSystem=='Darwin' else 680
+MainContentHeight = 1250 if CurrentSystem=='Darwin' else 980
 # 主内容内部顶边距
 MainContentPaddingTop = 50
-# 主内容背景颜色
-MainContentBGColor = "#f5f5f5"
 # 交易笔记编辑区域高度
-NoteEditHeight = 450 if CurrentSystem=='Darwin' else 300
+NoteEditHeight = 450 if CurrentSystem=='Darwin' else 400
 
 # 期限结构图表高度
-TermStrctureFigureHeight = 120 if CurrentSystem=='Darwin' else 80
+TermStrctureFigureHeight = 120
 # 跨期分析图表高度
-CrossTermFigureHeight = 400 if CurrentSystem=='Darwin' else 280
+CrossTermFigureHeight = 400 if CurrentSystem=='Darwin' else 350
 
+
+# 最大加载K线数量
+MaxLoadingBars = 500
+# 显示最近K线数量
+DisplayLastBars = 400
+# 指标回溯计算窗口
+TraceBackWindow = 240
+# 超买线阈值
+OverBuy = 0.8
+# 超卖线阈值
+OverSell = 0.2
+
+# 主内容背景颜色
+MainContentBGColor = "#f5f5f5"
+# 多头主配色
 PrimaryLongColor = "#FF434D"
+# 多头次配色
 SecondaryLongColor = "#FDC5CB"
-PrimaryShortColor = "#1E887C"
+# 空头主配色
+PrimaryShortColor = "#22ac9c"
+# 空头次配色
 SecondaryShortColor = "#C2E5E1"
-PrimaryLineColor = "#0873e5"
-SecondaryLineColor = "#E8752F"
+# 中性主配色
 PrimaryNeutralColor = "#d3d3d3"
+# 线主配色
+PrimaryLineColor = "#0873e5"
+# 线次配色
+SecondaryLineColor = "#FF770E"
