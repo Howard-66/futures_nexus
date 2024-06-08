@@ -64,13 +64,10 @@ class DataWorks:
         df.to_sql(to_table, self.engine, if_exists=mode, index=False)
 
     @lru_cache(maxsize=128)  # 缓存常用查询
-    def get_last_date(self, table, symbol_id='', date_field='date'):
-        if symbol_id:
-            condition = f"{date_field} IN (SELECT MAX({date_field}) FROM {table} WHERE variety='{symbol_id}')"
-        else:
-            condition = f"{date_field} IN (SELECT MAX({date_field}) FROM {table})"
-        sql = f"SELECT {date_field} FROM {table} WHERE {condition}"
-        last_date = pd.read_sql_query(sql, self.conn).iloc[0][date_field]
+    def get_last_date(self, table, symbol_id=None, date_field='date'):
+        condition = f"WHERE variety='{symbol_id}'" if symbol_id else ""
+        sql = f"SELECT MAX({date_field}) AS last_date FROM {table} {condition}"
+        last_date = pd.read_sql_query(sql, self.conn).iloc[0]
         return last_date
 
     @lru_cache(maxsize=128)  # 缓存常用查询
