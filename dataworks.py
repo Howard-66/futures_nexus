@@ -67,7 +67,7 @@ class DataWorks:
     def get_last_date(self, table, symbol_id=None, date_field='date'):
         condition = f"WHERE variety='{symbol_id}'" if symbol_id else ""
         sql = f"SELECT MAX({date_field}) AS last_date FROM {table} {condition}"
-        last_date = pd.read_sql_query(sql, self.conn).iloc[0]
+        last_date = pd.read_sql_query(sql, self.conn).iloc[0, 0]
         return last_date
 
     @lru_cache(maxsize=128)  # 缓存常用查询
