@@ -60,7 +60,7 @@ class DataWorks:
         df = pd.read_sql_query(sql, self.conn)
         return df
 
-    def load_from_dataframe(self, df, to_table, mode='replace'):
+    def save_data(self, df, to_table, mode='replace'):
         df.to_sql(to_table, self.engine, if_exists=mode, index=False)
 
     @lru_cache(maxsize=128)  # 缓存常用查询

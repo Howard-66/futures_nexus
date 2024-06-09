@@ -20,7 +20,7 @@ def get_dce_contract():
     print('Current Period: ', start_date, end_date)
     df_futures_daily_dce_append = ak.get_futures_daily(start_date=start_date, end_date=end_date, market="DCE")
     df_futures_daily_dce_append['date'] = pd.to_datetime(df_futures_daily_dce_append['date'], format='%Y%m%d')
-    dws.load_from_dataframe(df_futures_daily_dce_append, 'dce', 'append')
+    dws.save_data(df_futures_daily_dce_append, 'dce', 'append')
 
 # 获取CZCE合约
 def get_czce_contract():
@@ -33,7 +33,7 @@ def get_czce_contract():
     print('Current Period: ', start_date, end_date)
     df_futures_daily_dce_append = ak.get_futures_daily(start_date=start_date, end_date=end_date, market="DCE")
     df_futures_daily_dce_append['date'] = pd.to_datetime(df_futures_daily_dce_append['date'], format='%Y%m%d')
-    dws.load_from_dataframe(df_futures_daily_dce_append, 'dce', 'append')
+    dws.save_data(df_futures_daily_dce_append, 'dce', 'append')
 
 # 获取SHFE合约
 def get_shfe_contract():
@@ -47,7 +47,7 @@ def get_shfe_contract():
     df_futures_daily_shfe_append = ak.get_futures_daily(start_date=start_date, end_date=end_date, market="SHFE")
     df_futures_daily_shfe_append['date'] = pd.to_datetime(df_futures_daily_shfe_append['date'], format='%Y%m%d')
     df_futures_daily_shfe_append = df_futures_daily_shfe_append.drop('index', axis=1)
-    dws.load_from_dataframe(df_futures_daily_shfe_append, 'shfe', 'append')
+    dws.save_data(df_futures_daily_shfe_append, 'shfe', 'append')
 
 # 获取合约信息
 def get_contract_info():
@@ -58,7 +58,7 @@ def get_contract_info():
                             '大连商品交易所': 'dce',
                             '上海期货交易所': 'shfe'}
     symbol_list['exchange'] = symbol_list['exchange'].apply(lambda x: exchange_replace_dict.get(x, x))
-    dws.load_from_dataframe(symbol_list, 'symbols')
+    dws.save_data(symbol_list, 'symbols')
 
 # 获取主力合约
 def get_main_contract():
@@ -82,7 +82,7 @@ def get_main_contract():
     merged_main_contracts['date'] = pd.to_datetime(merged_main_contracts['date'])
     merged_main_contracts['variety'] = merged_main_contracts['variety'].str.rstrip('0')
     # combined_main = merged_main_contracts.drop_duplicates(subset=['日期', 'variety'], keep='last')
-    dws.load_from_dataframe(merged_main_contracts, 'dominant', 'append')
+    dws.save_data(merged_main_contracts, 'dominant', 'append')
 
 # 合成近月合约
 def get_near_contract():
@@ -128,7 +128,7 @@ def get_near_contract():
             df_cuurent_near = df_cuurent_near[(df_cuurent_near['date']>= start_date) & (df_cuurent_near['date']<=end_date)]
             df_near_contract = pd.concat([df_near_contract, df_cuurent_near])
             start_date = end_date + timedelta(days=1)            
-    dws.load_from_dataframe(df_near_contract, 'near') 
+    dws.save_data(df_near_contract, 'near') 
 
 # 获取注册仓单
 def get_receipt():
@@ -150,25 +150,25 @@ def get_receipt():
     df_receipt_dce_append = ak.get_receipt(start_date, end_date, vars_list=dce)
     df_receipt_dce_append['date'] = pd.to_datetime(df_receipt_dce_append['date'])
     df_receipt_dce_append.rename(columns={'var': 'variety'}, inplace=True)
-    dws.load_from_dataframe(df_receipt_dce_append, 'receipt', 'append')
+    dws.save_data(df_receipt_dce_append, 'receipt', 'append')
 
     # CZCE
     df_receipt_czce_append = ak.get_receipt(start_date, end_date, vars_list=czce)
     df_receipt_czce_append['date'] = pd.to_datetime(df_receipt_czce_append['date'])
     df_receipt_czce_append.rename(columns={'var': 'variety'}, inplace=True)
-    dws.load_from_dataframe(df_receipt_czce_append, 'receipt', 'append')
+    dws.save_data(df_receipt_czce_append, 'receipt', 'append')
 
     # SHFE
     df_receipt_shfe_append = ak.get_receipt(start_date, end_date, vars_list=shfe)
     df_receipt_shfe_append['date'] = pd.to_datetime(df_receipt_shfe_append['date'])
     df_receipt_shfe_append.rename(columns={'var': 'variety'}, inplace=True)
-    dws.load_from_dataframe(df_receipt_shfe_append, 'receipt', 'append')
+    dws.save_data(df_receipt_shfe_append, 'receipt', 'append')
 
     # 按日期/品种去重
     receipt_data = dws.get_data_by_sql('SELECT * FROM receipt')
     receipt_data['date'] = pd.to_datetime(receipt_data['date'], format='ISO8601')
     receipt_data_drop_dup = receipt_data.drop_duplicates(subset=['date', 'variety'], keep='last')
-    dws.load_from_dataframe(receipt_data_drop_dup, 'receipt')
+    dws.save_data(receipt_data_drop_dup, 'receipt')
 
 # 获取基差
 def get_basis():
@@ -192,7 +192,7 @@ def get_basis():
     all_data['dom_basis'] = -all_data['dom_basis']
     all_data['near_basis_rate'] = -all_data['near_basis_rate']
     all_data['dom_basis_rate'] = -all_data['dom_basis_rate']
-    dws.load_from_dataframe(all_data, 'basis', 'append')
+    dws.save_data(all_data, 'basis', 'append')
 
 # 合成期限结构(全量)
 def get_term_structure_all():
@@ -247,7 +247,7 @@ def get_term_structure_all():
                         'exchange': exchange_id}
                 df_term_structure = pd.concat([df_term_structure, pd.DataFrame([new_row])], ignore_index=True)    
     df_term_structure['flag'] = df_term_structure['flag'].astype(float)
-    dws.load_from_dataframe(df_term_structure, 'term_structure')                
+    dws.save_data(df_term_structure, 'term_structure')                
 
 # 合成期限结构（增量）
 def get_term_structure_period():
@@ -312,7 +312,7 @@ def get_term_structure_period():
 
     # 根据需要保存或处理df_term_structure
     df_term_structure['flag'] = df_term_structure['flag'].astype(float)
-    dws.load_from_dataframe(df_term_structure, 'term_structure', 'append')
+    dws.save_data(df_term_structure, 'term_structure', 'append')
 
 # 合成跨期价差（全量）
 def get_term_spread_all():
@@ -373,7 +373,7 @@ def get_term_spread_all():
                         'spread': spread,
                         'exchange': exchange_id}
                 df_term_spread = pd.concat([df_term_spread, pd.DataFrame([new_row])], ignore_index=True)
-    dws.load_from_dataframe(df_term_spread, 'spread', 'replace')
+    dws.save_data(df_term_spread, 'spread', 'replace')
 
 # 合成跨期价差（增量）
 def get_term_spread_period():
@@ -437,7 +437,7 @@ def get_term_spread_period():
                         'spread': spread,
                         'exchange': exchange_id}
                 df_term_spread = pd.concat([df_term_spread, pd.DataFrame([new_row])], ignore_index=True)    
-    dws.load_from_dataframe(df_term_spread, 'spread', 'append')
+    dws.save_data(df_term_spread, 'spread', 'append')
 
 # Excel文件格式转换
 import os

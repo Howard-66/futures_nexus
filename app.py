@@ -1,3 +1,4 @@
+import pandas as pd
 import dash
 from dash import Dash, _dash_renderer, dcc, html, callback, Input, Output, State, clientside_callback
 import dash_mantine_components as dmc
@@ -8,6 +9,7 @@ import datetime
 import global_env as ge
 
 _dash_renderer._set_react_version("18.2.0")
+CurrentUser = 'Howard'
 
 main_menu = dmc.Group(
     [
@@ -329,13 +331,19 @@ note_cards = dmc.Stack(
                         dmc.Group(
                             [
                                 dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
+                                    DashIconify(icon="iconoir:thumbs-up", width=20),
                                     size="xs",
                                     radius="sm",
                                     variant="subtle",
                                 ),
                                 dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
+                                    DashIconify(icon="iconoir:thumbs-down", width=20),
+                                    size="xs",
+                                    radius="sm",
+                                    variant="subtle",
+                                ),
+                                dmc.ActionIcon(
+                                    DashIconify(icon="ep:edit", width=20),
                                     size="xs",
                                     radius="sm",
                                     variant="subtle",
@@ -657,19 +665,16 @@ note_cards = dmc.Stack(
             scrollbarSize=5,
             type="hover",
             offsetScrollbars=True,
+            id="note-list"
         ),
         dmc.Divider(size="sm", label="交易笔记", labelPosition="center"),
         dmc.Select(
             placeholder="类型",
-            data=[
-                {"value": "1", "label": "进场关注"},
-                {"value": "2", "label": "加仓关注"},
-                {"value": "4", "label": "止盈/减仓监控"},
-                {"value": "5", "label": "止损/减仓监控"},
-            ],
+            data = [{"value": v, "label": v} for v in ["进场关注", "加仓关注", "止盈/减仓", "止损/减仓"]],
             clearable=True,
             size="xs",
             radius="sm",
+            id="note-type-select",
         ),
         dmc.Textarea(
             id="analysis-textarea",
@@ -685,15 +690,15 @@ note_cards = dmc.Stack(
         dmc.Group(
             [
                 dmc.Button(
-                    "取消",
-                    id="cancel-button",
+                    "删除",
+                    id="remove-button",
                     variant="outline",
                     color="gray",
                     size="xs",
                 ),
                 dmc.Button(
                     "添加",
-                    id="new-note-button",
+                    id="save-note-button",
                     variant="outline",
                     color="blue",
                     size="xs",
@@ -1081,6 +1086,101 @@ def remove_tab(n_clicks, value, data):
     del data[select_index[0]]
     active_value = data[0]['value']
     return data, active_value
+
+@app.callback(
+    Output("note-list", "children"),
+    Input("save-note-button", "n_clicks"),
+    State("note-type-select", "value"),
+    State("analysis-textarea", "value"),
+    State("save-note-button", "children"),
+    State("_pages_location", "search"),
+    State("note-list", "children"),
+)
+def save_note(n_clicks, type, content, button_text, search, note_list):
+    def _create_note_card(date, variety_name, type, content):
+        date_str = pd.to_datetime(date).strftime("%Y-%m-%d")
+        card = dmc.Card(
+            children=[
+                dmc.Group(
+                    [
+                        dmc.Text(variety_name, size="sm"),
+                        dmc.Text(date_str, size="xs"),
+                        dmc.Badge(type, color="green", size="sm"),
+                    ],
+                    justify="space-between",
+                    mb="xs",
+                    gap=0,
+                ),
+                dmc.Spoiler(
+                    showLabel="...",
+                    hideLabel="...",
+                    maxHeight=30,
+                    children=[dmc.Text(content, size="xs", c="dimmed")],
+                    className="spoiler_label"
+                ),
+                dmc.Group(
+                    [
+                        dmc.ActionIcon(
+                            DashIconify(icon="iconoir:thumbs-up", width=20),
+                            size="xs",
+                            radius="sm",
+                            variant="subtle",
+                        ),
+                        dmc.ActionIcon(
+                            DashIconify(icon="iconoir:thumbs-down", width=20),
+                            size="xs",
+                            radius="sm",
+                            variant="subtle",
+                        ),
+                        dmc.ActionIcon(
+                            DashIconify(icon="ep:edit", width=20),
+                            size="xs",
+                            radius="sm",
+                            variant="subtle",
+                        ),
+                    ],
+                    justify="flex-end",
+                    gap="xs"
+                ),
+            ],
+            withBorder=True,
+            shadow="sm",
+            radius="sm",
+            mb=5,
+            p="xs",
+        )
+        return card
+    
+    if type is None or content is None:
+        return dash.no_update
+    match = re.search(r'variety_id=([A-Za-z]+)', search)
+    if match:
+        variety_id = match.group(1)
+    else:
+        return dash.no_update
+    mode = 'append' if button_text=='添加' else 'replace'
+    now = datetime.datetime.now()
+    df = pd.DataFrame({
+        'date': [now],
+        'user': [CurrentUser],
+        'variety': [variety_id],
+        'type': [type],
+        'content': [content]
+    })
+    with DataWorks() as dws:
+        df_note_list = dws.get_data_by_symbol('notes', variety_id)
+        dws.save_data(df, 'notes', mode=mode)
+        variety_id_name_map, variety_name_id_map = dws.get_variety_map()
+    variety_name = variety_id_name_map[variety_id]
+    new_card = _create_note_card(now, variety_name, type, content)
+    # 遍历df_note_list，并创建新的note_list
+    new_note_list = []
+    for index, row in df_note_list.iterrows():
+        variety_name = variety_id_name_map[row['variety']]
+        card = _create_note_card(row['date'], variety_name, row['type'], row['content'])
+        new_note_list.append(card)
+    new_note_list.append(new_card)
+    return new_note_list
 
 if __name__ == "__main__":
     app.run_server(debug=True, port=8051)
