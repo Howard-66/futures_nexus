@@ -41,7 +41,7 @@ class DataWorks:
         self.conn.close()
         # self.engine.dispose()
     
-    @lru_cache(maxsize=128)  # 缓存常用查询
+    # @lru_cache(maxsize=128)  # 缓存常用查询
     def get_data(self, table, condition, fields='*'):
         fields_str = fields if fields == '*' or isinstance(fields, str) else ', '.join(fields)
         sql = f"SELECT {fields_str} FROM {table} WHERE {condition}"
@@ -93,6 +93,30 @@ class DataWorks:
             self.variety_id_name_map = df.set_index('code')['name'].to_dict()
             self.variety_name_id_map = df.set_index('name')['code'].to_dict()
         return self.variety_id_name_map, self.variety_name_id_map
+
+    def update_data(self, table, updates, condition):
+        """
+        更新指定表中满足条件的记录。
+        
+        参数:
+        - table: str, 数据表名
+        - updates: dict, 字段及其更新值的字典
+        - condition: str, 用于识别更新记录的条件
+        
+        返回:
+        - int, 表示被更新的记录数
+        """
+        from sqlalchemy import Table, MetaData
+        from sqlalchemy.sql import text
+        # 初始化 MetaData
+        metadata = MetaData()
+        # 使用autoload加载表结构
+        table_ref = Table(table, metadata, autoload_with=self.engine)
+        # 构建更新语句
+        update_stmt = table_ref.update().where(text(condition)).values(**updates)
+        result = self.conn.execute(update_stmt)
+        self.conn.commit()  # 确保提交事务
+        return result.rowcount  # 返回被更新的行数
 
     def get_variety_setting(self, json_file=''):
         if self.variety_setting is None:

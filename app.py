@@ -1,6 +1,6 @@
 import pandas as pd
 import dash
-from dash import Dash, _dash_renderer, dcc, html, callback, Input, Output, State, clientside_callback
+from dash import Dash, _dash_renderer, dcc, html, callback, Input, Output, State, clientside_callback, MATCH, ALL, ALLSMALLER
 import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from dataworks import DataWorks
@@ -184,64 +184,6 @@ quick_access = html.Div(
     children=create_primary_nav_links()
 )
 
-def create_variety_stepper(variety_id):
-    analysis_stepper = dmc.Stepper(
-        id="variety-stepper",
-        orientation="vertical",
-        iconSize=36,
-        active=0,
-        children=[
-            dmc.StepperStep(
-                label=dmc.Anchor("基本面量化分析", href=f"/variety/basis?variety_id={variety_id}", id="basis-step"),
-                description="基差-库存-利润模型分析",
-                children=[
-                    dmc.Divider(variant="solid", label="快速功能", labelPosition="center"),
-                    dmc.Space(h=10),
-                    dmc.NavLink(label="图表设置", id="chart-config", leftSection=DashIconify(icon="tabler:settings")),
-                    dmc.NavLink(label="主成分分析", variant="subtle", id="pca-analysis", leftSection=DashIconify(icon="ri:pie-chart-2-line")),
-                    dmc.NavLink(label="AI交易建议", variant="subtle", id="drl-analysis", leftSection=DashIconify(icon="prime:microchip-ai")),
-                ],
-            ),
-            dmc.StepperStep(
-                label=dmc.Anchor("AI模型分析", href=f"/variety/drl?variety_id={variety_id}", id="drl-step"),
-                description="通过深度强化学习给出操作建议和价格预测",
-                children=[
-                    dmc.Text("周期性分析"),
-                ],
-            ),            
-            dmc.StepperStep(
-                label=dmc.Anchor("周期性分析", href=f"/variety/cycle?variety_id={variety_id}", id="cycle-step"),
-                description="基于ARIMA模型的周期性分析",
-                children=[
-                    dmc.Text("AI模型分析"),
-                ],
-            ),
-            dmc.StepperStep(
-                label=dmc.Anchor("套利分析", href=f"/variety/arb?variety_id={variety_id}", id="arb-step"),
-                description="跨期、跨品种套利分析",
-                children=[
-                    dmc.Text("套利分析"),
-                ],
-            ),        
-            dmc.StepperStep(
-                label=dmc.Anchor("技术分析", href=f"/variety/tech?variety_id={variety_id}", id="tech-step"),
-                description="基于技术指标、缠论分析",
-                children=[
-                    dmc.Text("技术分析"),
-                ],
-            ),        
-            dmc.StepperStep(
-                label=dmc.Anchor("综合决策", href=f"/variety/trade?variety_id={variety_id}", id="basis-step"),
-                description="综合上述分析结论，制定交易计划和决策",
-                icon=DashIconify(icon="fluent-mdl2:decision-solid", width=20),
-                children=[
-                    dmc.Text("综合决策"),
-                ],
-            ),
-        ],
-    )
-    return analysis_stepper
-
 variety_stepper_placeholder = dmc.Stepper(
     [       
     ],
@@ -296,6 +238,7 @@ note_cards = dmc.Stack(
                     size="sm",
                     radius="sm",
                     variant="subtle",
+                    id="new-note-button",
                 ),
                 dmc.ActionIcon(
                     DashIconify(icon="carbon:list", width=24),
@@ -309,358 +252,7 @@ note_cards = dmc.Stack(
         ),
         dmc.Divider(size="sm"),
         dmc.ScrollArea(
-            [
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("螺纹钢", size="sm"),
-                                dmc.Text("2024-5-20", size="xs"),
-                                dmc.Badge("止赢跟踪", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,日线斐波那契F3止盈,日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="iconoir:thumbs-up", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="iconoir:thumbs-down", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("PTA", size="sm"),
-                                dmc.Text("2024-5-8", size="xs"),
-                                dmc.Badge("进场关注", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("PTA", size="sm"),
-                                dmc.Text("2024-5-8", size="xs"),
-                                dmc.Badge("进场关注", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("PTA", size="sm"),
-                                dmc.Text("2024-5-8", size="xs"),
-                                dmc.Badge("进场关注", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("PTA", size="sm"),
-                                dmc.Text("2024-5-8", size="xs"),
-                                dmc.Badge("进场关注", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("PTA", size="sm"),
-                                dmc.Text("2024-5-8", size="xs"),
-                                dmc.Badge("进场关注", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("PTA", size="sm"),
-                                dmc.Text("2024-5-8", size="xs"),
-                                dmc.Badge("进场关注", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-                dmc.Card(
-                    children=[
-                        dmc.Group(
-                            [
-                                dmc.Text("PTA", size="sm"),
-                                dmc.Text("2024-5-8", size="xs"),
-                                dmc.Badge("进场关注", color="green", size="sm"),
-                            ],
-                            justify="space-between",
-                            mb="xs",
-                        ),
-                        dmc.Spoiler(
-                            showLabel="...",
-                            hideLabel="...",
-                            maxHeight=30,
-                            children=[dmc.Text("日线斐波那契F3止盈,\n日线斐波那契F3止盈,\n日线斐波那契F3止盈,日线斐波那契F3止盈", size="xs", c="dimmed")],
-                            className="spoiler_label"
-                        ),
-                        dmc.Group(
-                            [
-                                dmc.ActionIcon(
-                                    DashIconify(icon="ep:edit", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                                dmc.ActionIcon(
-                                    DashIconify(icon="codicon:trash", width=20),
-                                    size="xs",
-                                    radius="sm",
-                                    variant="subtle",
-                                ),
-                            ],
-                            justify="flex-end",
-                            gap="xs"
-                        ),
-                    ],
-                    withBorder=True,
-                    shadow="sm",
-                    radius="sm",
-                    mb=5,
-                    p="xs",
-                ),
-            ],
+            [],
             h=ge.MainContentHeight-ge.NoteEditHeight,
             scrollbarSize=5,
             type="hover",
@@ -677,7 +269,7 @@ note_cards = dmc.Stack(
             id="note-type-select",
         ),
         dmc.Textarea(
-            id="analysis-textarea",
+            id="content-textarea",
             # label="多空分析",
             placeholder="多头:\n\n空头:\n\n交易计划:\n\n",
             autosize=True,
@@ -691,7 +283,7 @@ note_cards = dmc.Stack(
             [
                 dmc.Button(
                     "删除",
-                    id="remove-button",
+                    id="remove-note-button",
                     variant="outline",
                     color="gray",
                     size="xs",
@@ -997,16 +589,77 @@ def variety_search_callback(value, data):
 )
 def redir_update_variety(pathname, search):
     match = re.search(r'variety_id=([A-Za-z]+)', search)
-    print(search, match)
     if match:
         return match.group(1)
     return dash.no_update
+
+def _create_note_card(date, variety_id, variety_name, type, content, like=0, dislike=0):
+    date_dt = pd.to_datetime(date)
+    date_str = date_dt.strftime("%Y-%m-%d")
+    index_name = f"{variety_id}.{date_str}"
+    like_color = ge.PrimaryLongColor if like==1 else ge.PrimaryNeutralColor
+    dislike_color = ge.PrimaryShortColor if dislike==1 else ge.PrimaryNeutralColor
+    card = dmc.Card(
+        children=[
+            dmc.Group(
+                [
+                    dmc.Text(variety_name, size="sm"),
+                    dmc.Text(date_str, size="xs"),
+                    dmc.Badge(type, size="sm", variant="light", className="primary_content"),
+                ],
+                justify="space-between",
+                mb="xs",
+                gap=0,
+            ),
+            dmc.Spoiler(
+                showLabel="...",
+                hideLabel="...",
+                maxHeight=30,
+                children=[dmc.Text(content, size="xs", c="dimmed")],
+                className="spoiler_label"
+            ),
+            dmc.Group(
+                [
+                    dmc.ActionIcon(
+                        DashIconify(icon="iconoir:thumbs-up", width=20, color=like_color),
+                        size="xs",
+                        radius="sm",
+                        variant="subtle",
+                        id={"type": "like_note", "index": index_name}
+                    ),
+                    dmc.ActionIcon(
+                        DashIconify(icon="iconoir:thumbs-down", width=20, color=dislike_color),
+                        size="xs",
+                        radius="sm",
+                        variant="subtle",
+                        id={"type": "dislike_note", "index": index_name}
+                    ),
+                    dmc.ActionIcon(
+                        DashIconify(icon="ep:edit", width=20),
+                        size="xs",
+                        radius="sm",
+                        variant="subtle",
+                        id={"type": "edit_note", "index": index_name}
+                    ),
+                ],
+                justify="flex-end",
+                gap="xs"
+            ),
+        ],
+        withBorder=True,
+        shadow="sm",
+        radius="sm",
+        mb=5,
+        p="xs",
+    )
+    return card
 
 @app.callback(
     Output("_pages_location", "pathname"),
     Output("_pages_location", "search"),
     Output("sidebar-analysis-tab", "children"),
     Output("page-switch-tabs", "data", allow_duplicate=True),
+    Output("note-list", "children"),
     Input("page-switch-tabs", "value"),
     State("page-switch-tabs", "data"),
     prevent_initial_call=True
@@ -1025,9 +678,80 @@ def update_variety(to_active_tab, tab_list):
     - sidebar_analysis_tab: 更新后的侧边栏内容。
     - tab_list: 更新后的标签页列表。
     """
+
+    def _create_variety_stepper(variety_id):
+        analysis_stepper = dmc.Stepper(
+            id="variety-stepper",
+            orientation="vertical",
+            iconSize=36,
+            active=0,
+            children=[
+                dmc.StepperStep(
+                    label=dmc.Anchor("基本面量化分析", href=f"/variety/basis?variety_id={variety_id}", id="basis-step"),
+                    description="基差-库存-利润模型分析",
+                    children=[
+                        dmc.Divider(variant="solid", label="快速功能", labelPosition="center"),
+                        dmc.Space(h=10),
+                        dmc.NavLink(label="图表设置", id="chart-config", leftSection=DashIconify(icon="tabler:settings")),
+                        dmc.NavLink(label="主成分分析", variant="subtle", id="pca-analysis", leftSection=DashIconify(icon="ri:pie-chart-2-line")),
+                        dmc.NavLink(label="AI交易建议", variant="subtle", id="drl-analysis", leftSection=DashIconify(icon="prime:microchip-ai")),
+                    ],
+                ),
+                dmc.StepperStep(
+                    label=dmc.Anchor("AI模型分析", href=f"/variety/drl?variety_id={variety_id}", id="drl-step"),
+                    description="通过深度强化学习给出操作建议和价格预测",
+                    children=[
+                        dmc.Text("周期性分析"),
+                    ],
+                ),            
+                dmc.StepperStep(
+                    label=dmc.Anchor("周期性分析", href=f"/variety/cycle?variety_id={variety_id}", id="cycle-step"),
+                    description="基于ARIMA模型的周期性分析",
+                    children=[
+                        dmc.Text("AI模型分析"),
+                    ],
+                ),
+                dmc.StepperStep(
+                    label=dmc.Anchor("套利分析", href=f"/variety/arb?variety_id={variety_id}", id="arb-step"),
+                    description="跨期、跨品种套利分析",
+                    children=[
+                        dmc.Text("套利分析"),
+                    ],
+                ),        
+                dmc.StepperStep(
+                    label=dmc.Anchor("技术分析", href=f"/variety/tech?variety_id={variety_id}", id="tech-step"),
+                    description="基于技术指标、缠论分析",
+                    children=[
+                        dmc.Text("技术分析"),
+                    ],
+                ),        
+                dmc.StepperStep(
+                    label=dmc.Anchor("综合决策", href=f"/variety/trade?variety_id={variety_id}", id="basis-step"),
+                    description="综合上述分析结论，制定交易计划和决策",
+                    icon=DashIconify(icon="fluent-mdl2:decision-solid", width=20),
+                    children=[
+                        dmc.Text("综合决策"),
+                    ],
+                ),
+            ],
+        )
+        return analysis_stepper
+    
+    def _create_note_list(variety_id):
+        with DataWorks() as dws:
+            df_note_list = dws.get_data_by_symbol('notes', variety_id)
+            variety_id_name_map, variety_name_id_map = dws.get_variety_map()        
+        new_note_list = []
+        for index, row in df_note_list.iterrows():
+            variety_id = row['variety']
+            variety_name = variety_id_name_map[variety_id]
+            card = _create_note_card(row['date'], variety_id, variety_name, row['type'], row['content'], row['like'], row['dislike'])
+            new_note_list.append(card)
+        return new_note_list
+    
     # 检查即将激活的标签是否与之前激活的标签相同，若相同则不进行任何更新
     if to_active_tab==global_var["pre_active_tab"]:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
     
     # 检查即将激活的标签是否已在标签列表中
     contains_active_tab = any(item['value'] == to_active_tab for item in tab_list)
@@ -1045,7 +769,7 @@ def update_variety(to_active_tab, tab_list):
             # 非特殊页面的默认设置
             pathname = "/variety/basis"
             search = f"?variety_id={to_active_tab}"
-            sidebar_analysis_tab = create_variety_stepper(to_active_tab)
+            sidebar_analysis_tab = _create_variety_stepper(to_active_tab)
     else:
         # 标签不存在于标签列表时的处理
         # 判断即将激活的标签是否为特殊页面
@@ -1059,7 +783,7 @@ def update_variety(to_active_tab, tab_list):
             # 非特殊页面的默认设置
             pathname = "/variety/basis"
             search = f"?variety_id={to_active_tab}"
-            sidebar_analysis_tab= create_variety_stepper(to_active_tab)
+            sidebar_analysis_tab= _create_variety_stepper(to_active_tab)
         
         # 通过DataWorks获取品种ID与名称的映射关系，并添加新标签到标签列表
         with DataWorks() as dws:
@@ -1068,8 +792,9 @@ def update_variety(to_active_tab, tab_list):
     
     # 更新全局变量中之前激活的标签信息
     global_var["pre_active_tab"] = to_active_tab
+    note_list = _create_note_list(to_active_tab)
     
-    return pathname, search, sidebar_analysis_tab, tab_list
+    return pathname, search, sidebar_analysis_tab, tab_list, note_list
 
 @app.callback(
     Output("page-switch-tabs", "data", allow_duplicate=True),
@@ -1088,69 +813,25 @@ def remove_tab(n_clicks, value, data):
     return data, active_value
 
 @app.callback(
-    Output("note-list", "children"),
+    Output("note-type-select", "value"),
+    Output("content-textarea", "value"),
+    Output("save-note-button", "children"),
+    Output("remove-note-button", "children"),
+    Input("new-note-button", "n_clicks")
+)
+def reset_note(n_clicks):
+    return None, '', '添加', '重置'
+
+@app.callback(
+    Output("note-list", "children", allow_duplicate=True),
     Input("save-note-button", "n_clicks"),
     State("note-type-select", "value"),
-    State("analysis-textarea", "value"),
+    State("content-textarea", "value"),
     State("save-note-button", "children"),
     State("_pages_location", "search"),
     State("note-list", "children"),
 )
-def save_note(n_clicks, type, content, button_text, search, note_list):
-    def _create_note_card(date, variety_name, type, content):
-        date_str = pd.to_datetime(date).strftime("%Y-%m-%d")
-        card = dmc.Card(
-            children=[
-                dmc.Group(
-                    [
-                        dmc.Text(variety_name, size="sm"),
-                        dmc.Text(date_str, size="xs"),
-                        dmc.Badge(type, color="green", size="sm"),
-                    ],
-                    justify="space-between",
-                    mb="xs",
-                    gap=0,
-                ),
-                dmc.Spoiler(
-                    showLabel="...",
-                    hideLabel="...",
-                    maxHeight=30,
-                    children=[dmc.Text(content, size="xs", c="dimmed")],
-                    className="spoiler_label"
-                ),
-                dmc.Group(
-                    [
-                        dmc.ActionIcon(
-                            DashIconify(icon="iconoir:thumbs-up", width=20),
-                            size="xs",
-                            radius="sm",
-                            variant="subtle",
-                        ),
-                        dmc.ActionIcon(
-                            DashIconify(icon="iconoir:thumbs-down", width=20),
-                            size="xs",
-                            radius="sm",
-                            variant="subtle",
-                        ),
-                        dmc.ActionIcon(
-                            DashIconify(icon="ep:edit", width=20),
-                            size="xs",
-                            radius="sm",
-                            variant="subtle",
-                        ),
-                    ],
-                    justify="flex-end",
-                    gap="xs"
-                ),
-            ],
-            withBorder=True,
-            shadow="sm",
-            radius="sm",
-            mb=5,
-            p="xs",
-        )
-        return card
-    
+def save_note(n_clicks, type, content, button_text, search, note_list):    
     if type is None or content is None:
         return dash.no_update
     match = re.search(r'variety_id=([A-Za-z]+)', search)
@@ -1159,28 +840,113 @@ def save_note(n_clicks, type, content, button_text, search, note_list):
     else:
         return dash.no_update
     mode = 'append' if button_text=='添加' else 'replace'
-    now = datetime.datetime.now()
+    now = datetime.datetime.now().date()
     df = pd.DataFrame({
         'date': [now],
         'user': [CurrentUser],
         'variety': [variety_id],
         'type': [type],
-        'content': [content]
+        'content': [content],
+        'like': 0,
+        'dislike': 0
     })
     with DataWorks() as dws:
         df_note_list = dws.get_data_by_symbol('notes', variety_id)
         dws.save_data(df, 'notes', mode=mode)
         variety_id_name_map, variety_name_id_map = dws.get_variety_map()
     variety_name = variety_id_name_map[variety_id]
-    new_card = _create_note_card(now, variety_name, type, content)
+    new_card = _create_note_card(now, variety_id, variety_name, type, content)
     # 遍历df_note_list，并创建新的note_list
     new_note_list = []
-    for index, row in df_note_list.iterrows():
-        variety_name = variety_id_name_map[row['variety']]
-        card = _create_note_card(row['date'], variety_name, row['type'], row['content'])
-        new_note_list.append(card)
-    new_note_list.append(new_card)
-    return new_note_list
+    # for index, row in df_note_list.iterrows():
+    #     variety_name = variety_id_name_map[row['variety']]
+    #     card = _create_note_card(row['date'], variety_name, row['type'], row['content'])
+    #     new_note_list.append(card)
+    note_list.append(new_card)
+    return note_list
+
+# @app.callback(
+#     Output("note-type-select", "value"),
+#     Output("content-textarea", "value"),
+#     Output("save_note_button", "children"),
+#     Output({"type": "edit_note", "index": MATCH}, "children"),
+#     Input({"type": "edit_note", "index": MATCH}, "n_clicks"),
+#     State({"type": "edit_note", "index": MATCH}, "id"),
+# )
+# def edit_note(n_clicks, id):
+#     print(id)
+#     dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+# 编辑按钮回调
+@app.callback(
+    Output("note-type-select", "value", allow_duplicate=True),
+    Output("content-textarea", "value", allow_duplicate=True),
+    Output("save-note-button", "children", allow_duplicate=True),
+    Output("remove-note-button", "children", allow_duplicate=True),
+    Input({"type": "edit_note", "index": ALL}, "n_clicks"),
+    State({"type": "edit_note", "index": ALL}, "id"),
+    prevent_initial_call=True,
+)
+def edit_note(n_clicks, index):
+    if all(element is None for element in n_clicks):
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update, dash.no_update
+    else:
+        triggered_id = ctx.triggered[0]['prop_id']
+        # 正则表达式模式
+        pattern = r'"index":"(.*?)"'
+        # 使用正则表达式进行匹配
+        match = re.search(pattern, triggered_id)
+        # 提取匹配的内容
+        if match:
+            index_value = match.group(1)
+            variety_id, date = index_value.split('.')
+            with DataWorks() as dws:
+                df_note = dws.get_data('notes', f"variety='{variety_id}' AND date='{date}'")
+            note = df_note.iloc[0]
+            return note['type'], note['content'], '保存', '删除'
+        else:
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+@app.callback(
+    Output({"type": "like_note", "index": MATCH}, "children"),
+    Input({"type": "like_note", "index": MATCH}, "n_clicks"),
+    State({"type": "like_note", "index": MATCH}, "id"),
+    prevent_initial_call=True,
+)
+def like_note(n_clicks, id):
+    if n_clicks is None:
+        return dash.no_update
+    variety_id, date = id['index'].split('.')
+    with DataWorks() as dws:
+        note = dws.get_data('notes', f"variety='{variety_id}' AND date='{date}'").iloc[0]
+        like = False if note['like'] is None else note['like']
+        like = not like
+        dws.update_data('notes', {'like': like}, f"variety='{variety_id}' AND date='{date}'")
+    icon_color = ge.PrimaryLongColor if like else ge.PrimaryNeutralColor
+    icon = DashIconify(icon="iconoir:thumbs-up", width=20, color=icon_color)
+    return icon
+
+@app.callback(
+    Output({"type": "dislike_note", "index": MATCH}, "children"),
+    Input({"type": "dislike_note", "index": MATCH}, "n_clicks"),
+    State({"type": "dislike_note", "index": MATCH}, "id"),
+    prevent_initial_call=True,
+)
+def dislike_note(n_clicks, id):
+    if n_clicks is None:
+        return dash.no_update
+    variety_id, date = id['index'].split('.')
+    with DataWorks() as dws:
+        note = dws.get_data('notes', f"variety='{variety_id}' AND date='{date}'").iloc[0]
+        dislike = False if note['dislike'] is None else note['dislike']
+        dislike = not dislike
+        dws.update_data('notes', {'dislike': dislike}, f"variety='{variety_id}' AND date='{date}'")
+    icon_color = ge.PrimaryShortColor if dislike else ge.PrimaryNeutralColor
+    icon = DashIconify(icon="iconoir:thumbs-down", width=20, color=icon_color)
+    return icon
 
 if __name__ == "__main__":
     app.run_server(debug=True, port=8051)
