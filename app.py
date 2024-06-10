@@ -5,7 +5,7 @@ import dash_mantine_components as dmc
 from dash_iconify import DashIconify
 from dataworks import DataWorks
 import re
-import datetime
+from datetime import datetime
 import global_env as ge
 
 _dash_renderer._set_react_version("18.2.0")
@@ -260,14 +260,32 @@ note_cards = dmc.Stack(
             id="note-list"
         ),
         dmc.Divider(size="sm", label="交易笔记", labelPosition="center"),
-        dmc.Select(
-            placeholder="类型",
-            data = [{"value": v, "label": v} for v in ["进场关注", "加仓关注", "止盈/减仓", "止损/减仓"]],
-            clearable=True,
-            size="xs",
-            radius="sm",
-            id="note-type-select",
+        dmc.Group(
+            [
+                dmc.DateInput(
+                    id="note-date-input",
+                    placeholder="日期",
+                    size="xs",
+                    radius="sm",
+                    # value=datetime.now().date(),
+                    valueFormat="YYYY-MM-DD",
+                    variant="unstyle",
+                    w=100,
+                ),
+                dmc.Select(
+                    placeholder="类型",
+                    data = [{"value": v, "label": v} for v in ["进场关注", "加仓关注", "止盈/减仓", "止损/减仓"]],
+                    clearable=True,
+                    size="xs",
+                    radius="sm",
+                    id="note-type-select",
+                    w=100
+                ),
+            ],
+            justify="flex-start",
+            gap=2,
         ),
+
         dmc.Textarea(
             id="content-textarea",
             # label="多空分析",
@@ -813,6 +831,7 @@ def remove_tab(n_clicks, value, data):
     return data, active_value
 
 @app.callback(
+    Output("note-date-input", "value"),
     Output("note-type-select", "value"),
     Output("content-textarea", "value"),
     Output("save-note-button", "children"),
@@ -820,18 +839,19 @@ def remove_tab(n_clicks, value, data):
     Input("new-note-button", "n_clicks")
 )
 def reset_note(n_clicks):
-    return None, '', '添加', '重置'
+    return datetime.now().date(), None, '', '添加', '重置'
 
 @app.callback(
     Output("note-list", "children", allow_duplicate=True),
     Input("save-note-button", "n_clicks"),
+    State("note-date-input", "value"),
     State("note-type-select", "value"),
     State("content-textarea", "value"),
     State("save-note-button", "children"),
     State("_pages_location", "search"),
     State("note-list", "children"),
 )
-def save_note(n_clicks, type, content, button_text, search, note_list):    
+def save_note(n_clicks, date, type, content, mode, search, note_list):    
     if type is None or content is None:
         return dash.no_update
     match = re.search(r'variety_id=([A-Za-z]+)', search)
@@ -839,46 +859,38 @@ def save_note(n_clicks, type, content, button_text, search, note_list):
         variety_id = match.group(1)
     else:
         return dash.no_update
-    mode = 'append' if button_text=='添加' else 'replace'
-    now = datetime.datetime.now().date()
-    df = pd.DataFrame({
-        'date': [now],
-        'user': [CurrentUser],
-        'variety': [variety_id],
-        'type': [type],
-        'content': [content],
-        'like': 0,
-        'dislike': 0
-    })
+    
     with DataWorks() as dws:
-        df_note_list = dws.get_data_by_symbol('notes', variety_id)
-        dws.save_data(df, 'notes', mode=mode)
         variety_id_name_map, variety_name_id_map = dws.get_variety_map()
-    variety_name = variety_id_name_map[variety_id]
-    new_card = _create_note_card(now, variety_id, variety_name, type, content)
-    # 遍历df_note_list，并创建新的note_list
-    new_note_list = []
-    # for index, row in df_note_list.iterrows():
-    #     variety_name = variety_id_name_map[row['variety']]
-    #     card = _create_note_card(row['date'], variety_name, row['type'], row['content'])
-    #     new_note_list.append(card)
-    note_list.append(new_card)
-    return note_list
-
-# @app.callback(
-#     Output("note-type-select", "value"),
-#     Output("content-textarea", "value"),
-#     Output("save_note_button", "children"),
-#     Output({"type": "edit_note", "index": MATCH}, "children"),
-#     Input({"type": "edit_note", "index": MATCH}, "n_clicks"),
-#     State({"type": "edit_note", "index": MATCH}, "id"),
-# )
-# def edit_note(n_clicks, id):
-#     print(id)
-#     dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        variety_name = variety_id_name_map[variety_id]
+        if mode=='添加':
+            df = pd.DataFrame({
+                'date': [date],
+                'user': [CurrentUser],
+                'variety': [variety_id],
+                'type': [type],
+                'content': [content],
+                'like': 0,
+                'dislike': 0
+            })
+            # df_note_list = dws.get_data_by_symbol('notes', variety_id)
+            dws.save_data(df, 'notes', mode='append')
+            new_card = _create_note_card(date, variety_id, variety_name, type, content)
+            note_list.append(new_card)
+            return note_list
+        elif mode=='保存':
+            note_dict = {
+                'type': type,
+                'content': content,
+            }
+            dws.update_data('notes', note_dict, f"variety='{variety_id}' AND date='{date}'")
+            return note_list
+        else:
+            return dash.no_update
 
 # 编辑按钮回调
 @app.callback(
+    Output("note-date-input", "value", allow_duplicate=True),
     Output("note-type-select", "value", allow_duplicate=True),
     Output("content-textarea", "value", allow_duplicate=True),
     Output("save-note-button", "children", allow_duplicate=True),
@@ -889,10 +901,10 @@ def save_note(n_clicks, type, content, button_text, search, note_list):
 )
 def edit_note(n_clicks, index):
     if all(element is None for element in n_clicks):
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
     ctx = dash.callback_context
     if not ctx.triggered:
-        return dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
     else:
         triggered_id = ctx.triggered[0]['prop_id']
         # 正则表达式模式
@@ -906,9 +918,9 @@ def edit_note(n_clicks, index):
             with DataWorks() as dws:
                 df_note = dws.get_data('notes', f"variety='{variety_id}' AND date='{date}'")
             note = df_note.iloc[0]
-            return note['type'], note['content'], '保存', '删除'
+            return note['date'], note['type'], note['content'], '保存', '删除'
         else:
-            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 @app.callback(
     Output({"type": "like_note", "index": MATCH}, "children"),
