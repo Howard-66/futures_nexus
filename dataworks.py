@@ -41,7 +41,7 @@ class DataWorks:
         self.conn.close()
         # self.engine.dispose()
     
-    # @lru_cache(maxsize=128)  # 缓存常用查询
+    @lru_cache(maxsize=128)  # 缓存常用查询
     def get_data(self, table, condition, fields='*'):
         fields_str = fields if fields == '*' or isinstance(fields, str) else ', '.join(fields)
         sql = f"SELECT {fields_str} FROM {table} WHERE {condition}"
@@ -114,8 +114,15 @@ class DataWorks:
         table_ref = Table(table, metadata, autoload_with=self.engine)
         # 构建更新语句
         update_stmt = table_ref.update().where(text(condition)).values(**updates)
-        result = self.conn.execute(update_stmt)
-        self.conn.commit()  # 确保提交事务
+        # 执行更新操作并返回结果
+        with self.engine.begin() as conn:
+            result = conn.execute(update_stmt)
+
+        # result = self.conn.execute(update_stmt)
+        # self.conn.commit()  # 确保提交事务
+        self.get_data.cache_clear()
+        self.get_data_by_sql.cache_clear()
+        self.get_data_by_symbol.cache_clear()
         return result.rowcount  # 返回被更新的行数
 
     def get_variety_setting(self, json_file=''):

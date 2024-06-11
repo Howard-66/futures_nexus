@@ -672,6 +672,18 @@ def _create_note_card(date, variety_id, variety_name, type, content, like=0, dis
     )
     return card
 
+def _create_note_list(variety_id):
+    with DataWorks() as dws:
+        df_note_list = dws.get_data_by_symbol('notes', variety_id)
+        variety_id_name_map, variety_name_id_map = dws.get_variety_map()        
+    new_note_list = []
+    for index, row in df_note_list.iterrows():
+        variety_id = row['variety']
+        variety_name = variety_id_name_map[variety_id]
+        card = _create_note_card(row['date'], variety_id, variety_name, row['type'], row['content'], row['like'], row['dislike'])
+        new_note_list.append(card)
+    return new_note_list
+
 @app.callback(
     Output("_pages_location", "pathname"),
     Output("_pages_location", "search"),
@@ -753,19 +765,7 @@ def update_variety(to_active_tab, tab_list):
                 ),
             ],
         )
-        return analysis_stepper
-    
-    def _create_note_list(variety_id):
-        with DataWorks() as dws:
-            df_note_list = dws.get_data_by_symbol('notes', variety_id)
-            variety_id_name_map, variety_name_id_map = dws.get_variety_map()        
-        new_note_list = []
-        for index, row in df_note_list.iterrows():
-            variety_id = row['variety']
-            variety_name = variety_id_name_map[variety_id]
-            card = _create_note_card(row['date'], variety_id, variety_name, row['type'], row['content'], row['like'], row['dislike'])
-            new_note_list.append(card)
-        return new_note_list
+        return analysis_stepper    
     
     # 检查即将激活的标签是否与之前激活的标签相同，若相同则不进行任何更新
     if to_active_tab==global_var["pre_active_tab"]:
@@ -884,7 +884,8 @@ def save_note(n_clicks, date, type, content, mode, search, note_list):
                 'content': content,
             }
             dws.update_data('notes', note_dict, f"variety='{variety_id}' AND date='{date}'")
-            return note_list
+            updated_note_list = _create_note_list(variety_id)
+            return updated_note_list
         else:
             return dash.no_update
 
