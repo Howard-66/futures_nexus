@@ -722,7 +722,6 @@ def update_variety(to_active_tab, tab_list):
                     children=[
                         dmc.Divider(variant="solid", label="快速功能", labelPosition="center"),
                         dmc.Space(h=10),
-                        dmc.NavLink(label="图表设置", id="chart-config", leftSection=DashIconify(icon="tabler:settings")),
                         dmc.NavLink(label="主成分分析", variant="subtle", id="pca-analysis", leftSection=DashIconify(icon="ri:pie-chart-2-line")),
                         dmc.NavLink(label="AI交易建议", variant="subtle", id="drl-analysis", leftSection=DashIconify(icon="prime:microchip-ai")),
                     ],

@@ -131,17 +131,35 @@ class VarietyPage:
                         dmc.Popover(
                             [
                                 dmc.PopoverTarget(
-                                    dmc.Button("分析指标", variant='outline', size='xs')),
+                                    dmc.Button("指标", leftSection=DashIconify(icon="material-symbols-light:table-chart-view-outline", width=20), variant='subtle', size='sm')),
                                 dmc.PopoverDropdown(
                                     [
                                         dmc.CheckboxGroup(
                                             id="show-indicators",
                                             label="选择要显示的指标",
-                                            # description="This is anonymous",
-                                            # withAsterisk=True,
                                             mb=10,
                                             children=dmc.Stack(
-                                                [dmc.Checkbox(label=l, value=l) for l in all_fields],
+                                                [dmc.Checkbox(label=l, value=l) for l in all_fields] + 
+                                                [
+                                                    dmc.Group(
+                                                        [
+                                                            dmc.Text('指标回溯周期', size='sm'),
+                                                            dmc.Select(
+                                                                size='sm',
+                                                                data=[
+                                                                    {'label': '6个月', 'value': "120"},
+                                                                    {'label': '1年', 'value': "240"},
+                                                                    {'label': '2年', 'value': "480"},
+                                                                    {'label': '3年', 'value': "720"},
+                                                                    {'label':'5年', 'value': "1200"},
+                                                                    {'label':'全部', 'value': "0"}],
+                                                                value="240",
+                                                                id='traceback-window',
+                                                                style={'width': 80}
+                                                            ),  
+                                                        ]
+                                                    )                                                  
+                                                ],
                                                 mt=10,
                                             ),
                                             value=show_fields,
@@ -156,17 +174,6 @@ class VarietyPage:
                             trapFocus=True,
                             shadow="sm",                            
                         ),
-                        # dmc.Text("分析指标:", size='xs'),
-                        # dmc.MultiSelect(
-                        #     # label="分析指标:",
-                        #     # placeholder="Select all you like!",
-                        #     id="show-indicators",
-                        #     hidePickedOptions=True,
-                        #     value=show_fields,
-                        #     data=all_fields,
-                        #     # w=400,
-                        #     # mb=140,
-                        # ),
                         # dmc.Divider(orientation='vertical'),
                         # dmc.Text("价格类型:", size='xs'),
                         # dmc.Select(
@@ -179,23 +186,18 @@ class VarietyPage:
                         #     style={'width': 100}
                         # ),
                         dmc.Divider(orientation='vertical'),
-                        dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, labelPosition="left", radius="lg", size='xs'),                        
-                        dmc.Divider(orientation='vertical'),
-                        dmc.Text("回溯周期:", size='xs'),
-                        dmc.Select(
-                            size='xs',
-                            data=[
-                                {'label': '6个月', 'value': "120"},
-                                {'label': '1年', 'value': "240"},
-                                {'label': '2年', 'value': "480"},
-                                {'label': '3年', 'value': "720"},
-                                {'label':'5年', 'value': "1200"},
-                                {'label':'全部', 'value': "0"}],
-                            value="240",
-                            id='traceback-window',
-                            style={'width': 80}
+                        dmc.ActionIcon(
+                            DashIconify(icon="iconamoon:zoom-in-light", width=20),
+                            variant="subtle",
                         ),
+                        dmc.ActionIcon(
+                            DashIconify(icon="iconamoon:zoom-out-light", width=20),
+                            variant="subtle",
+                        ),
+                        dmc.Divider(orientation='vertical'),
+                        dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, labelPosition="left", radius="lg", size='xs'),                        
                     ],
+                    gap="xs",
                 ),
                 # 图表面板
                 dmc.LoadingOverlay(
