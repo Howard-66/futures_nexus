@@ -113,6 +113,7 @@ class ChartManager:
         main_figure = make_subplots(rows=rows, cols=1, 
                                     specs=specs, row_heights=row_heights, subplot_titles=subtitles, 
                                     shared_xaxes=True, vertical_spacing=0.02)    
+
         return main_figure
     
     def update_figure(self):
@@ -122,14 +123,16 @@ class ChartManager:
             linecolor='gray',
             dtick="M1",  # 按月显示
             ticklabelmode="instant",   # instant  period
-            tickformat="%m\n%Y",
+            tickformat="%m-%d\n%Y",
             tickfont=dict(color='gray'),
             rangebreaks=[dict(values=self.variety.get_trade_breaks())],
             # rangeslider_visible = False, # 下方滑动条缩放
             range=[self.start_date, self.end_date],
+            showspikes=True, spikecolor=ge.PrimaryNeutralColor, spikesnap="cursor", spikemode="across", spikethickness=1, spikedash="solid"
         )
         self.main_figure.update_yaxes(
             showgrid=False,
+            showspikes=True, spikecolor=ge.PrimaryNeutralColor, spikesnap="cursor", spikemode="across", spikethickness=1, spikedash="solid"
         )
         self.main_figure.update_layout(
             autosize=True,
@@ -139,6 +142,7 @@ class ChartManager:
             plot_bgcolor=ge.MainContentBGColor,  
             paper_bgcolor=ge.MainContentBGColor,
             hovermode='x unified',
+            hoversubplots="axis",
             modebar={},
             legend=dict(
                 orientation='h',

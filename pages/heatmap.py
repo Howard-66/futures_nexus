@@ -66,8 +66,9 @@ class MarketOverviewPage:
         # 使用Plotly Express创建热力图
         fig = px.treemap(self.heatmap_data, path=[px.Constant("市场热力图"), 'chain', 'name'], values=type,
                         color=type, 
-                        color_continuous_scale='PuOr',  # 选择颜色渐变方案
-                        color_continuous_midpoint=self.heatmap_data[type].min())  # 设置颜色渐变的中点为数据的最小值
+                        color_continuous_scale='bupu',  # 选择颜色渐变方案
+                        # color_continuous_midpoint=self.heatmap_data[type].min(), # 设置颜色渐变的中点为数据的最小值
+        )
         # 更新图形布局，包括边距和颜色轴设置
         fig.update_layout(
             margin = dict(t=0, l=0, r=0, b=0),
