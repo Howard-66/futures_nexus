@@ -88,7 +88,7 @@ class Indicator(ABC):
         # 设置数据频率为每日，并处理非交易日的缺失值
         # data = data.asfreq('D')
         # data[name] = data[name].interpolate(method='time')
-        result = seasonal_decompose(data[self.name].dropna(), model='additive', period=240, two_sided=True, extrapolate_trend='freq')
+        result = seasonal_decompose(data[self.name].dropna(), model='additive', period=ge.SeasonalWindow, two_sided=True, extrapolate_trend='freq')
         # 季节性曲线平滑-卡尔曼滤波器
         kf = KalmanFilter(
             initial_state_mean=0,

@@ -96,6 +96,42 @@
             9
         ],
         "ExchangeID": "dce",
+        "DataIndex": {
+            "库存": {
+                "Name": "inventory",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "库存:乙二醇:合计",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",                
+                "Chart": "Sub",
+                "Seasonal": false,
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },
+            "产量": {
+                "Name": "production",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "产量:乙二醇",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",                
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },
+            "产能利用率": {
+                "Name": "capacity_rate",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "产能利用率:乙二醇",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            }
+        },
         "Name": "乙二醇"
     },
     "FB": {
@@ -123,48 +159,24 @@
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.csv",
-                "Field": "库存:铁矿石:港口合计",
+                "Path": "data/黑色金属合集.csv",
+                "Field": "国内铁矿石港口库存量",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "AmountN",
                 "Chart": "Sub",
+                "Seasonal": true,
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },
             "库存消费比": {
                 "Name": "instock_consumption_ratio",
                 "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.csv",
-                "Field": "全国:进口铁矿石:库存消费比",
+                "Path": "data/黑色金属合集.csv",
+                "Field": "全国:进口铁矿石:库存消费比    ",
                 "Class": "RankColorIndicator",
                 "Direction": "Long",                
-                "Type": "RateP",
                 "Chart": "Sub",
-                "Transform": "Fill_Forward",
-                "DataFrame": "df_choice"
-            },            
-            "产量": {
-                "Name": "production",
-                "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.csv",
-                "Field": "产量:铁矿石原矿:当月值",
-                "Class": "RankColorIndicator",
-                "Direction": "Short",                
-                "Type": "AmountN",
-                "Chart": "Sub",
-                "Transform": "Fill_Forward",                
-                "DataFrame": "df_choice"
-            },            
-            "产量同比": {
-                "Name": "production_growth",
-                "Source": "Choice",
-                "Path": "black_metals/data/铁矿石经济数据.csv",
-                "Field": "产量:铁矿石原矿:当月同比",
-                "Class": "RankColorIndicator",
-                "Direction": "Short",                
-                "Type": "RateN",
-                "Chart": "Sub",
+                "Seasonal": true,
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             }
@@ -185,7 +197,6 @@
                 "Source": "Choice",
                 "Path": "black_metals/data/焦炭经济数据.csv",
                 "Field": "现货价格:焦炭",
-                "Type": "AmountN",
                 "Chart": "None",
                 "DataFrame": "df_choice"
             },
@@ -196,8 +207,8 @@
                 "Field": "焦炭库存:样本钢厂:全国",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "AmountN",
                 "Chart": "Sub",
+                "Seasonal": true,
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },            
@@ -208,7 +219,6 @@
                 "Field": "产量:焦炭:当月值",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "AmountN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -220,7 +230,6 @@
                 "Field": "产量:焦炭:当月同比",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "RateN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -277,6 +286,19 @@
             9
         ],
         "ExchangeID": "dce",
+        "DataIndex": {
+            "行业市盈率": {
+                "Name": "industry_pe",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "申万二级行业市盈率(PE):塑料Ⅱ",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",                
+                "Chart": "Sub",
+                "Transform": "None",
+                "DataFrame": "df_choice"
+            }
+        },
         "Name": "塑料"
     },
     "M": {
@@ -343,6 +365,31 @@
         "Name": "粳米"
     },
     "V": {
+        "DataIndex": {
+            "库存": {
+                "Name": "inventory",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "库存:聚氯乙烯(PVC):社会",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Seasonal": false,
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },               
+            "开工率": {
+                "Name": "operating_rate",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "开工率:PVC",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            }
+        },
         "DominantMonths": [
             1,
             5,
@@ -531,6 +578,76 @@
             9
         ],
         "ExchangeID": "czce",
+        "DataIndex": {
+            "库存": {
+                "Name": "inventory",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "库存:全国纯碱企业",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Seasonal": true,
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },            
+            "产量": {
+                "Name": "production",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "产量:全国纯碱企业",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },            
+            "开工率": {
+                "Name": "operating_rate",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "开工率:纯碱:全国",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },   
+            "产能利用率": {
+                "Name": "capacity_rate",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "产能利用率:全国纯碱企业",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },
+            "出货率": {
+                "Name": "soldout_rate",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "出货率:全国纯碱企业",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },
+            "利润": {
+                "Name": "profit",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "理论利润:氨碱法纯碱",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Chart": "Sub",
+                "Seasonal": true,
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_profit"
+            }
+        },        
         "Name": "纯碱"
     },
     "SF": {
@@ -585,6 +702,57 @@
             9
         ],
         "ExchangeID": "czce",
+        "DataIndex": {
+            "库存天数": {
+                "Name": "inventory_days",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "库存天数:精对苯二甲酸(PTA):PTA工厂",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Type": "AmountN",
+                "Chart": "Sub",
+                "Seasonal": true,
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },            
+            "产量": {
+                "Name": "production",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "产量:PTA:当期值",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Type": "AmountP",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },            
+            "开工率": {
+                "Name": "operating_rate",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "平均开工率:PTA:当期值",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Type": "RateN",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            },   
+            "产能利用率": {
+                "Name": "capacity_rate",
+                "Source": "Choice",
+                "Path": "data/化工合集.csv",
+                "Field": "PTA产业链负荷率:PTA工厂",
+                "Class": "RankColorIndicator",
+                "Direction": "Short",
+                "Type": "RateN",
+                "Chart": "Sub",
+                "Transform": "Fill_Forward",
+                "DataFrame": "df_choice"
+            }
+        },
         "Name": "PTA"
     },
     "UR": {
@@ -813,11 +981,10 @@
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "中国:螺纹钢:社会库存 + 中国:螺纹钢:钢厂库存",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
-                "Type": "AmountN",
                 "Chart": "Sub",
                 "Seasonal": true,
                 "Transform": "Fill_Forward",
@@ -826,11 +993,10 @@
             "需求生产比": {
                 "Name": "demand_production",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "中国:螺纹钢:表观需求 - 中国:螺纹钢:当周产量",
                 "Class": "RankColorIndicator",
                 "Direction": "Long",
-                "Type": "AmountP",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -838,11 +1004,10 @@
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "螺纹钢厂:开工率",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
-                "Type": "RateN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -850,11 +1015,10 @@
             "产能利用率": {
                 "Name": "capacity_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/螺纹钢经济数据S.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "螺纹钢厂:产能利用率",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",
-                "Type": "RateN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -865,17 +1029,15 @@
                 "Path": "basis",
                 "Field": "spot_price",
                 "Variety": "I",
-                "Type": "Amount",
                 "Chart": "None",            
                 "DataFrame": "df_factor_i"
             },                 
             "现货价格_J": {
                 "Name": "spot_price",
                 "Source": "Choice",
-                "Path": "black_metals/data/焦炭经济数据.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "现货价格:焦炭",
                 "Variety": "J",
-                "Type": "Amount",
                 "Chart": "None",            
                 "DataFrame": "df_factor_j"
             },                   
@@ -886,7 +1048,6 @@
                 "Class": "CalculateRankColorIndicator",
                 "Direction": "Short",
                 "Formula": "现货价格-现货价格_I*1.6-现货价格_J*0.5-1200",
-                "Type": "AmountN",
                 "Chart": "Sub",
                 "Seasonal": false,
                 "DataFrame": "df_profit"
@@ -917,23 +1078,22 @@
             "库存": {
                 "Name": "inventory",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.csv",
-                "Field": "库存:热卷(板)",
+                "Path": "data/黑色金属合集.csv",
+                "Field": "国内钢铁社会库存:热轧 + 热轧板卷:企业库存:合计",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "AmountN",
                 "Chart": "Sub",
+                "Seasonal": false,
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
             },                 
             "开工率": {
                 "Name": "operating_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "产线开工率:热轧板卷",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "RateN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -941,11 +1101,10 @@
             "产量": {
                 "Name": "production",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "日均产量:热轧板卷",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "AmountN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -953,11 +1112,10 @@
             "产能利用率": {
                 "Name": "capacity_rate",
                 "Source": "Choice",
-                "Path": "black_metals/data/热卷经济数据.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "产能利用率:热轧板卷",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "RateN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -975,7 +1133,7 @@
             "现货价格_J": {
                 "Name": "spot_price",
                 "Source": "Choice",
-                "Path": "black_metals/data/焦炭经济数据.csv",
+                "Path": "data/黑色金属合集.csv",
                 "Field": "现货价格:焦炭",
                 "Variety": "J",
                 "Type": "Amount",
@@ -1021,7 +1179,6 @@
                 "Field": "产线开工率:冷轧不锈钢:全国",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "RateN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -1033,7 +1190,6 @@
                 "Field": "日均产量:冷轧不锈钢:全国",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "AmountN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"
@@ -1045,7 +1201,6 @@
                 "Field": "产能利用率:冷轧不锈钢:全国",
                 "Class": "RankColorIndicator",
                 "Direction": "Short",                
-                "Type": "RateN",
                 "Chart": "Sub",
                 "Transform": "Fill_Forward",
                 "DataFrame": "df_choice"

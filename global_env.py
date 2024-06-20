@@ -26,6 +26,8 @@ MaxLoadingBars = 500
 DisplayLastBars = 400
 # 指标回溯计算窗口
 TraceBackWindow = 240
+# 季节周期
+SeasonalWindow = 240
 # 超买线阈值
 OverBuy = 0.8
 # 超卖线阈值

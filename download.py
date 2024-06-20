@@ -24,16 +24,16 @@ def get_dce_contract():
 
 # 获取CZCE合约
 def get_czce_contract():
-    last_date = dws.get_last_date('dce')
+    last_date = dws.get_last_date('czce')
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
     start_date = start_date.strftime('%Y%m%d')
     end_date = end_date.strftime('%Y%m%d')
     print('Current Period: ', start_date, end_date)
-    df_futures_daily_dce_append = ak.get_futures_daily(start_date=start_date, end_date=end_date, market="DCE")
-    df_futures_daily_dce_append['date'] = pd.to_datetime(df_futures_daily_dce_append['date'], format='%Y%m%d')
-    dws.save_data(df_futures_daily_dce_append, 'dce', 'append')
+    df_futures_daily_czce_append = ak.get_futures_daily(start_date=start_date, end_date=end_date, market="CZCE")
+    df_futures_daily_czce_append['date'] = pd.to_datetime(df_futures_daily_czce_append['date'], format='%Y%m%d')
+    dws.save_data(df_futures_daily_czce_append, 'czce', 'append')
 
 # 获取SHFE合约
 def get_shfe_contract():
