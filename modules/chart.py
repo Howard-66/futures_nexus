@@ -5,6 +5,8 @@ import global_env as ge
 
 # 实现 IndicatorManager 类
 class ChartManager:
+    PaddingY = 0.05
+
     def __init__(self, variety):
         self.variety = variety
         self.indicators = {}
@@ -56,11 +58,16 @@ class ChartManager:
         return result
 
     def plot(self):
-        def _get_data_range(name, trace=None):
+        def _get_y_range(name, trace=None):
             trace = trace if trace else name
             min_y, max_y = self.indicators[name].get_data_range(trace, self.start_date, self.end_date)
-            print(name, trace, self.start_date, self.end_date, min_y, max_y)
-            return min_y, max_y
+            if min_y<0:
+                padding_buttom = padding_top = 1 + self.PaddingY
+            else:
+                padding_top = 1 + self.PaddingY
+                padding_buttom = 1 - self.PaddingY            
+            return min_y*padding_buttom, max_y*padding_top
+        
         def _add_trace(names, row, secondary_y=False):
             for name in names:
                 self.indicators[name].plot_on(self.main_figure, row, 1, secondary_y)
@@ -74,31 +81,32 @@ class ChartManager:
         padding_buttom = 0.98
         padding_top = 1.02
         padding = 1.05
+        padding_offset = 0.05
         # 更新主图第一个坐标轴
         first_indicator_name = self.main_list[0]
-        min_y, max_y = _get_data_range(first_indicator_name)
+        min_y, max_y = _get_y_range(first_indicator_name)
         _add_trace(self.main_list, row=1)
         self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=1, col=1)
-        self.main_figure.update_yaxes(range=[min_y*padding_buttom, max_y*padding_top], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
+        self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=1, col=1)
 
         # 更新主图第二坐标轴
         if len(self.main_y2_list)>0:
             first_indicator_name = self.main_y2_list[0]
-            min_y, max_y = _get_data_range(first_indicator_name)
+            min_y, max_y = _get_y_range(first_indicator_name)
             _add_trace(self.main_y2_list, row=1, secondary_y=True)
-            self.main_figure.update_yaxes(range=[min_y*padding, max_y*padding], row=1, col=1, secondary_y=True)
+            self.main_figure.update_yaxes(range=[min_y, max_y], row=1, col=1, secondary_y=True)
 
         # 设置副图
         for i, name in enumerate(self.sub_list, start=2):
-            min_y, max_y = _get_data_range(name)
+            min_y, max_y = _get_y_range(name)
             _add_trace([name], row=i)
             self.main_figure.update_xaxes(linecolor='gray', tickfont=dict(color='gray'), row=i, col=1)
-            self.main_figure.update_yaxes(range=[min_y*padding, max_y*padding], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=i, col=1, secondary_y=False)
+            self.main_figure.update_yaxes(range=[min_y, max_y], linecolor='gray', tickfont=dict(color='gray'), zerolinecolor='LightGray', zerolinewidth=1, row=i, col=1, secondary_y=False)
             show_seasonal = self.indicators[name].config.get('Seasonal', False)
             if show_seasonal:
                 trace_name = f'{name}_seasonal'
-                min_y, max_y = _get_data_range(name, trace_name)
-                self.main_figure.update_yaxes(range=[min_y*padding, max_y*padding], row=i, col=1, secondary_y=True)
+                min_y, max_y = _get_y_range(name, trace_name)
+                self.main_figure.update_yaxes(range=[min_y, max_y], row=i, col=1, secondary_y=True)
 
 
     def _create_main_figure(self):
