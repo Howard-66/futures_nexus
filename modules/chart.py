@@ -106,7 +106,7 @@ class ChartManager:
             if show_seasonal:
                 trace_name = f'{name}_seasonal'
                 min_y, max_y = _get_y_range(name, trace_name)
-                self.main_figure.update_yaxes(range=[min_y, max_y], row=i, col=1, secondary_y=True)
+                self.main_figure.update_yaxes(range=[min_y, max_y], zeroline=False, row=i, col=1, secondary_y=True)
 
 
     def _create_main_figure(self):

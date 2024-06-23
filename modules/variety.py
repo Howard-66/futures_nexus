@@ -69,7 +69,7 @@ class Variety:
         return df
 
     def load_data(self):
-        def extract_variables(format_str):
+        def _extract_variables(format_str):
             """从格式字符串中提取变量名"""
             # 正则表达式模式，匹配非空字符（即变量）
             variable_pattern = r'\w[\w:()%]*'
@@ -77,31 +77,23 @@ class Variety:
             variables = re.findall(variable_pattern, format_str)
             return variables  # 直接返回找到的变量名列表，无需额外处理
         
+        def _fill_na_data(df, fill_type, col_name):
+            if fill_type == 'Fill_Forward':
+                df[col_name] = df[col_name].ffill()
+            elif fill_type == 'Fill_Backward':
+                df[col_name] = df[col_name].bfill()
+            return df
+
         column_dict= {}
         data_cache = {}
         data_index = self.symbol_setting['DataIndex']
 
-        # def numpy_ffill(arr):
-        #     """使用numpy实现向前填充（ffill）"""
-        #     mask = np.isnan(arr)
-        #     idx = np.where(~mask, np.arange(mask.size), 0)
-        #     np.maximum.accumulate(idx, out=idx)
-        #     return arr[idx]
-
-        # def numpy_bfill(arr):
-        #     """使用numpy实现向后填充（bfill）"""
-        #     mask = np.isnan(arr)
-        #     idx = np.where(~mask, np.arange(mask.size), mask.size - 1)
-        #     idx = np.minimum.accumulate(idx[::-1])[::-1]
-        #     return arr[idx]        
-
-        # dws = gs.dataworks
         with dw.DataWorks() as dws:
             for key, value_items in data_index.items():
                 # 按照配置文件中的DataFrame键值，将同类内容合并到同一张表中
                 df_name = value_items['DataFrame']            
                 fields = value_items['Field']
-                variables_list = extract_variables(fields)
+                variables_list = _extract_variables(fields)
                 if df_name in locals():        
                     # 键值是独立字段的，列名修改为key
                     if len(variables_list)==1:
@@ -118,31 +110,26 @@ class Variety:
                     else:
                         continue
                     column_dict[df_name] = ['date']
-                df = locals()[df_name]            
+                df = locals()[df_name]           
+                fill_na = value_items.get('Transform', 'None')
                 if len(variables_list)==1:
                     # Field是独立字段的，列名修改为key
                     df.rename(columns={variables_list[0]:key}, inplace=True)
                     column_dict[df_name].append(key)
+                    if fill_na!='None':
+                        df = _fill_na_data(df, fill_na, key)
                 else:                
                     # Field是公式表达的，进行解析计算
                     aeval = Interpreter()       
                     for var in variables_list:                    
-                        safe_var = re.sub(r'[0-9:]', '', var)
-                        df.rename(columns={var:safe_var}, inplace=True)                                     
+                        safe_var = re.sub(r'[0-9:()]', '', var)
+                        df.rename(columns={var:safe_var}, inplace=True)                             
+                        if fill_na!='None':
+                            df = _fill_na_data(df, fill_na, safe_var)
                         aeval.symtable[safe_var] = df[safe_var]
                     safe_fields = re.sub(r'[0-9:]', '', fields)
                     df[key] = aeval.eval(safe_fields)
                     column_dict[df_name].append(key)
-                # 根据配置中指定的填充方式填充缺失值
-                if 'Transform' in value_items:
-                    fill_na = value_items['Transform']
-                    if fill_na=='Fill_Forward':
-                        df[key] = df[key].ffill()
-                        # df[key] = pd.Series(numpy_ffill(df[key].values))
-                    elif fill_na=='Fill_Backward':
-                        df[key] = df[key].bfill()
-                        # df[key] = pd.Series(numpy_bfill(df[key].values))
-                        # df[key] = df[key].infer_objects(copy=False)
 
             for df_key in column_dict:
                 df = locals()[df_key]
@@ -150,13 +137,7 @@ class Variety:
                 # 将column_dict中的各个key（除date外）作为date_cache的key,df作为value
                 data_map = {key:df for key in column_dict[df_key][1:]}
                 data_cache = {**data_cache, **data_map}
-            # self.symbol_data = reduce(lambda left,right: pd.merge(left,right,on='date', how='outer'), data_frames)
-            # self.symbol_data.sort_values(by='date', ascending=True, inplace=True)
-            # 剔除非交易日数据
-            # trade_date = dws.get_trade_date()
             
-        # valid_dates_mask = self.symbol_data['date'].isin(trade_date)
-        # self.symbol_data.drop(self.symbol_data.index[~valid_dates_mask], inplace=True)                   
         self.data_source = data_cache
     
     def get_data(self, name):
