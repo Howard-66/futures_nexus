@@ -196,15 +196,7 @@ def get_basis():
 
 # 合成期限结构(全量)
 def get_term_structure_all():
-    last_date = dws.get_last_date('term_structure')
-    last_date = pd.to_datetime(last_date)
-    start_date = last_date + timedelta(days=1)
-    end_date = datetime.now() - timedelta(days=1)
-    start_date = start_date.strftime('%Y%m%d')
-    end_date = end_date.strftime('%Y%m%d')
-    print('Current Period: ', start_date, end_date)
-
-    df_term_structure = pd.DataFrame(columns=['variety', 'date', 'flag', 'exchange'])
+ df_term_structure = pd.DataFrame(columns=['variety', 'date', 'flag', 'exchange'])
 
     variety_json = 'setting/variety.json'        
     with open(variety_json, encoding='utf-8') as variety_file:
@@ -217,7 +209,7 @@ def get_term_structure_all():
     exchange_list = ['czce', 'dce', 'shfe']
     for exchange_id in exchange_list:
         df_term = dws.get_data_by_sql(f"SELECT * FROM {exchange_id}")
-        df_term['date'] = pd.to_datetime(df_term['date'])
+        df_term['date'] = pd.to_datetime(df_term['date'], format='ISO8601')
         df_term['交割月'] = df_term['symbol'].str.slice(-2).astype(int)
         variety_list = df_term['variety'].unique()
         variety_list = set(dominant_list) & set(variety_list)
@@ -245,7 +237,7 @@ def get_term_structure_all():
                         'date': trade_date,
                         'flag': trade_flag,
                         'exchange': exchange_id}
-                df_term_structure = pd.concat([df_term_structure, pd.DataFrame([new_row])], ignore_index=True)    
+                df_term_structure = pd.concat([df_term_structure, pd.DataFrame([new_row])], ignore_index=True)
     df_term_structure['flag'] = df_term_structure['flag'].astype(float)
     dws.save_data(df_term_structure, 'term_structure')                
 
