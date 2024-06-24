@@ -520,7 +520,7 @@ def display_click_data(clickData):
         flag_list = variety_page.show_indexs        
         # color_list = [click_data[index+'颜色'].iloc[0] for index in flag_list]
 
-        color_list = variety_page.chart_manager.get_indicator_data(click_date, flag_list, 'color')
+        color_list = variety_page.chart_manager.get_indicator_data(display_date, flag_list, 'color')
         # html_analyzing_tags =[
         #     #     dbc.Badge("远月/近月/交割月", color="primary", className="me-1",id='log_period'),
         #         dmc.Badge("基差", color=flag_color[basis_flag], id='log_basis'),

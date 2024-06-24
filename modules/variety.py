@@ -1,4 +1,4 @@
-# import numpy as np
+import numpy as np
 import pandas as pd
 import json
 import re
@@ -78,6 +78,7 @@ class Variety:
             return variables  # 直接返回找到的变量名列表，无需额外处理
         
         def _fill_na_data(df, fill_type, col_name):
+            df[col_name] = df[col_name].replace(0, np.nan)
             if fill_type == 'Fill_Forward':
                 df[col_name] = df[col_name].ffill()
             elif fill_type == 'Fill_Backward':
