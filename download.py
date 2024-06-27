@@ -196,7 +196,7 @@ def get_basis():
 
 # 合成期限结构(全量)
 def get_term_structure_all():
- df_term_structure = pd.DataFrame(columns=['variety', 'date', 'flag', 'exchange'])
+    df_term_structure = pd.DataFrame(columns=['variety', 'date', 'flag', 'exchange'])
 
     variety_json = 'setting/variety.json'        
     with open(variety_json, encoding='utf-8') as variety_file:
