@@ -72,7 +72,7 @@ class Variety:
         def _extract_variables(format_str):
             """从格式字符串中提取变量名"""
             # 正则表达式模式，匹配非空字符（即变量）
-            variable_pattern = r'\w[\w:()%]*'
+            variable_pattern = r'\w[\w:：()%]*'
             # 使用正则表达式查找所有匹配的变量名
             variables = re.findall(variable_pattern, format_str)
             return variables  # 直接返回找到的变量名列表，无需额外处理
@@ -123,12 +123,12 @@ class Variety:
                     # Field是公式表达的，进行解析计算
                     aeval = Interpreter()       
                     for var in variables_list:                    
-                        safe_var = re.sub(r'[0-9:()]', '', var)
+                        safe_var = re.sub(r'[0-9:：()]', '', var)
                         df.rename(columns={var:safe_var}, inplace=True)                             
                         if fill_na!='None':
                             df = _fill_na_data(df, fill_na, safe_var)
                         aeval.symtable[safe_var] = df[safe_var]
-                    safe_fields = re.sub(r'[0-9:]', '', fields)
+                    safe_fields = re.sub(r'[0-9:：]', '', fields)
                     df[key] = aeval.eval(safe_fields)
                     column_dict[df_name].append(key)
 
