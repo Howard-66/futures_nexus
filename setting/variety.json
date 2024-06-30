@@ -222,7 +222,7 @@
                 "Path": "data/黑色金属合集.csv",
                 "Field": "全国:进口铁矿石:库存消费比",
                 "Class": "RankColorIndicator",
-                "Direction": "Long",                
+                "Direction": "Short",                
                 "Chart": "Sub",
                 "Seasonal": true,
                 "Transform": "Fill_Forward",
@@ -824,7 +824,7 @@
                 "Class": "RankColorIndicator",
                 "Direction": "Long",
                 "Chart": "Sub",
-                "Seasonal": true,
+                "Seasonal": false,
                 "Transform": "None",
                 "DataFrame": "df_choice"
             }
@@ -970,7 +970,7 @@
                 "Path": "data/农产品合集.csv",
                 "Field": "南华指数：郑糖",
                 "Class": "RankColorIndicator",
-                "Direction": "Long",
+                "Direction": "Short",
                 "Chart": "Sub",
                 "Seasonal": true,
                 "Transform": "Fill_Forward",

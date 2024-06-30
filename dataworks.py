@@ -2,10 +2,12 @@ import pandas as pd
 import sqlite3
 import json
 import akshare as ak
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.pool import StaticPool
+from sqlalchemy.sql import text
 from functools import lru_cache
 import threading
+        
 
 class DataWorks:
     _instance = None
@@ -42,9 +44,10 @@ class DataWorks:
         # self.engine.dispose()
     
     @lru_cache(maxsize=128)  # 缓存常用查询
-    def get_data(self, table, condition, fields='*'):
+    def get_data(self, table, condition='', fields='*'):
         fields_str = fields if fields == '*' or isinstance(fields, str) else ', '.join(fields)
-        sql = f"SELECT {fields_str} FROM {table} WHERE {condition}"
+        where_sql = f" WHERE {condition}" if condition else ""
+        sql = f"SELECT {fields_str} FROM {table}{where_sql}"
         df = pd.read_sql_query(sql, self.conn)
         return df
         
@@ -106,8 +109,6 @@ class DataWorks:
         返回:
         - int, 表示被更新的记录数
         """
-        from sqlalchemy import Table, MetaData
-        from sqlalchemy.sql import text
         # 初始化 MetaData
         metadata = MetaData()
         # 使用autoload加载表结构
@@ -117,13 +118,41 @@ class DataWorks:
         # 执行更新操作并返回结果
         with self.engine.begin() as conn:
             result = conn.execute(update_stmt)
+        # 清除相关缓存
+        self.clear_cache()
+        return result.rowcount  # 返回被更新的行数
 
-        # result = self.conn.execute(update_stmt)
-        # self.conn.commit()  # 确保提交事务
+    def delete_data(self, table, condition):
+        """
+        从指定表中删除满足条件的记录。
+
+        参数:
+        - table: str, 数据表名
+        - condition: str, 用于识别要删除的记录的条件
+
+        返回:
+        - int, 表示被删除的记录数
+        """
+        # 初始化 MetaData
+        metadata = MetaData()
+        # 使用autoload加载表结构
+        table_ref = Table(table, metadata, autoload_with=self.engine)
+        # 构建删除语句
+        delete_stmt = table_ref.delete().where(text(condition))
+        # 执行删除操作并返回结果
+        with self.engine.begin() as conn:
+            result = conn.execute(delete_stmt)
+        # 清除相关缓存
+        self.clear_cache()
+        return result.rowcount  # 返回被删除的行数
+
+    def clear_cache(self):
+        """
+        清除所有缓存的查询结果，以确保数据的一致性。
+        """
         self.get_data.cache_clear()
         self.get_data_by_sql.cache_clear()
         self.get_data_by_symbol.cache_clear()
-        return result.rowcount  # 返回被更新的行数
 
     def get_variety_setting(self, json_file=''):
         if self.variety_setting is None:

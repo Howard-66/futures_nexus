@@ -240,14 +240,15 @@ note_cards = dmc.Stack(
                     variant="subtle",
                     id="new-note-button",
                 ),
-                dmc.ActionIcon(
-                    DashIconify(icon="carbon:list", width=24),
-                    size="sm",
-                    radius="sm",
-                    variant="subtle",
-                ),
+                # dmc.ActionIcon(
+                #     DashIconify(icon="carbon:list", width=24),
+                #     size="sm",
+                #     radius="sm",
+                #     variant="subtle",
+                # ),
+                dmc.Switch(label="全部商品", id="show-all-varieties", checked=False, labelPosition="left", radius="lg", size='xs'),
             ],
-            justify="flex-end",
+            justify="space-around",
             gap="xs",
         ),
         dmc.Divider(size="sm"),
@@ -274,7 +275,7 @@ note_cards = dmc.Stack(
                 ),
                 dmc.Select(
                     placeholder="类型",
-                    data = [{"value": v, "label": v} for v in ["进场关注", "加仓关注", "止盈/减仓", "止损/减仓"]],
+                    data = [{"value": v, "label": v} for v in ["行情跟踪","进场关注", "加仓关注", "止盈/减仓", "止损/减仓", "过期关闭"]],
                     clearable=True,
                     size="xs",
                     radius="sm",
@@ -525,7 +526,9 @@ spec_pages = {
 }
 
 global_var = {
-    "pre_active_tab": None # 上一个激活的tab
+    "pre_active_tab": None,         # 上一个激活的tab
+    "current_edit_note": None,      # 当前编辑的笔记
+    "show_all_varieties": False,    # 是否显示所有品种的笔记
 }
 
 @app.callback(
@@ -672,9 +675,12 @@ def _create_note_card(date, variety_id, variety_name, type, content, like=0, dis
     )
     return card
 
-def _create_note_list(variety_id):
+def _create_note_list(variety_id=None):
     with DataWorks() as dws:
-        df_note_list = dws.get_data_by_symbol('notes', variety_id)
+        if variety_id:
+            df_note_list = dws.get_data_by_symbol('notes', variety_id)
+        else:
+            df_note_list = dws.get_data('notes')
         variety_id_name_map, variety_name_id_map = dws.get_variety_map()        
     new_note_list = []
     for index, row in df_note_list.iterrows():
@@ -809,6 +815,8 @@ def update_variety(to_active_tab, tab_list):
     
     # 更新全局变量中之前激活的标签信息
     global_var["pre_active_tab"] = to_active_tab
+    show_all = global_var["show_all_varieties"]
+    to_active_tab = None if show_all else to_active_tab
     note_list = _create_note_list(to_active_tab)
     
     return pathname, search, sidebar_analysis_tab, tab_list, note_list
@@ -830,6 +838,21 @@ def remove_tab(n_clicks, value, data):
     return data, active_value
 
 @app.callback(
+    Output("note-list", "children", allow_duplicate=True),
+    Input("show-all-varieties", "checked"),
+    State("_pages_location", "search"),
+)
+def show_all_varieties(show_all, search):
+    if show_all:
+        note_list = _create_note_list()
+    else:
+        match = re.search(r'variety_id=([A-Za-z]+)', search)
+        variety_id = match.group(1) if match else None
+        note_list = _create_note_list(variety_id)
+    global_var["show_all_varieties"] = show_all
+    return note_list
+
+@app.callback(
     Output("note-date-input", "value"),
     Output("note-type-select", "value"),
     Output("content-textarea", "value"),
@@ -837,11 +860,36 @@ def remove_tab(n_clicks, value, data):
     Output("remove-note-button", "children"),
     Input("new-note-button", "n_clicks")
 )
-def reset_note(n_clicks):
+def new_note(n_clicks):
+    global_var["current_edit_note"] = None
     return datetime.now().date(), None, '', '添加', '重置'
 
 @app.callback(
+    Output("note-date-input", "value", allow_duplicate=True),
+    Output("note-type-select", "value", allow_duplicate=True),
+    Output("content-textarea", "value", allow_duplicate=True),
     Output("note-list", "children", allow_duplicate=True),
+    Input("remove-note-button", "n_clicks"),
+    State("remove-note-button", "children"),
+)
+def remove_or_reset_note(n_clicks, mode):
+    if mode=='重置':
+        return datetime.now().date(), None, '', dash.no_update
+    elif mode=='删除':
+        current_note = global_var["current_edit_note"]
+        if current_note is None:
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        variety_id, date = current_note
+        with DataWorks() as dws:
+            dws.delete_data('notes', f"variety='{variety_id}' AND date='{date}'")
+            show_all = global_var["show_all_varieties"]
+            variety_id = None if show_all else variety_id
+            note_list = _create_note_list(variety_id)
+        return datetime.now().date(), None, '', note_list
+
+@app.callback(
+    Output("note-list", "children", allow_duplicate=True),
+    Output("save-note-button", "children", allow_duplicate=True),
     Input("save-note-button", "n_clicks"),
     State("note-date-input", "value"),
     State("note-type-select", "value"),
@@ -852,17 +900,17 @@ def reset_note(n_clicks):
 )
 def save_note(n_clicks, date, type, content, mode, search, note_list):    
     if type is None or content is None:
-        return dash.no_update
-    match = re.search(r'variety_id=([A-Za-z]+)', search)
-    if match:
-        variety_id = match.group(1)
-    else:
-        return dash.no_update
+        return dash.no_update, dash.no_update
     
     with DataWorks() as dws:
-        variety_id_name_map, variety_name_id_map = dws.get_variety_map()
-        variety_name = variety_id_name_map[variety_id]
         if mode=='添加':
+            match = re.search(r'variety_id=([A-Za-z]+)', search)
+            if match:
+                variety_id = match.group(1)
+            else:
+                return dash.no_update, dash.no_update
+            variety_id_name_map, variety_name_id_map = dws.get_variety_map()
+            variety_name = variety_id_name_map[variety_id]
             df = pd.DataFrame({
                 'date': [date],
                 'user': [CurrentUser],
@@ -876,17 +924,23 @@ def save_note(n_clicks, date, type, content, mode, search, note_list):
             dws.save_data(df, 'notes', mode='append')
             new_card = _create_note_card(date, variety_id, variety_name, type, content)
             note_list.append(new_card)
-            return note_list
+            return note_list, '保存'
         elif mode=='保存':
+            current_note = global_var["current_edit_note"]
+            if current_note is None:
+                return dash.no_update, dash.no_update
+            variety_id, date = current_note
             note_dict = {
                 'type': type,
                 'content': content,
             }
             dws.update_data('notes', note_dict, f"variety='{variety_id}' AND date='{date}'")
+            show_all = global_var["show_all_varieties"]
+            variety_id = None if show_all else variety_id
             updated_note_list = _create_note_list(variety_id)
-            return updated_note_list
+            return updated_note_list, dash.no_update
         else:
-            return dash.no_update
+            return dash.no_update, dash.no_update
 
 # 编辑按钮回调
 @app.callback(
@@ -915,6 +969,7 @@ def edit_note(n_clicks, index):
         if match:
             index_value = match.group(1)
             variety_id, date = index_value.split('.')
+            global_var["current_edit_note"] = (variety_id, date)
             with DataWorks() as dws:
                 df_note = dws.get_data('notes', f"variety='{variety_id}' AND date='{date}'")
             note = df_note.iloc[0]
