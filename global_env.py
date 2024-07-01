@@ -34,7 +34,7 @@ OverBuy = 0.8
 OverSell = 0.2
 
 # 主内容背景颜色
-MainContentBGColor = "#f5f5f5"
+MainContentBGColor = "#eaf4fc"
 # 多头主配色
 PrimaryLongColor = "#FF434D"
 # 多头次配色

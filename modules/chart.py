@@ -3,7 +3,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import global_env as ge
 
-# 实现 IndicatorManager 类
+# 实现 ChartManager 类
 class ChartManager:
     PaddingY = 0.05
 
@@ -15,6 +15,7 @@ class ChartManager:
         self.sub_list = []
         self.data_index = variety.symbol_setting['DataIndex']         
         self.main_figure = None   
+        self.show_spot_months = True
 
     def load_indicators(self):
         for key, item in self.data_index.items():
@@ -78,10 +79,6 @@ class ChartManager:
         if self.main_figure is None:
             self.main_figure = self._create_main_figure()
 
-        padding_buttom = 0.98
-        padding_top = 1.02
-        padding = 1.05
-        padding_offset = 0.05
         # 更新主图第一个坐标轴
         first_indicator_name = self.main_list[0]
         min_y, max_y = _get_y_range(first_indicator_name)
@@ -163,7 +160,21 @@ class ChartManager:
                 # bordercolor='LightSteelBlue',
                 # borderwidth=0
             ),
+            shapes=[],
         )
+        if self.show_spot_months and self.variety.spot_months is not None:
+            for _, row in self.variety.spot_months.iterrows():
+                self.main_figure.add_shape(
+                    # 矩形
+                    type="rect",
+                    x0=row['Start Date'], x1=row['End Date'],
+                    y0=0, y1=1,
+                    xref='x', yref='paper',
+                    fillcolor="LightBlue", opacity=0.2,
+                    line_width=0,
+                    layer="below"
+                )
+
         self.main_figure.update_annotations(dict(
             x=0,  # x=0 表示最左边
             xanchor='left',  # 锚点设置为左边

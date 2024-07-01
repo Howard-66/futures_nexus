@@ -367,9 +367,8 @@ seg_variety = dmc.SegmentedControl(
         {"value": "market_overview", "label": "市场全景"},
     ],
     # mt=10,
-    # color="#E0E0E0",
-    color="blue"
-    # style={"backgroundColor": PageBackgroundColor}
+    color=ge.PrimaryLineColor,
+    style={"backgroundColor": ge.MainContentBGColor}
 ),
 
 favorite_toggle = dmc.ActionIcon(
@@ -420,7 +419,7 @@ tab_bar = dmc.Grid(
 page_content = dmc.Stack(
     children=[
         tab_bar,
-        dmc.Divider(variant="solid"),                    
+        dmc.Divider(variant="solid", size="sm"),                    
         dash.page_container,
     ],
     gap=0,

@@ -5,7 +5,8 @@ import re
 from asteval import Interpreter
 import dataworks as dw
 import os
-import time
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 class Variety:
     def __init__(self, id, name=''):
@@ -158,3 +159,39 @@ class Variety:
             self.trade_breaks = list(set(dt_all) - set(trade_date))    
             dws.close()     
         return self.trade_breaks
+    
+    def get_spot_months(self, previous_months=2):
+        '''根据主力合约的月份,生成起对应的现货月序列
+
+        Returns:
+            无返回值,结果保存在类成员变量spot_months中
+        '''    
+        def _dominant_months(year, month, previous_months):
+            """计算主力合约月份的前几个月的日期范围,
+            一般情况下,主力合约在进入交割月之前的2个月遵循产业逻辑进行修复基差,因此这段时间非常适合进行以基差分析为基础的交易,
+
+            Args:
+                year (int): 主力合约的年份,
+                month (int): 主力合约的月份,
+                previous_monts (int): 需要向前追溯的月份数量,
+            Returns:
+                tuple: 返回开始日期和结束日期,
+            """
+            # 创建一个日期对象,代表主力合约月份的第一天
+            contract_date = datetime(year, month, 1)
+            # 使用dateutil的relativedelta函数,计算两个月前的日期
+            start_date = contract_date - relativedelta(months=previous_months)
+            # 计算结束日期,即主力合约月份的前一天
+            end_date = contract_date - relativedelta(days=1)
+            return start_date, end_date    
+        
+        dominant_months = self.symbol_setting['DominantMonths']
+        close_price = self.data_source['收盘价']
+        years = close_price['date'].dt.year.unique()
+        self.spot_months = pd.DataFrame(columns=['Year', 'Contract Month', 'Start Date', 'End Date'])
+        for year in years:
+            for month in dominant_months:
+                start_date, end_date = _dominant_months(year, month, previous_months)
+                new_row = pd.DataFrame({'Year': [year], 'Contract Month': [month], 'Start Date': [start_date], 'End Date': [end_date]})
+                # if not new_row.isnull().all().all():
+                self.spot_months = pd.concat([self.spot_months, new_row], ignore_index=True)

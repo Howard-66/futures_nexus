@@ -93,14 +93,14 @@ class VarietyPage:
         self.main_content = None
         symbol = Variety(name)
         symbol.load_data()        
+        spot_trading_months = symbol.symbol_setting.get('SpotMonths', 2)
+        symbol.get_spot_months(spot_trading_months)
         # symbol.get_spot_months() # TODO
         with DataWorks() as dws:
             symbol.variety_data = dws.get_data_by_symbol(symbol.symbol_setting['ExchangeID'], symbol.id)
             symbol.variety_data['date'] = pd.to_datetime(symbol.variety_data['date'], format='ISO8601')
-            self.symbol = symbol
             self.chart_manager = ChartManager(symbol)
             self.chart_manager.load_indicators()
-
             self.look_forward_months = 0
             # self.main_figure = None
             self.on_layout = False
@@ -112,9 +112,9 @@ class VarietyPage:
         if symbol.id not in user_setting['Variety']:
             user_setting['Variety'][symbol.id] = {}
             # dws.save_json_setting(self.user_json, user_setting)        
+        self.symbol = symbol
         self.user_setting = user_setting  
         self.main_figure = None
-        dws.close()
  
     def create_analyzing_layout(self):
         all_fields = self.chart_manager.sub_list
@@ -126,78 +126,85 @@ class VarietyPage:
             [
                 # 图表配置面板
                 dmc.Space(h=2),
-                dmc.Group(
-                    [
-                        dmc.Popover(
-                            [
-                                dmc.PopoverTarget(
-                                    dmc.Button("指标", leftSection=DashIconify(icon="material-symbols-light:table-chart-view-outline", width=20), variant='subtle', size='sm')),
-                                dmc.PopoverDropdown(
-                                    [
-                                        dmc.CheckboxGroup(
-                                            id="show-indicators",
-                                            label="选择要显示的指标",
-                                            mb=10,
-                                            children=dmc.Stack(
-                                                [dmc.Checkbox(label=l, value=l) for l in all_fields] + 
-                                                [
-                                                    dmc.Group(
-                                                        [
-                                                            dmc.Text('指标回溯周期', size='sm'),
-                                                            dmc.Select(
-                                                                size='sm',
-                                                                data=[
-                                                                    {'label': '6个月', 'value': "120"},
-                                                                    {'label': '1年', 'value': "240"},
-                                                                    {'label': '2年', 'value': "480"},
-                                                                    {'label': '3年', 'value': "720"},
-                                                                    {'label':'5年', 'value': "1200"},
-                                                                    {'label':'全部', 'value': "0"}],
-                                                                value="240",
-                                                                id='traceback-window',
-                                                                style={'width': 80}
-                                                            ),  
-                                                        ]
-                                                    )                                                  
-                                                ],
-                                                mt=10,
+                dmc.Paper(
+                    dmc.Group(
+                        [
+                            dmc.Popover(
+                                [
+                                    dmc.PopoverTarget(
+                                        dmc.Button("指标", leftSection=DashIconify(icon="material-symbols-light:table-chart-view-outline", width=20), variant='subtle', size='sm')),
+                                    dmc.PopoverDropdown(
+                                        [
+                                            dmc.CheckboxGroup(
+                                                id="show-indicators",
+                                                label="选择要显示的指标",
+                                                mb=10,
+                                                children=dmc.Stack(
+                                                    [dmc.Checkbox(label=l, value=l) for l in all_fields] + 
+                                                    [
+                                                        dmc.Group(
+                                                            [
+                                                                dmc.Text('指标回溯周期', size='sm'),
+                                                                dmc.Select(
+                                                                    size='sm',
+                                                                    data=[
+                                                                        {'label': '6个月', 'value': "120"},
+                                                                        {'label': '1年', 'value': "240"},
+                                                                        {'label': '2年', 'value': "480"},
+                                                                        {'label': '3年', 'value': "720"},
+                                                                        {'label':'5年', 'value': "1200"},
+                                                                        {'label':'全部', 'value': "0"}],
+                                                                    value="240",
+                                                                    id='traceback-window',
+                                                                    style={'width': 80}
+                                                                ),  
+                                                            ]
+                                                        )                                                  
+                                                    ],
+                                                    mt=10,
+                                                ),
+                                                value=show_fields,
                                             ),
-                                            value=show_fields,
-                                        ),
-                                    ]
-                                )
-                            ],
-                            width=300,
-                            position="bottom-start",
-                            withArrow=True,
-                            arrowPosition="center",
-                            trapFocus=True,
-                            shadow="sm",                            
-                        ),
-                        # dmc.Divider(orientation='vertical'),
-                        # dmc.Text("价格类型:", size='xs'),
-                        # dmc.Select(
-                        #     size='xs',
-                        #     data=[
-                        #         {'label': '主力合约', 'value': '主力合约'},
-                        #         {'label': '近月合约', 'value': '近月合约'}],
-                        #     value='主力合约',
-                        #     id='price-type',
-                        #     style={'width': 100}
-                        # ),
-                        dmc.Divider(orientation='vertical'),
-                        dmc.ActionIcon(
-                            DashIconify(icon="iconamoon:zoom-in-light", width=20),
-                            variant="subtle",
-                        ),
-                        dmc.ActionIcon(
-                            DashIconify(icon="iconamoon:zoom-out-light", width=20),
-                            variant="subtle",
-                        ),
-                        dmc.Divider(orientation='vertical'),
-                        dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, labelPosition="left", radius="lg", size='xs'),                        
-                    ],
-                    gap="xs",
+                                        ]
+                                    )
+                                ],
+                                width=300,
+                                position="bottom-start",
+                                withArrow=True,
+                                arrowPosition="center",
+                                trapFocus=True,
+                                shadow="sm",                            
+                            ),
+                            # dmc.Divider(orientation='vertical'),
+                            # dmc.Text("价格类型:", size='xs'),
+                            # dmc.Select(
+                            #     size='xs',
+                            #     data=[
+                            #         {'label': '主力合约', 'value': '主力合约'},
+                            #         {'label': '近月合约', 'value': '近月合约'}],
+                            #     value='主力合约',
+                            #     id='price-type',
+                            #     style={'width': 100}
+                            # ),
+                            dmc.Divider(orientation='vertical'),
+                            dmc.ActionIcon(
+                                DashIconify(icon="iconamoon:zoom-in-light", width=20),
+                                variant="subtle",
+                            ),
+                            dmc.ActionIcon(
+                                DashIconify(icon="iconamoon:zoom-out-light", width=20),
+                                variant="subtle",
+                            ),
+                            dmc.Divider(orientation='vertical'),
+                            dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, labelPosition="left", radius="lg", size='xs'),                        
+                        ],
+                        gap="xs",
+                    ),
+                    shadow="xs",
+                    radius="xs",
+                    p=0,
+                    withBorder=False,
+                    className="background_container",
                 ),
                 # 图表面板
                 dmc.LoadingOverlay(

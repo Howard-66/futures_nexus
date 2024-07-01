@@ -473,7 +473,7 @@ def download():
             globals()[key]()
 
 if __name__ == '__main__':
-    download()
+    # download()
     print('Convert xlsx to csv...')
     convert_xlsx_to_csv('.')
     dws.close()
