@@ -170,7 +170,7 @@ class ChartManager:
                     x0=row['Start Date'], x1=row['End Date'],
                     y0=0, y1=1,
                     xref='x', yref='paper',
-                    fillcolor="LightBlue", opacity=0.2,
+                    fillcolor="LightBlue", opacity=0.1,
                     line_width=0,
                     layer="below"
                 )

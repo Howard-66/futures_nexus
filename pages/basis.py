@@ -129,6 +129,10 @@ class VarietyPage:
                 dmc.Paper(
                     dmc.Group(
                         [
+                            dmc.ActionIcon(
+                                DashIconify(icon="ri:stock-line", width=20),
+                                variant="subtle",
+                            ),
                             dmc.Popover(
                                 [
                                     dmc.PopoverTarget(
@@ -196,9 +200,26 @@ class VarietyPage:
                                 variant="subtle",
                             ),
                             dmc.Divider(orientation='vertical'),
-                            dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, labelPosition="left", radius="lg", size='xs'),                        
+                            dmc.Switch(label="现货交易月", id="mark-spot-months", checked=True, labelPosition="left", radius="lg", size='xs'),            
+                            dmc.Divider(orientation='vertical'),
+                            dmc.ActionIcon(
+                                DashIconify(icon="icon-park-outline:notebook", width=20),
+                                variant="subtle",
+                            ),
+                            dmc.ActionIcon(
+                                DashIconify(icon="icon-park-outline:order", width=20),
+                                variant="subtle",
+                            ),
+                            dmc.ActionIcon(
+                                DashIconify(icon="iconoir:long-arrow-right-up", width=20),
+                                variant="subtle",
+                            ),
+                            dmc.ActionIcon(
+                                DashIconify(icon="iconoir:long-arrow-right-down", width=20),
+                                variant="subtle",
+                            ),
                         ],
-                        gap="xs",
+                        gap=2,
                     ),
                     shadow="xs",
                     radius="xs",
