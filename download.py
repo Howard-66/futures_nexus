@@ -431,6 +431,28 @@ def get_term_spread_period():
                 df_term_spread = pd.concat([df_term_spread, pd.DataFrame([new_row])], ignore_index=True)    
     dws.save_data(df_term_spread, 'spread', 'append')
 
+def get_fees_info():
+    futures_fees_info_df = ak.futures_fees_info()
+    futures_fees_info_df = futures_fees_info_df[futures_fees_info_df['交易所'].isin(['SHFE', 'DCE', 'CZCE'])]
+    df_fees = dws.get_data('fees')
+    # 根据“合约”字段，将futures_fees_info_df和df_fees合并去重
+    df_fees_merge = pd.concat([df_fees, futures_fees_info_df], ignore_index=True)
+    df_fees_merge.drop_duplicates(subset=['合约'], inplace=True, keep='last')
+    df_fees_merge.rename(columns={
+        '开仓费/手': '每手开仓费',
+        '平仓费/手': '每手平仓费',
+        '平今仓费/手': '每手平今仓费',
+        '1手开仓手续费': '每手开仓手续费',
+        '1手平仓手续费': '每手平仓手续费',
+        '1手平今仓手续费': '每手平今仓手续费',
+        '做多保证金/手': '每手做多保证金',
+        '做空保证金/手': '每手做空保证金',
+        '做多1手保证金': '做多每手保证金',
+        '做空1手保证金': '做空每手保证金',
+        '1Tick盈亏': '每Tick盈亏'
+    }, inplace=True)
+    dws.save_data(df_fees_merge, 'fees', 'replace')
+
 # Excel文件格式转换
 import os
 import pandas as pd
@@ -462,7 +484,8 @@ download_config = {
     'get_receipt': '获取注册仓单',
     'get_basis': '获取基差数据',
     'get_term_structure_period': '获取跨期结构',
-    'get_term_spread_period': '获取跨期价差'
+    'get_term_spread_period': '获取跨期价差',
+    'get_fees_info': '获取手续费和保证金信息'
 }
 def download():
     # 根据download_config中key的顺序执行函数
@@ -473,7 +496,7 @@ def download():
             globals()[key]()
 
 if __name__ == '__main__':
-    # download()
+    download()
     print('Convert xlsx to csv...')
     convert_xlsx_to_csv('.')
     dws.close()

@@ -5,9 +5,10 @@ import akshare as ak
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.sql import text
+from sqlalchemy.orm import sessionmaker
 from functools import lru_cache
 import threading
-        
+
 
 class DataWorks:
     _instance = None
@@ -27,6 +28,8 @@ class DataWorks:
             connect_args={'check_same_thread': False},
             poolclass=StaticPool
         )
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
         self.conn = self.engine.connect()
         # self.conn = sqlite3.connect('data/futures.db')
         self.variety_setting = None
@@ -145,6 +148,10 @@ class DataWorks:
         # 清除相关缓存
         self.clear_cache()
         return result.rowcount  # 返回被删除的行数
+
+    def get_orm_data(self, class_name,  **kwargs):
+        result = self.session.query(class_name).filter_by(**kwargs).first()
+        return result
 
     def clear_cache(self):
         """
