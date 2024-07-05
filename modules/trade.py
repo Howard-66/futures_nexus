@@ -1,19 +1,40 @@
 import sqlite3
 import pandas as pd
 from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime, Enum
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 import plotly.graph_objects as go
+from dataworks import DataWorks
 
 Base = declarative_base()
 
 class ContractInfo(Base):
-    __tablename__ = 'contract_info'
-    id = Column(Integer, primary_key=True)
-    contract = Column(String, unique=True)
-    multiplier = Column(Float)
-    margin_rate = Column(Float)
-    fee = Column(Float)
+    __tablename__ = 'fees'
+    
+    交易所 = Column(String)                # 交易所
+    合约 = Column(String, primary_key=True, unique=True)   # 合约
+    合约名称 = Column(String)           # 合约名称
+    品种 = Column(String)                 # 品种
+    合约乘数 = Column(Float)               # 合约乘数
+    开仓费率 = Column(Float)            # 开仓费率
+    每手开仓费 = Column(Float)        # 开仓费/手
+    平仓费率 = Column(Float)           # 平仓费率
+    每手平仓费 = Column(Float)       # 平仓费/手
+    平今仓费率 = Column(Float)     # 平今仓费率
+    每手平今仓费 = Column(Float) # 平今仓费/手
+    # 上日结算价 = Column(Float)    # 上日结算价
+    # 成交量 = Column(Integer)                 # 成交量
+    # 空盘量 = Column(Integer)          # 空盘量
+    每手开仓手续费 = Column(Float)        # 1手开仓手续费
+    每手平仓手续费 = Column(Float)       # 1手平仓手续费
+    每手平今仓手续费 = Column(Float) # 1手平今仓手续费
+    做多保证金率 = Column(Float)         # 做多保证金率
+    每手做多保证金 = Column(Float)     # 做多保证金/手
+    做空保证金率 = Column(Float)        # 做空保证金率
+    每手做空保证金 = Column(Float)    # 做空保证金/手
+    做多每手保证金 = Column(Float)     # 做多1手保证金
+    做空每手保证金 = Column(Float)    # 做空1手保证金
+    最小变动价位 = Column(Float)       # 最小变动价位
+    每Tick盈亏 = Column(Float)             # 1Tick盈亏
 
 class TradingPlan(Base):
     __tablename__ = 'trading_plan'
@@ -49,21 +70,27 @@ class TradingPlanManager:
         self.max_loss_ratio = max_loss_ratio
 
     def get_contract_info(self, contract):
-        return self.session.query(ContractInfo).filter_by(contract=contract).first()
+        with DataWorks() as dws:
+            contract_info = dws.get_orm_data(ContractInfo, contract)
+        return contract_info
 
     def calculate_position(self, contract, entry_price, stop_loss_price):
-        contract_info = self.get_contract_info(contract)
+        with DataWorks() as dws:
+            contract_info = dws.get_orm_data(ContractInfo, contract)
         max_loss_amount = self.initial_capital * self.max_loss_ratio
-        point_value = contract_info.multiplier
+        point_value = contract_info.合约乘数
         stop_loss_points = abs(entry_price - stop_loss_price)
         position_size = max_loss_amount / (stop_loss_points * point_value)
         return position_size
 
     def add_trading_plan(self, contract, direction, entry_price, take_profit_price, stop_loss_price):
+        with DataWorks() as dws:
+            contract_info = dws.get_orm_data(ContractInfo, contract)
+        point_value = contract_info.合约乘数
         position_size = self.calculate_position(contract, entry_price, stop_loss_price)
         risk_reward_ratio = abs(take_profit_price - entry_price) / abs(entry_price - stop_loss_price)
-        expected_profit = (take_profit_price - entry_price) * position_size * self.get_contract_info(contract).multiplier
-        expected_loss = (entry_price - stop_loss_price) * position_size * self.get_contract_info(contract).multiplier
+        expected_profit = (take_profit_price - entry_price) * position_size * point_value
+        expected_loss = (entry_price - stop_loss_price) * position_size * point_value
         new_plan = TradingPlan(contract=contract, direction=direction, entry_price=entry_price,
                                take_profit_price=take_profit_price, stop_loss_price=stop_loss_price,
                                position_size=position_size, risk_reward_ratio=risk_reward_ratio,
@@ -72,28 +99,27 @@ class TradingPlanManager:
         self.session.commit()
     
     def update_trading_plan(self, plan_id, **kwargs):
-        plan = self.session.query(TradingPlan).filter_by(id=plan_id).first()
-        for key, value in kwargs.items():
-            setattr(plan, key, value)
-        self.session.commit()
-    
+        with DataWorks() as dws:
+            dws.update_orm_data(TradingPlan, plan_id, **kwargs)
+
     def delete_trading_plan(self, plan_id):
-        plan = self.session.query(TradingPlan).filter_by(id=plan_id).first()
-        self.session.delete(plan)
-        self.session.commit()
+        with DataWorks() as dws:
+            dws.delete_orm_data(TradingPlan, plan_id)
 
     def query_trading_plan(self, plan_id):
-        return self.session.query(TradingPlan).filter_by(id=plan_id).first()
+        with DataWorks() as dws:
+            plan = dws.get_orm_data(TradingPlan, plan_id)
+        return plan
 
     def execute_trade(self, plan_id, batch, date, entry_price, exit_price, position_size):
         pnl = (exit_price - entry_price) * position_size * self.get_contract_info(self.query_trading_plan(plan_id).contract).multiplier
         new_execution = TradeExecution(plan_id=plan_id, batch=batch, date=date, entry_price=entry_price, exit_price=exit_price, position_size=position_size, pnl=pnl)
-        self.session.add(new_execution)
-        self.session.commit()
+        with DataWorks() as dws:
+            dws.add_orm_data(new_execution)
 
     def plot_trading_plan(self, plan_id):
-        plan = self.query_trading_plan(plan_id)
-        executions = self.session.query(TradeExecution).filter_by(plan_id=plan_id).all()
+        with DataWorks() as dws:
+            executions = dws.query_orm_datas(TradeExecution, plan_id)
         
         entry_prices = [execution.entry_price for execution in executions]
         exit_prices = [execution.exit_price for execution in executions]

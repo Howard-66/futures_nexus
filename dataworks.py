@@ -67,7 +67,7 @@ class DataWorks:
         return df
 
     def save_data(self, df, to_table, mode='replace'):
-        df.to_sql(to_table, self.engine, if_exists=mode, index=False)
+r        df.to_sql(to_table, self.engine, if_exists=mode, index=False)
 
     @lru_cache(maxsize=128)  # 缓存常用查询
     def get_last_date(self, table, symbol_id=None, date_field='date'):
@@ -149,10 +149,40 @@ class DataWorks:
         self.clear_cache()
         return result.rowcount  # 返回被删除的行数
 
+    def add_orm_data(self, orm_object):
+        self.session.add(orm_object)
+        self.session.commit()
     def get_orm_data(self, class_name,  **kwargs):
         result = self.session.query(class_name).filter_by(**kwargs).first()
-        return result
+        if result:
+            return result
+        else:
+            raise ValueError(f"{class_name} with {kwargs} not found.")
 
+    def query_orm_datas(self, class_name, **kwargs):
+        results = self.session.query(class_name).filter_by(**kwargs).all()
+        if results:
+            return results
+        else:
+            raise ValueError(f"{class_name} with {kwargs} not found.")
+
+    def update_orm_data(self, class_name, id, **kwargs):
+        result = self.session.query(class_name).filter_by(id=id).first()
+        if result:
+            for key, value in kwargs.items():
+                setattr(result, key, value)
+            self.session.commit()
+        else:
+            raise ValueError(f"{class_name} with id {id} not found.")
+    
+    def delete_orm_data(self, class_name, id):
+        result = self.session.query(class_name).filter_by(id=id).first()
+        if result:
+            self.session.delete(result)
+            self.session.commit()
+        else:
+            raise ValueError(f"{class_name} with id {id} not found.")
+    
     def clear_cache(self):
         """
         清除所有缓存的查询结果，以确保数据的一致性。
