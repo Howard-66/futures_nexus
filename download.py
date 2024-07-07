@@ -434,23 +434,10 @@ def get_term_spread_period():
 def get_fees_info():
     futures_fees_info_df = ak.futures_fees_info()
     futures_fees_info_df = futures_fees_info_df[futures_fees_info_df['交易所'].isin(['SHFE', 'DCE', 'CZCE'])]
-    futures_fees_info_df.rename(columns={
-        '开仓费/手': '每手开仓费',
-        '平仓费/手': '每手平仓费',
-        '平今仓费/手': '每手平今仓费',
-        '1手开仓手续费': '每手开仓手续费',
-        '1手平仓手续费': '每手平仓手续费',
-        '1手平今仓手续费': '每手平今仓手续费',
-        '做多保证金/手': '每手做多保证金',
-        '做空保证金/手': '每手做空保证金',
-        '做多1手保证金': '做多每手保证金',
-        '做空1手保证金': '做空每手保证金',
-        '1Tick盈亏': '每Tick盈亏'
-    }, inplace=True)
+    futures_fees_info_df.columns = [col.replace('（', '_').replace('）', '') for col in futures_fees_info_df.columns]
     df_fees = dws.get_data('fees')
-    # 根据“合约”字段，将futures_fees_info_df和df_fees合并去重
     df_fees_merge = pd.concat([df_fees, futures_fees_info_df], ignore_index=True)
-    df_fees_merge.drop_duplicates(subset=['合约'], inplace=True, keep='last')
+    df_fees_merge.drop_duplicates(subset=['合约代码'], inplace=True, keep='last')
     dws.save_data(df_fees_merge, 'fees', 'replace')
 
 # Excel文件格式转换
@@ -475,16 +462,16 @@ def convert_xlsx_to_csv(directory):
                 print(f"Converted {xlsx_path} to {csv_path}")
 
 download_config = {
-    # 'get_dce_contract': '获取DCE合约',
-    # 'get_czce_contract': '获取CZCE合约',
-    # 'get_shfe_contract': '获取SHFE合约',
-    # # 'get_contract_info': '获取合约信息',
-    # 'get_main_contract': '获取主力合约',
-    # 'get_near_contract': '获取次主力合约',
-    # 'get_receipt': '获取注册仓单',
-    # 'get_basis': '获取基差数据',
-    # 'get_term_structure_period': '获取跨期结构',
-    # 'get_term_spread_period': '获取跨期价差',
+    'get_dce_contract': '获取DCE合约',
+    'get_czce_contract': '获取CZCE合约',
+    'get_shfe_contract': '获取SHFE合约',
+    # 'get_contract_info': '获取合约信息',
+    'get_main_contract': '获取主力合约',
+    'get_near_contract': '获取次主力合约',
+    'get_receipt': '获取注册仓单',
+    'get_basis': '获取基差数据',
+    'get_term_structure_period': '获取跨期结构',
+    'get_term_spread_period': '获取跨期价差',
     'get_fees_info': '获取手续费和保证金信息'
 }
 def download():
