@@ -228,6 +228,8 @@ market_stepper_placeholder = dmc.Stepper(
     active=0,
 )
 
+default_note_text = "# 基本面:\n多头:\n空头:\n# 技术面:\n多头:\n空头:\n# 交易计划:\n进场点:\n止盈点:\n止损点:"
+
 note_cards = dmc.Stack(
     [
         dmc.Space(h=5),
@@ -290,7 +292,7 @@ note_cards = dmc.Stack(
         dmc.Textarea(
             id="content-textarea",
             # label="多空分析",
-            placeholder="多头:\n\n空头:\n\n交易计划:\n\n",
+            placeholder=default_note_text,
             autosize=True,
             minRows=6,
             maxRows=12,
@@ -814,6 +816,7 @@ def update_variety(to_active_tab, tab_list):
     
     # 更新全局变量中之前激活的标签信息
     global_var["pre_active_tab"] = to_active_tab
+    global_var["current_edit_note"] = None
     show_all = global_var["show_all_varieties"]
     to_active_tab = None if show_all else to_active_tab
     note_list = _create_note_list(to_active_tab)
@@ -861,7 +864,7 @@ def show_all_varieties(show_all, search):
 )
 def new_note(n_clicks):
     global_var["current_edit_note"] = None
-    return datetime.now().date(), None, '', '添加', '重置'
+    return datetime.now().date(), None, default_note_text, '添加', '重置'
 
 @app.callback(
     Output("note-date-input", "value", allow_duplicate=True),
@@ -873,7 +876,7 @@ def new_note(n_clicks):
 )
 def remove_or_reset_note(n_clicks, mode):
     if mode=='重置':
-        return datetime.now().date(), None, '', dash.no_update
+        return datetime.now().date(), None, default_note_text, dash.no_update
     elif mode=='删除':
         current_note = global_var["current_edit_note"]
         if current_note is None:
@@ -884,7 +887,7 @@ def remove_or_reset_note(n_clicks, mode):
             show_all = global_var["show_all_varieties"]
             variety_id = None if show_all else variety_id
             note_list = _create_note_list(variety_id)
-        return datetime.now().date(), None, '', note_list
+        return datetime.now().date(), None, default_note_text, note_list
 
 @app.callback(
     Output("note-list", "children", allow_duplicate=True),
