@@ -52,11 +52,11 @@ class DataWorks:
         where_sql = f" WHERE {condition}" if condition else ""
         sql = f"SELECT {fields_str} FROM {table}{where_sql}"
         df = pd.read_sql_query(sql, self.conn)
-        return df
+        return df.copy()
         
     @lru_cache(maxsize=128)  # 缓存常用查询
     def get_data_by_sql(self, sql):
-        return pd.read_sql_query(sql, self.conn)
+        return pd.read_sql_query(sql, self.conn).copy()
 
     @lru_cache(maxsize=128)  # 缓存常用查询
     def get_data_by_symbol(self, table, symbol_id, fields='*'):
@@ -64,7 +64,7 @@ class DataWorks:
         fields_str = fields if fields == '*' or isinstance(fields, str) else ', '.join(fields)
         sql = f"SELECT {fields_str} FROM {table} WHERE {condition}"
         df = pd.read_sql_query(sql, self.conn)
-        return df
+        return df.copy()
 
     def save_data(self, df, to_table, mode='replace'):
         df.to_sql(to_table, self.engine, if_exists=mode, index=False)
