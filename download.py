@@ -15,6 +15,9 @@ def get_dce_contract():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
+    if start_date > end_date:
+        print('No data to download')
+        return
     start_date = start_date.strftime('%Y%m%d')
     end_date = end_date.strftime('%Y%m%d')
     print('Current Period: ', start_date, end_date)
@@ -28,6 +31,9 @@ def get_czce_contract():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
+    if start_date > end_date:
+        print('No data to download')
+        return
     start_date = start_date.strftime('%Y%m%d')
     end_date = end_date.strftime('%Y%m%d')
     print('Current Period: ', start_date, end_date)
@@ -41,6 +47,9 @@ def get_shfe_contract():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
+    if start_date > end_date:
+        print('No data to download')
+        return
     start_date = start_date.strftime('%Y%m%d')
     end_date = end_date.strftime('%Y%m%d')
     print('Current Period: ', start_date, end_date)
@@ -69,6 +78,9 @@ def get_main_contract():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
+    if start_date > end_date:
+        print('No data to download')
+        return
     start_date = start_date.strftime('%Y%m%d')
     end_date = end_date.strftime('%Y%m%d')
     print('Current Period: ', start_date, end_date)
@@ -136,6 +148,9 @@ def get_receipt():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
+    if start_date > end_date:
+        print('No data to download')
+        return    
     start_date = start_date.strftime('%Y%m%d')
     end_date = end_date.strftime('%Y%m%d')
     print('Current Period: ', start_date, end_date)    
@@ -176,6 +191,9 @@ def get_basis():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
+    if start_date > end_date:
+        print('No data to download')
+        return
     delta = timedelta(days=1)
     dates = []
     while start_date <= end_date:
@@ -248,7 +266,9 @@ def get_term_structure_period():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
-
+    if start_date > end_date:
+        print('No data to download')
+        return
     # 格式化日期用于查询或文件名
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
@@ -374,7 +394,9 @@ def get_term_spread_period():
     last_date = pd.to_datetime(last_date)
     start_date = last_date + timedelta(days=1)
     end_date = datetime.now() - timedelta(days=1)
-
+    if start_date > end_date:
+        print('No data to download')
+        return
     # 格式化日期用于查询或文件名
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
@@ -474,7 +496,16 @@ download_config = {
     'get_term_spread_period': '获取跨期价差',
     'get_fees_info': '获取手续费和保证金信息'
 }
+
 def download():
+    """
+    根据download_config中key的顺序执行函数。
+    
+    本函数遍历download_config字典中的每个key，并检查该key是否在全局变量中存在。
+    如果存在，则执行与该key对应的函数。
+    已知问题：
+    1. get_near_contract缺少处理不需要更新数据的代码
+    """
     # 根据download_config中key的顺序执行函数
     for key in download_config.keys():
         if key in globals():
@@ -485,5 +516,5 @@ def download():
 if __name__ == '__main__':
     download()
     print('Convert xlsx to csv...')
-    convert_xlsx_to_csv('.')
+    # convert_xlsx_to_csv('.')
     dws.close()
