@@ -3,6 +3,7 @@ import dash_mantine_components as dmc
 import dataworks as dw
 from dash import Dash, dcc, html, Input, Output, callback
 import plotly.express as px
+import pandas as pd
 
 dash.register_page(__name__, path="/", title='Futures Nexus: 市场全景')
 
@@ -63,6 +64,26 @@ class MarketOverviewPage:
                 sql = f"SELECT d.*, s.name, s.chain FROM dominant AS d INNER JOIN symbols AS s ON d.variety = s.code WHERE d.date = '{last_date}'"
                 self.heatmap_data = dws.get_data_by_sql(sql)  # 执行SQL查询并将结果存储在成员变量中
 
+        # 检查所选类型的数据是否全部为零
+        if self.heatmap_data[type].sum() == 0:
+            # 创建空数据提示图
+            fig = px.treemap(
+                pd.DataFrame({'message': ['无可用数据']}),
+                path=['message'],
+                values=[1],
+                color=[1],
+                color_continuous_scale='bupu'
+            )
+            fig.update_layout(
+                margin = dict(t=0, l=0, r=0, b=0),
+                coloraxis_showscale=False,
+            )
+            fig.update_traces(
+                hovertemplate="<b>%{label}</b><extra></extra>",
+                textinfo="label"
+            )
+            return fig
+            
         # 使用Plotly Express创建热力图
         fig = px.treemap(self.heatmap_data, path=[px.Constant("市场热力图"), 'chain', 'name'], values=type,
                         color=type, 
